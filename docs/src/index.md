@@ -1,0 +1,3 @@
+# MolecularGraphKernels.jl
+
+@autodocs

@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push: # run on push to master
+    branches: [ master ]
+  pull_request: # run on PR against master
+    branches: [ master ]
+  workflow_dispatch: # run on button-press in Actions tab
+
+concurrency: # only allow the most recent workflow to execute
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env: # environment variables
+  julia_version: '1.8.1' # julia version to use on all runners (except cross-platform)
+
+
+jobs: # run in parallel within workflow
+
+  unit-and-doc-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps: # run in series within job
+      - name: checkout commit
+        uses: actions/checkout@master
+
+      - name: set up Julia
+        uses: julia-actions/setup-julia@latest
+        with:
+          version: ${{ env.julia_version }}
+      
+      - name: build package
+        uses: julia-actions/julia-buildpkg@latest
+
+      - name: install dependencies
+        run: julia --project --color=yes -e 'import Pkg; Pkg.add.(["Documenter", "Coverage"])'
+
+      - name: test # run the unit tests
+        run: julia --project --color=yes --code-coverage -e 'import Pkg; Pkg.test(coverage=true)'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+      
+      - name: process test coverage
+        uses: julia-actions/julia-processcoverage@v1
+
+      - name: upload coverage report
+        uses: codecov/codecov-action@v2
+        with:
+          verbose: true  
+
+  aqua-jl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: checkout commit
+        uses: actions/checkout@v2
+
+      - name: set up Julia
+        uses: julia-actions/setup-julia@latest
+        with:
+          version: ${{ env.julia_version }}
+
+      - name: build package
+        uses: julia-actions/julia-buildpkg@latest
+
+      - name: install dependencies
+        run: julia --project --color=yes -e 'import Pkg; Pkg.add.(["Aqua"])'
+
+      - name: Aqua.jl
+        run: julia --project --color=yes ./test/aqua.jl
