@@ -1,0 +1,4 @@
+name = "MolecularGraphKernels"
+uuid = "bf3818bd-b6bb-4954-8baa-32c32282e633"
+authors = ["Adrian Henle <eahenle@gmail.com>"]
+version = "0.1.0"
