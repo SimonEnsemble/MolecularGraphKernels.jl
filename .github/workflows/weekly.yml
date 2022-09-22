@@ -25,7 +25,7 @@ jobs: # run in parallel within workflow
     
     steps:
       - name: checkout commit
-        uses: actions/checkout@master
+        uses: actions/checkout@main
 
       - name: set up Julia
         uses: julia-actions/setup-julia@latest
@@ -54,7 +54,7 @@ jobs: # run in parallel within workflow
     
     steps:
       - name: checkout commit
-        uses: actions/checkout@master
+        uses: actions/checkout@main
 
       - name: set up Julia
         uses: julia-actions/setup-julia@latest

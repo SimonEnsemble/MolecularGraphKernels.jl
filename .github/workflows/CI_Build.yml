@@ -1,10 +1,10 @@
 name: CI
 
 on:
-  push: # run on push to master
-    branches: [ master ]
-  pull_request: # run on PR against master
-    branches: [ master ]
+  push: # run on push to main
+    branches: [ main ]
+  pull_request: # run on PR against main
+    branches: [ main ]
   workflow_dispatch: # run on button-press in Actions tab
 
 concurrency: # only allow the most recent workflow to execute
@@ -23,7 +23,7 @@ jobs: # run in parallel within workflow
 
     steps: # run in series within job
       - name: checkout commit
-        uses: actions/checkout@master
+        uses: actions/checkout@main
 
       - name: set up Julia
         uses: julia-actions/setup-julia@latest
