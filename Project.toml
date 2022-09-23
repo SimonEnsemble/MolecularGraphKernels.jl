@@ -7,6 +7,7 @@ version = "0.1.0"
 FIGlet = "3064a664-84fe-4d92-92c7-ed492f3d8fae"
 Graphs = "86223c79-3864-5bf0-83f7-82e725a168b6"
 MetaGraphs = "626554b9-1ddb-594c-aa3c-2596fe9399a5"
+MolecularGraph = "6c89ec66-9cd8-5372-9f91-fabc50dd27fd"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
@@ -14,7 +15,8 @@ Aqua = "0.5"
 FIGlet = "0.2"
 Graphs = "1.7"
 MetaGraphs = "0.7"
-julia = "1.6, 1.7, 1.8"
+MolecularGraph = "0.11"
+julia = "1.6"
 
 [extras]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"

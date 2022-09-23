@@ -36,4 +36,8 @@ using Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Test
     set_prop!(C, 2, :symbol, :H)
 
     @test_throws AssertionError direct_product_graph(A, C)
+
+    set_prop!(C, 1, 2, :order, 1)
+
+    @test direct_product_graph(C, C) == direct_product_graph(MetaGraph(smilestomol("[H]-[H]")), C)
 end
