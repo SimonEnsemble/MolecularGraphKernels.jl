@@ -1,10 +1,11 @@
 module MolecularGraphKernels
 
-using FIGlet, Graphs, MetaGraphs, SparseArrays
+using FIGlet, Graphs, MetaGraphs, MolecularGraph, SparseArrays
 
 include.([
     "direct_product_graph.jl"
     "random_walk_graph_kernel.jl"
+    "graph_conversion.jl"
 ])
 
 
@@ -17,6 +18,6 @@ function banner()
 end
 
 
-export direct_product_graph, fixed_length_rw_kernel
+export direct_product_graph, fixed_length_rw_kernel, MetaGraph
 
 end # module MolecularGraphKernels
