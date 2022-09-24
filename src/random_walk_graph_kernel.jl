@@ -5,10 +5,10 @@
 
 Returns the similarity score for two graphs by applying the `l`-length random walk graph kernel on their direct product graph.
 """
-function fixed_length_rw_kernel(adj_mat::M, l::Int)::Int where M <: AbstractMatrix
+function fixed_length_rw_kernel(adj_mat::AbstractMatrix, l::Int)::Int
     return sum(adj_mat ^ l)
 end
 
-fixed_length_rw_kernel(dpg::G, l::Int) where G <: AbstractGraph = fixed_length_rw_kernel(adjacency_matrix(dpg), l)
+fixed_length_rw_kernel(dpg::AbstractGraph, l::Int) = fixed_length_rw_kernel(adjacency_matrix(dpg), l)
 
-fixed_length_rw_kernel(A::G, B::G, l::Int) where G <: AbstractGraph = fixed_length_rw_kernel(direct_product_graph(A, B), l)
+fixed_length_rw_kernel(A::AbstractGraph, B::AbstractGraph, l::Int) = fixed_length_rw_kernel(direct_product_graph(A, B), l)

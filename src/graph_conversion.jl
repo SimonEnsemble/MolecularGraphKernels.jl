@@ -3,7 +3,7 @@
 
 Convert a `GraphMol` object into the corresponding `MetaGraph`
 """
-function MetaGraph(mol::G)::MetaGraph where G <: GraphMol
+function MetaGraph(mol::GraphMol)::MetaGraph
     g = MetaGraph(length(mol.nodeattrs))
     # atoms
     for v in vertices(g)
