@@ -1,27 +1,43 @@
 using Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Test
 using Graphs.Experimental: vf2, IsomorphismProblem
 
+function is_isomorphic(A::MetaGraph, B::MetaGraph)::Bool
+    isoms = []
+
+    vf2(
+        SimpleGraph(A), SimpleGraph(B), IsomorphismProblem();
+        vertex_relation = (v, w) -> get_prop(A, v, :label) == get_prop(B, w, :label),
+        edge_relation   = (j, k) -> get_prop(A, j, :label)  == get_prop(B, k, :label)
+    ) do x
+        push!(isoms, x)
+        return false
+    end
+
+    return isoms ≠ []
+end
+
+A = MetaGraph(3)
+B = MetaGraph(3)
+
+add_edge!(A, 1, 2, Dict(:label => :single))
+add_edge!(A, 2, 3, Dict(:label => :single))
+add_edge!(A, 3, 1, Dict(:label => :single))
+
+add_edge!(B, 1, 2, Dict(:label => :single))
+add_edge!(B, 2, 3, Dict(:label => :single))
+add_edge!(B, 3, 1, Dict(:label => :double))
+
+set_prop!(A, 1, :label, :C)
+set_prop!(A, 2, :label, :C)
+set_prop!(A, 3, :label, :C)
+
+set_prop!(B, 1, :label, :C)
+set_prop!(B, 2, :label, :C)
+set_prop!(B, 3, :label, :C)
+
+adj_mat = direct_product_graph(A, B)
+
 @testset "direct_product_graph" begin
-    A = MetaGraph(3)
-    B = MetaGraph(3)
-
-    add_edge!(A, 1, 2, Dict(:label => :single))
-    add_edge!(A, 2, 3, Dict(:label => :single))
-    add_edge!(A, 3, 1, Dict(:label => :single))
-
-    add_edge!(B, 1, 2, Dict(:label => :single))
-    add_edge!(B, 2, 3, Dict(:label => :single))
-    add_edge!(B, 3, 1, Dict(:label => :double))
-
-    set_prop!(A, 1, :label, :C)
-    set_prop!(A, 2, :label, :C)
-    set_prop!(A, 3, :label, :C)
-
-    set_prop!(B, 1, :label, :C)
-    set_prop!(B, 2, :label, :C)
-    set_prop!(B, 3, :label, :C)
-
-    adj_mat = direct_product_graph(A, B)
 
     @test adj_mat == sparse(
         [5, 6, 4, 6, 4, 5, 2, 3, 8, 9, 1, 3, 7, 9, 1, 2, 7, 8, 5, 6, 4, 6, 4, 5], 
@@ -37,6 +53,9 @@ using Graphs.Experimental: vf2, IsomorphismProblem
     set_prop!(C, 2, :label, :H)
 
     @test direct_product_graph(C, C) == direct_product_graph(MetaGraph(smilestomol("[H]-[H]")), C)
+end
+
+@testset "return_graph" begin
 
     dpg = direct_product_graph(A, B, return_graph=true)
 
@@ -73,16 +92,18 @@ using Graphs.Experimental: vf2, IsomorphismProblem
 
     dpg = direct_product_graph(g, h, return_graph=true)
 
-    isoms = []
+    @test is_isomorphic(dpg, gxh)
+end
 
-    vf2(
-        SimpleGraph(dpg), SimpleGraph(gxh), IsomorphismProblem();
-        vertex_relation = (v, w) -> get_prop(dpg, v, :label) == get_prop(gxh, w, :label),
-        edge_relation   = (j, k) -> get_prop(dpg, j, :label)  == get_prop(gxh, k, :label)
-    ) do x
-        push!(isoms, x)
-        return true
-    end
+@testset "SMILES flexibility" begin
 
-    @test isoms ≠ []
+    A = smilestomol("c1ccccc1")
+    B = smilestomol("C1C=CC=CC=1")
+    C = smilestomol("C1=CC=CC=C1")
+    D = smilestomol("c1-c-c-c-c-c1")
+
+    B, C, D = MetaGraph.([B, C, D])
+
+    @test is_isomorphic(direct_product_graph(A, A, return_graph=true), direct_product_graph(B, B, return_graph=true))
+    @test is_isomorphic(direct_product_graph(B, C, return_graph=true), direct_product_graph(C, D, return_graph=true))
 end
