@@ -48,7 +48,7 @@ jobs: # run in parallel within workflow
     strategy:
       fail-fast: true
       matrix:
-        julia: ['1.6.4', '1.7.3']
+        julia: ['1.7.3', '1.8.0']
     runs-on: ubuntu-latest
     timeout-minutes: 30
     
