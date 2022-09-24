@@ -21,9 +21,9 @@ using Graphs.Experimental: vf2, IsomorphismProblem
     set_prop!(B, 2, :label, :C)
     set_prop!(B, 3, :label, :C)
 
-    dpg_adj_mat = direct_product_graph(A, B)
+    adj_mat = direct_product_graph(A, B)
 
-    @test dpg_adj_mat == sparse(
+    @test adj_mat == sparse(
         [5, 6, 4, 6, 4, 5, 2, 3, 8, 9, 1, 3, 7, 9, 1, 2, 7, 8, 5, 6, 4, 6, 4, 5], 
         [1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 9, 9], 
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -38,9 +38,9 @@ using Graphs.Experimental: vf2, IsomorphismProblem
 
     @test direct_product_graph(C, C) == direct_product_graph(MetaGraph(smilestomol("[H]-[H]")), C)
 
-    adj_mat, dpg = direct_product_graph(A, B, return_graph=true)
+    dpg = direct_product_graph(A, B, return_graph=true)
 
-    @test dpg_adj_mat == adj_mat
+    @test adj_mat == adjacency_matrix(dpg)
 
     g = MetaGraph(smilestomol("COP(=O)(OC)OC(Br)C(Cl)(Cl)Br"))
     h = MetaGraph(smilestomol("COP(N)(=O)SC"))
@@ -71,7 +71,7 @@ using Graphs.Experimental: vf2, IsomorphismProblem
     add_edge!(gxh, 4, 11, Dict(:label => 1))
     add_edge!(gxh, 5, 12, Dict(:label => 1))
 
-    adj_mat, dpg = direct_product_graph(g, h, return_graph=true)
+    dpg = direct_product_graph(g, h, return_graph=true)
 
     isoms = []
 
