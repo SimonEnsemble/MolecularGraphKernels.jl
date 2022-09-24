@@ -32,13 +32,9 @@ using Graphs.Experimental: vf2, IsomorphismProblem
 
     C = MetaGraph(2)
 
-    add_edge!(C, 1, 2, Dict(:label => 1.))
+    add_edge!(C, 1, 2, Dict(:label => 1))
     set_prop!(C, 1, :label, :H)
     set_prop!(C, 2, :label, :H)
-
-    @test_throws AssertionError direct_product_graph(A, C)
-
-    set_prop!(C, 1, 2, :label, 1)
 
     @test direct_product_graph(C, C) == direct_product_graph(MetaGraph(smilestomol("[H]-[H]")), C)
 

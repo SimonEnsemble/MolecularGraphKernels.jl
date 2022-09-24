@@ -3,7 +3,7 @@
 
 Returns the direct product graph based on its adjacency matrix, the map of A/B nodes to DPG nodes, and graph A
 """
-function dpg(adj_mat::S, vertex_map::T, A::MetaGraph) where {S,T <: SparseMatrixCSC}
+function dpg(adj_mat::AbstractMatrix, vertex_map::AbstractMatrix, A::MetaGraph)
     g = MetaGraph(SimpleGraph(adj_mat))
     # each vertex in the DPG has the label of the vertex in A corresponding to some row in vertex_map
     for v in vertices(g)
@@ -35,16 +35,17 @@ function direct_product_graph(mol_a::MetaGraph, mol_b::MetaGraph; return_graph::
     @assert nv(mol_a) > 0 && nv(mol_b) > 0 && ne(mol_a) > 0 && ne(mol_b) > 0 "Graphs A and B must each contain at least 1 node and 1 edge."
     # input validation (check node symbol and edge order types for type-stable and efficient comparisons)
     function _type_assertion(g::MetaGraph)::Bool
-        typeof(get_prop(g, 1, :label)) <: Union{Symbol, Int, Vector{T} where T <: Union{Symbol, Int}} &&
+        typeof(get_prop(g, 1, :label)) <: Union{Symbol, Int, Vector{Union{Symbol, Int}}} &&
         typeof(get_prop(g, first(edges(g)), :label)) <: Union{Symbol, Int}
     end
-    @assert all(_type_assertion.([mol_a, mol_b])) "Graphs A and B must have appropriate node and edge attribute types (see docs)."
-    @assert typeof(mol_a.eprops) == typeof(mol_b.eprops) && typeof(mol_a.vprops) == typeof(mol_b.vprops) "Graphs A and B must have type-matched node and edge attribute types."
+    if !all(_type_assertion.([mol_a, mol_b]))
+        @warn "Graphs A and B should have Int or Symbol node and edge attribute types for efficiency."
+    end
 
     # determine which vertices exist in the DPG
     vertex_in_dpg = spzeros(Int, nv(mol_a), nv(mol_b))
-    for b in eachindex(vertices(mol_b))
-        for a in eachindex(vertices(mol_a))
+    for b in vertices(mol_b)
+        for a in vertices(mol_a)
             vertex_in_dpg[a, b] = props(mol_a, a)[:label] == props(mol_b, b)[:label]
         end
     end
