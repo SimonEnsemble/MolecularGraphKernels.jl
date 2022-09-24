@@ -1,37 +1,64 @@
 """
+    g = dpg(mat, map, mol)
+
+Returns the direct product graph based on its adjacency matrix, the map of A/B nodes to DPG nodes, and graph A
+"""
+function dpg(adj_mat::S, vertex_map::T, A::MetaGraph) where {S,T <: SparseMatrixCSC}
+    g = MetaGraph(SimpleGraph(adj_mat))
+    # each vertex in the DPG has the label of the vertex in A corresponding to some row in vertex_map
+    for v in vertices(g)
+        a = findfirst(isequal(v), vertex_map)[1]
+        set_prop!(g, v, :label, props(A, a)[:label])
+    end
+    # each edge n in the DPG corresponds to (nᵢ, nⱼ) in the vertex map where nₓ ↦ vᵪ ∈ V(A); ∴ L(n) = L(vᵪ₁, vᵪ₂)
+    for e in edges(g)
+        vᵢ = findfirst(isequal(src(e)), vertex_map)[1]
+        vⱼ = findfirst(isequal(dst(e)), vertex_map)[1]
+        l = get_prop(A, vᵢ, vⱼ, :label)
+        set_prop!(g, e, :label, l)
+    end
+    return g
+end
+
+
+"""
     dpg_adj_mat = direct_product_graph(graph_a, graph_b)
 
-Returns the direct product graph of `graph_a` and `graph_b`.
+Returns the adjacency matrix of the direct product graph of `graph_a` and `graph_b`.
+
+    dpg_adj_mat = direct_product_graph(graph_a, graph_b; return_graph=true)
+
+Returns the adjacency matrix and the 
 """
-function direct_product_graph(mol_a::MetaGraph, mol_b::MetaGraph)::SparseMatrixCSC{Int, Int}
+function direct_product_graph(mol_a::MetaGraph, mol_b::MetaGraph; return_graph::Bool=false)::Union{SparseMatrixCSC{Bool, Int}, Tuple{SparseMatrixCSC{Bool, Int}, MetaGraph}}
     # input validation (no trivial graphs)
     @assert nv(mol_a) > 0 && nv(mol_b) > 0 && ne(mol_a) > 0 && ne(mol_b) > 0 "Graphs A and B must each contain at least 1 node and 1 edge."
     # input validation (check node symbol and edge order types for type-stable and efficient comparisons)
     function _type_assertion(g::MetaGraph)::Bool
-        typeof(get_prop(g, 1, :symbol)) <: Union{Symbol, Int, Vector{T} where T <: Union{Symbol, Int}} &&
-        typeof(get_prop(g, first(edges(g)), :order)) <: Union{Symbol, Int}
+        typeof(get_prop(g, 1, :label)) <: Union{Symbol, Int, Vector{T} where T <: Union{Symbol, Int}} &&
+        typeof(get_prop(g, first(edges(g)), :label)) <: Union{Symbol, Int}
     end
     @assert all(_type_assertion.([mol_a, mol_b])) "Graphs A and B must have appropriate node and edge attribute types (see docs)."
     @assert typeof(mol_a.eprops) == typeof(mol_b.eprops) && typeof(mol_a.vprops) == typeof(mol_b.vprops) "Graphs A and B must have type-matched node and edge attribute types."
 
-	# determine which vertices exist in the DPG
+    # determine which vertices exist in the DPG
     vertex_in_dpg = spzeros(Int, nv(mol_a), nv(mol_b))
-	for b in eachindex(vertices(mol_b))
-		for a in eachindex(vertices(mol_a))
-			vertex_in_dpg[a, b] = props(mol_a, a)[:symbol] == props(mol_b, b)[:symbol]
-		end
-	end
-	n_verts = sum(vertex_in_dpg)
+    for b in eachindex(vertices(mol_b))
+        for a in eachindex(vertices(mol_a))
+            vertex_in_dpg[a, b] = props(mol_a, a)[:label] == props(mol_b, b)[:label]
+        end
+    end
+    n_verts = sum(vertex_in_dpg)
 
-	# map (vⱼ ∈ a, vₖ ∈ b) ↦ vᵢ ∈ g
-	vertex_in_dpg[vertex_in_dpg .== 1] .= 1:n_verts
+    # map (vⱼ ∈ a, vₖ ∈ b) ↦ vᵢ ∈ g
+    vertex_in_dpg[vertex_in_dpg .== 1] .= 1:n_verts
 
     # build graph adjacency matrix
-	adj_mat = spzeros(Bool, n_verts, n_verts)
+    adj_mat = spzeros(Bool, n_verts, n_verts)
     for e_a in edges(mol_a)
         for e_b in edges(mol_b)
             # only a candidate if edge labels are the same
-            if props(mol_a, e_a)[:order] != props(mol_b, e_b)[:order]
+            if props(mol_a, e_a)[:label] != props(mol_b, e_b)[:label]
                 continue
             end
 
@@ -55,5 +82,11 @@ function direct_product_graph(mol_a::MetaGraph, mol_b::MetaGraph)::SparseMatrixC
         end
     end
 
-    return adj_mat + adj_mat'
+    adj_mat = adj_mat .|| adj_mat'
+
+    if ! return_graph
+        return adj_mat
+    else
+        return adj_mat, dpg(adj_mat, vertex_in_dpg, mol_a)
+    end
 end
