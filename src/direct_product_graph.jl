@@ -30,7 +30,9 @@ Returns the adjacency matrix of the direct product graph of `graph_a` and `graph
 
 Returns the adjacency matrix and the 
 """
-function direct_product_graph(mol_a::MetaGraph, mol_b::MetaGraph; return_graph::Bool=false)::Union{SparseMatrixCSC{Bool, Int}, MetaGraph}
+function direct_product_graph(mol_a::S, mol_b::T; return_graph::Bool=false)::Union{SparseMatrixCSC{Bool, Int}, MetaGraph} where {S,T <: Union{GraphMol, MetaGraph}}
+    typeof(mol_a) <: GraphMol ? mol_a = MetaGraph(mol_a) : nothing
+    typeof(mol_b) <: GraphMol ? mol_b = MetaGraph(mol_b) : nothing
     # input validation (no trivial graphs)
     @assert nv(mol_a) > 0 && nv(mol_b) > 0 && ne(mol_a) > 0 && ne(mol_b) > 0 "Graphs A and B must each contain at least 1 node and 1 edge."
     # input validation (check node symbol and edge order types for type-stable and efficient comparisons)
