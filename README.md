@@ -1,4 +1,4 @@
-![MolecularGraphKernels.jl](logo.png)
+![MolecularGraphKernels.jl](logo.jpg)
 
 | **Documentation** | **Build Status** | **Test Coverage** |
 |:---:|:---:|:---:|
