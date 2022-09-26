@@ -1,20 +1,6 @@
 using Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Test
-using Graphs.Experimental: vf2, IsomorphismProblem
 
-function is_isomorphic(A::MetaGraph, B::MetaGraph)::Bool
-    isoms = []
-
-    vf2(
-        SimpleGraph(A), SimpleGraph(B), IsomorphismProblem();
-        vertex_relation = (v, w) -> get_prop(A, v, :label) == get_prop(B, w, :label),
-        edge_relation   = (j, k) -> get_prop(A, j, :label)  == get_prop(B, k, :label)
-    ) do x
-        push!(isoms, x)
-        return false
-    end
-
-    return isoms ≠ []
-end
+include("check_isom.jl")
 
 A = MetaGraph(3)
 B = MetaGraph(3)
