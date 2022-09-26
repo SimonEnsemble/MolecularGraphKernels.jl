@@ -19,6 +19,6 @@ function banner()
 end
 
 
-export direct_product_graph, fixed_length_rw_kernel, MetaGraph, viz_graph
+export direct_product_graph, dpg_adj_mat, fixed_length_rw_kernel, MetaGraph, viz_graph
 
 end # module MolecularGraphKernels

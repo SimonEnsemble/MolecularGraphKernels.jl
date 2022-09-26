@@ -37,7 +37,6 @@ end
     B = smilestomol("C1C=CC=CC=1")
     C = smilestomol("C1=CC=CC=C1")
     D = smilestomol("c1-c-c-c-c-c1")
-
     A, B, C, D = MetaGraph.([A, B, C, D])
 
     @test is_isomorphic(A, B)

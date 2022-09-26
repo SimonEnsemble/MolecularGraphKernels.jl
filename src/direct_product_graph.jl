@@ -1,59 +1,82 @@
 """
-    g = dpg(mat, map, mol)
-
-Returns the direct product graph based on its adjacency matrix, the map of A/B nodes to DPG nodes, and graph A
-"""
-function dpg(adj_mat::AbstractMatrix, vertex_map::AbstractMatrix, A::MetaGraph)
-    g = MetaGraph(SimpleGraph(adj_mat))
-    # each vertex in the DPG has the label of the vertex in A corresponding to some row in vertex_map
-    for v in vertices(g)
-        a = findfirst(isequal(v), vertex_map)[1]
-        set_prop!(g, v, :label, props(A, a)[:label])
-    end
-    # each edge n in the DPG corresponds to (nᵢ, nⱼ) in the vertex map where nₓ ↦ vᵪ ∈ V(A); ∴ L(n) = L(vᵪ₁, vᵪ₂)
-    for e in edges(g)
-        vᵢ = findfirst(isequal(src(e)), vertex_map)[1]
-        vⱼ = findfirst(isequal(dst(e)), vertex_map)[1]
-        l = get_prop(A, vᵢ, vⱼ, :label)
-        set_prop!(g, e, :label, l)
-    end
-    return g
-end
-
-
-"""
     dpg_adj_mat = direct_product_graph(graph_a, graph_b)
 
 Returns the adjacency matrix of the direct product graph of `graph_a` and `graph_b`.
 
-    dpg_adj_mat = direct_product_graph(graph_a, graph_b; return_graph=true)
+!!! note
+    If only the adjacency matrix of the DPG is needed (and not the DPG itself) `@ref(dpg_adj_mat)` should be used instead for performance.
 
-Returns the adjacency matrix and the 
+!!! warning
+    Edge and vertex labels should be of consistent, comparable types, preferably `Symbol`, `Int`, `Bool`, etc., for efficiency.
+    Comparing, for example, `String` labels will result in significantly poorer performance!
 """
-function direct_product_graph(mol_a::S, mol_b::T; return_graph::Bool=false)::Union{SparseMatrixCSC{Bool, Int}, MetaGraph} where {S,T <: Union{GraphMol, MetaGraph}}
-    typeof(mol_a) <: GraphMol ? mol_a = MetaGraph(mol_a) : nothing
-    typeof(mol_b) <: GraphMol ? mol_b = MetaGraph(mol_b) : nothing
-    # input validation (no trivial graphs)
-    @assert nv(mol_a) > 0 && nv(mol_b) > 0 && ne(mol_a) > 0 && ne(mol_b) > 0 "Graphs A and B must each contain at least 1 node and 1 edge."
-    # input validation (check node symbol and edge order types for type-stable and efficient comparisons)
-    function _type_assertion(g::MetaGraph)::Bool
-        typeof(get_prop(g, 1, :label)) <: Union{Symbol, Int, Vector{Union{Symbol, Int}}} &&
-        typeof(get_prop(g, first(edges(g)), :label)) <: Union{Symbol, Int}
-    end
-    if !all(_type_assertion.([mol_a, mol_b]))
-        @warn "Graphs A and B should have Int or Symbol node and edge attribute types for efficiency."
+function direct_product_graph(mol_a::MetaGraph, mol_b::MetaGraph; node_label::Symbol=:label, edge_label::Symbol=:label)::MetaGraph
+    # map node pairs from input graphs to vertices of direct product graph
+    vertex_in_dpg = Dict{Tuple{Int, Int}, NamedTuple{(:l, :n), Tuple{Symbol, Int}}}()
+    n_verts = 0
+    for b in vertices(mol_b)
+        l_b = props(mol_b, b)[node_label]
+        for a in vertices(mol_a)
+            if props(mol_a, a)[node_label] == l_b
+                n_verts += 1
+                vertex_in_dpg[a, b] = (l=l_b, n=n_verts) # (vᵢ, vⱼ) ↦ (lₓ, nₓ)
+            end
+        end
     end
 
-    # determine which vertices exist in the DPG
+    # instantiate graph to correct size
+    axb = MetaGraph(n_verts)
+
+    # label nodes from mapping
+    for v in values(vertex_in_dpg)
+        set_prop!(axb, v.n, node_label, v.l)
+    end
+
+    # make edges
+    for e_a in edges(mol_a)
+        for e_b in edges(mol_b)
+            # only a candidate if edge labels are the same
+            if props(mol_a, e_a)[edge_label] != props(mol_b, e_b)[edge_label]
+                continue
+            end
+
+            # check candidate edge (v1, v2) in axb:
+            #   v1 = (a1, b1)
+            #   v2 = (a2, b2)
+            if haskey(vertex_in_dpg, (src(e_a), src(e_b))) && haskey(vertex_in_dpg, (dst(e_a), dst(e_b)))
+                add_edge!(axb, vertex_in_dpg[src(e_a), src(e_b)].n, vertex_in_dpg[dst(e_a), dst(e_b)].n, Dict(edge_label => props(mol_a, e_a)[edge_label]))
+            end
+
+            # check candidate edge (v1, v2) in axb:
+            #   v1 = (a1, b2)
+            #   v2 = (a2, b1)
+            if haskey(vertex_in_dpg, (src(e_a), dst(e_b))) && haskey(vertex_in_dpg, (dst(e_a), src(e_b))) # if v1 and v2 are vertices in axb...
+                add_edge!(axb, vertex_in_dpg[src(e_a), dst(e_b)].n, vertex_in_dpg[dst(e_a), src(e_b)].n, Dict(edge_label => props(mol_a, e_a)[edge_label]))
+            end
+        end
+    end
+
+    return axb
+end
+
+direct_product_graph(mol_a::MetaGraph, mol_b::GraphMol; kwargs...) = direct_product_graph(mol_a, MetaGraph(mol_b); kwargs...)
+direct_product_graph(mol_a::GraphMol, mol_b::T; kwargs...) where T <: Union{MetaGraph, GraphMol} = direct_product_graph(MetaGraph(mol_a), mol_b; kwargs...)
+
+"""
+    A = direct_product_graph(graph_a, graph_b)
+
+Returns the adjacency matrix of the DPG.
+"""
+function dpg_adj_mat(mol_a::MetaGraph, mol_b::MetaGraph; node_label::Symbol=:label, edge_label::Symbol=:label)::SparseMatrixCSC{Bool, Int}
+    # map (vⱼ ∈ a, vₖ ∈ b) ↦ vᵢ ∈ a*b
     vertex_in_dpg = spzeros(Int, nv(mol_a), nv(mol_b))
     for b in vertices(mol_b)
+        l_b = props(mol_b, b)[node_label]
         for a in vertices(mol_a)
-            vertex_in_dpg[a, b] = props(mol_a, a)[:label] == props(mol_b, b)[:label]
+            vertex_in_dpg[a, b] = props(mol_a, a)[node_label] == l_b
         end
     end
     n_verts = sum(vertex_in_dpg)
-
-    # map (vⱼ ∈ a, vₖ ∈ b) ↦ vᵢ ∈ g
     vertex_in_dpg[vertex_in_dpg .== 1] .= 1:n_verts
 
     # build graph adjacency matrix
@@ -61,7 +84,7 @@ function direct_product_graph(mol_a::S, mol_b::T; return_graph::Bool=false)::Uni
     for e_a in edges(mol_a)
         for e_b in edges(mol_b)
             # only a candidate if edge labels are the same
-            if props(mol_a, e_a)[:label] != props(mol_b, e_b)[:label]
+            if props(mol_a, e_a)[edge_label] != props(mol_b, e_b)[edge_label]
                 continue
             end
 
@@ -85,11 +108,8 @@ function direct_product_graph(mol_a::S, mol_b::T; return_graph::Bool=false)::Uni
         end
     end
 
-    adj_mat = adj_mat .|| adj_mat'
-
-    if return_graph
-        return dpg(adj_mat, vertex_in_dpg, mol_a)
-    else
-        return adj_mat
-    end
+    return adj_mat .|| adj_mat'
 end
+
+dpg_adj_mat(mol_a::MetaGraph, mol_b::GraphMol; kwargs...) = dpg_adj_mat(mol_a, MetaGraph(mol_b); kwargs...)
+dpg_adj_mat(mol_a::GraphMol, mol_b::T; kwargs...) where T <: Union{MetaGraph, GraphMol} = dpg_adj_mat(MetaGraph(mol_a), mol_b; kwargs...)

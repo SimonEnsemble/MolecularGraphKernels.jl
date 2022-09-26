@@ -11,4 +11,6 @@ end
 
 fixed_length_rw_kernel(dpg::AbstractGraph, l::Int) = fixed_length_rw_kernel(adjacency_matrix(dpg), l)
 
-fixed_length_rw_kernel(A::AbstractGraph, B::AbstractGraph, l::Int) = fixed_length_rw_kernel(direct_product_graph(A, B), l)
+fixed_length_rw_kernel(A::AbstractGraph, B::AbstractGraph, l::Int) = fixed_length_rw_kernel(dpg_adj_mat(A, B), l)
+fixed_length_rw_kernel(A::AbstractGraph, B::GraphMol, l::Int) = fixed_length_rw_kernel(A, MetaGraph(B), l)
+fixed_length_rw_kernel(A::GraphMol, B::T, l::Int) where T <: Union{AbstractGraph, GraphMol} = fixed_length_rw_kernel(MetaGraph(A), B, l)

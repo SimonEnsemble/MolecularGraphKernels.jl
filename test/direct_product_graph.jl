@@ -1,31 +1,20 @@
-using Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Test
+using Combinatorics, Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Test
 
 include("check_isom.jl")
 
-A = MetaGraph(3)
-B = MetaGraph(3)
+@testset "dpg_adj_mat" begin
+    A = MetaGraph(3)
+    add_edge!(A, 1, 2, Dict(:label => :single))
+    add_edge!(A, 2, 3, Dict(:label => :single))
+    add_edge!(A, 3, 1, Dict(:label => :single))
+    set_prop!(A, 1, :label, :C)
+    set_prop!(A, 2, :label, :C)
+    set_prop!(A, 3, :label, :C)
 
-add_edge!(A, 1, 2, Dict(:label => :single))
-add_edge!(A, 2, 3, Dict(:label => :single))
-add_edge!(A, 3, 1, Dict(:label => :single))
-
-add_edge!(B, 1, 2, Dict(:label => :single))
-add_edge!(B, 2, 3, Dict(:label => :single))
-add_edge!(B, 3, 1, Dict(:label => :double))
-
-set_prop!(A, 1, :label, :C)
-set_prop!(A, 2, :label, :C)
-set_prop!(A, 3, :label, :C)
-
-set_prop!(B, 1, :label, :C)
-set_prop!(B, 2, :label, :C)
-set_prop!(B, 3, :label, :C)
-
-adj_mat = direct_product_graph(A, B)
-
-@testset "direct_product_graph" begin
-
-    @test adj_mat == sparse(
+    B = deepcopy(A)
+    set_prop!(B, 3, 1, :label, :double)
+    
+    @test dpg_adj_mat(A, B) == sparse(
         [5, 6, 4, 6, 4, 5, 2, 3, 8, 9, 1, 3, 7, 9, 1, 2, 7, 8, 5, 6, 4, 6, 4, 5], 
         [1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 9, 9], 
         [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
@@ -33,19 +22,41 @@ adj_mat = direct_product_graph(A, B)
     )
 
     C = MetaGraph(2)
-
     add_edge!(C, 1, 2, Dict(:label => 1))
     set_prop!(C, 1, :label, :H)
     set_prop!(C, 2, :label, :H)
+    h2 = smilestomol("[H]-[H]")
 
-    @test direct_product_graph(C, C) == direct_product_graph(MetaGraph(smilestomol("[H]-[H]")), C)
+    x = dpg_adj_mat(C, C)
+
+    @test x == dpg_adj_mat(h2, h2)
+    @test x == dpg_adj_mat(h2, C)
+    @test x == dpg_adj_mat(C, h2)
 end
 
-@testset "return_graph" begin
+@testset "direct_product_graph" begin
+    A = MetaGraph(3)
+    add_edge!(A, 1, 2, Dict(:label => :single))
+    add_edge!(A, 2, 3, Dict(:label => :single))
+    add_edge!(A, 3, 1, Dict(:label => :single))
+    set_prop!(A, 1, :label, :C)
+    set_prop!(A, 2, :label, :C)
+    set_prop!(A, 3, :label, :C)
 
-    dpg = direct_product_graph(A, B, return_graph=true)
+    B = deepcopy(A)
+    set_prop!(B, 3, 1, :label, :double)
 
-    @test adj_mat == adjacency_matrix(dpg)
+    @test adjacency_matrix(direct_product_graph(A, B)) == dpg_adj_mat(A, B)
+
+    C = MetaGraph(2)
+    add_edge!(C, 1, 2, Dict(:label => 1))
+    set_prop!(C, 1, :label, :H)
+    set_prop!(C, 2, :label, :H)
+    h2 = smilestomol("[H]-[H]")
+
+    @test direct_product_graph(C, C) == direct_product_graph(MetaGraph(h2), C)
+    @test direct_product_graph(h2, h2) == direct_product_graph(h2, C)
+    @test direct_product_graph(h2, C) == direct_product_graph(C, h2)
 
     g = MetaGraph(smilestomol("COP(=O)(OC)OC(Br)C(Cl)(Cl)Br"))
     h = MetaGraph(smilestomol("COP(N)(=O)SC"))
@@ -76,20 +87,18 @@ end
     add_edge!(gxh, 4, 11, Dict(:label => 1))
     add_edge!(gxh, 5, 12, Dict(:label => 1))
 
-    dpg = direct_product_graph(g, h, return_graph=true)
-
-    @test is_isomorphic(dpg, gxh)
+    @test is_isomorphic(direct_product_graph(g, h), gxh)
 end
 
 @testset "SMILES flexibility" begin
+    A = smilestomol("c1c(C)cccc1")
+    B = smilestomol("C1C=C(C)C=CC=1")
+    C = smilestomol("C1=C(C)C=CC=C1")
+    D = smilestomol("c1-c-c(C)-c-c-c1")
+    E = smilestomol("c1ccc(C)cc1")
+    A, B, C, D, E = MetaGraph.([A, B, C, D, E])
 
-    A = smilestomol("c1ccccc1")
-    B = smilestomol("C1C=CC=CC=1")
-    C = smilestomol("C1=CC=CC=C1")
-    D = smilestomol("c1-c-c-c-c-c1")
-
-    B, C, D = MetaGraph.([B, C, D])
-
-    @test is_isomorphic(direct_product_graph(A, A, return_graph=true), direct_product_graph(B, B, return_graph=true))
-    @test is_isomorphic(direct_product_graph(B, C, return_graph=true), direct_product_graph(C, D, return_graph=true))
+    for (x, y) in with_replacement_combinations([A, B, C, D, E], 2)
+        @test is_isomorphic(direct_product_graph(x, x), direct_product_graph(x, y))
+    end
 end
