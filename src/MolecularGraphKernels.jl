@@ -1,12 +1,12 @@
 module MolecularGraphKernels
 
-using Cairo, Colors, Compose, FIGlet, GraphPlot, Graphs, MetaGraphs, MolecularGraph, SparseArrays
+using Cairo, Colors, Compose, FIGlet, GraphPlot, Graphs, MetaGraphs, MolecularGraph, SparseArrays, Xtals
 
 include.([
-    "direct_product_graph.jl"
-    "random_walk_graph_kernel.jl"
-    "graph_conversion.jl"
+    "graph_products.jl"
+    "graph_kernels.jl"
     "visualization.jl"
+    "graph_conversion.jl"
 ])
 
 
@@ -19,6 +19,17 @@ function banner()
 end
 
 
-export direct_product_graph, dpg_adj_mat, fixed_length_rw_kernel, MetaGraph, viz_graph
+export
+    # graph_products.jl
+    direct_product_graph, dpg_adj_mat, csi_product_graph, csi_adj_mat,
 
-end # module MolecularGraphKernels
+    # graph_kernels.jl
+    random_walk_kernel, 
+    
+    # graph_conversion.jl
+    MetaGraph, 
+    
+    # visualization.jl
+    viz_graph
+
+end

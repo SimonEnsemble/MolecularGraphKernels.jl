@@ -1,23 +1,23 @@
-function viz_graph(mol::GraphMol; savename=nothing)
-    graph = MetaGraph(mol)
-    locs_x, locs_y = spring_layout(graph, C=0.25)
+function viz_graph(mol::MetaGraph; savename=nothing)
+    locs_x, locs_y = spring_layout(mol, C=0.25)
 
-    nodelabels = ["v<sub>$i</sub>" for i = 1:nv(graph)]
+    nodelabels = ["v<sub>$i</sub>" for i = 1:nv(mol)]
 
-    edgelabels = ["$(get_prop(graph, e, :label))" for e in edges(graph)]
-    edgelabels[isaromaticbond(mol)] .= "a"
+    edgelabels = ["$(get_prop(mol, e, :label))" for e in edges(mol)]
+    replace!(edgelabels, "-1" => "a")
     
+    colors = [RGB((rc[:cpk_colors][atomsymbol(atom)] ./ 255)...) for atom in [props(mol, v)[:label] for v in vertices(mol)]]
     gp = gplot(
-        graph, 
+        mol, 
         locs_x, 
         locs_y, 
-        nodestrokec=[RGB(rgb.r/255, rgb.g/255, rgb.b/255) for rgb in atomcolor(mol)], 
+        nodestrokec=colors, 
         nodesize=1.0, 
-        NODESIZE=0.3 / sqrt(nv(graph)), 
-        nodefillc=[RGBA(rgb.r/255, rgb.g/255, rgb.b/255, 0.075) for rgb in atomcolor(mol)], 
+        NODESIZE=0.3 / sqrt(nv(mol)), 
+        nodefillc=colors, 
         NODELABELSIZE=5.0,
         EDGELABELSIZE=5.0,
-        EDGELINEWIDTH=15.0/nv(graph),
+        EDGELINEWIDTH=15.0/nv(mol),
         nodestrokelw=1,
         nodelabel=nodelabels,
         edgelinewidth=1,
@@ -29,3 +29,5 @@ function viz_graph(mol::GraphMol; savename=nothing)
     end
     return gp
 end
+
+viz_graph(mol::GraphMol; kwargs...) = viz_graph(MetaGraph(mol); kwargs...)
