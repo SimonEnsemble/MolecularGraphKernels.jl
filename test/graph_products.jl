@@ -34,7 +34,7 @@ include("check_isom.jl")
 #    @test x == dpg_adj_mat(C, h2)
 #end
 #
-@testset "direct_product_graph" begin
+@testset "direct product graph" begin
 #    A = MetaGraph(3)
 #    add_edge!(A, 1, 2, Dict(:label => 1))
 #    add_edge!(A, 2, 3, Dict(:label => 1))
@@ -57,7 +57,8 @@ include("check_isom.jl")
 #    @test direct_product_graph(C, C) == direct_product_graph(MetaGraph(h2), C)
 #    @test direct_product_graph(h2, h2) == direct_product_graph(h2, C)
 #    @test direct_product_graph(h2, C) == direct_product_graph(C, h2)
-
+    
+    # Fig. 4 of "Classifying the toxicity of pesticides to honey bees viasupport vector machines with random walk graph kernels"
     g₁ = MetaGraph(smilestomol("COP(=O)(OC)OC(Br)C(Cl)(Cl)Br"))
     g₂ = MetaGraph(smilestomol("COP(N)(=O)SC"))
 
@@ -87,54 +88,63 @@ include("check_isom.jl")
     add_edge!(g₁xg₂, 4, 11, Dict(:label => 1))
     add_edge!(g₁xg₂, 5, 12, Dict(:label => 1))
 
-    @test is_isomorphic(product_graph(g₁, g₂, "direct"), g₁xg₂)
+    @test is_isomorphic(product_graph(g₁, g₂, :direct), g₁xg₂)
 end
 
-@testset "SMILES flexibility" begin
-#    A = smilestomol("c1c(C)cccc1")
-#    B = smilestomol("C1C=C(C)C=CC=1")
-#    C = smilestomol("C1=C(C)C=CC=C1")
-#    D = smilestomol("c1-c-c(C)-c-c-c1")
-#    E = smilestomol("c1ccc(C)cc1")
-#    A, B, C, D, E = MetaGraph.([A, B, C, D, E])
-#
-#    for (x, y) in with_replacement_combinations([A, B, C, D, E], 2)
-#        @test is_isomorphic(direct_product_graph(x, x), direct_product_graph(x, y))
-#    end
-#end
-#
-#@testset "csi_product_graph" begin
-#    A = smilestomol("NC=O")
-#    B = smilestomol("CN(C=O)C=O")
-#    C = MetaGraph(6)
-#    set_props!(C, 1, Dict(:label => 7, :source_nodes => (1, 3)))
-#    set_props!(C, 2, Dict(:label => 6, :source_nodes => (2, 2)))
-#    set_props!(C, 3, Dict(:label => 6, :source_nodes => (2, 4)))
-#    set_props!(C, 4, Dict(:label => 6, :source_nodes => (2, 5)))
-#    set_props!(C, 5, Dict(:label => 8, :source_nodes => (3, 1)))
-#    set_props!(C, 6, Dict(:label => 8, :source_nodes => (3, 6)))
-#    add_edge!(C, 1, 2, Dict(:label => 1, :d_type => false))
-#    add_edge!(C, 1, 3, Dict(:label => 1, :d_type => false))
-#    add_edge!(C, 1, 4, Dict(:label => 1, :d_type => false))
-#    add_edge!(C, 1, 5, Dict(:label => 1, :d_type => true))
-#    add_edge!(C, 1, 6, Dict(:label => 1, :d_type => true))
-#    add_edge!(C, 5, 2, Dict(:label => 2, :d_type => false))
-#    add_edge!(C, 6, 4, Dict(:label => 2, :d_type => false))
-#    @test is_isomorphic(csi_product_graph(A, B), C; edge_labels=[:label, :d_type])
-#    @test is_isomorphic(csi_product_graph(MetaGraph(A), B), C; edge_labels=[:label, :d_type])
-#    @test is_isomorphic(csi_product_graph(A, MetaGraph(B)), C; edge_labels=[:label, :d_type])
-#end
-#
+ @testset "SMILES flexibility and symmetry" begin
+    A = smilestomol("c1c(C)cccc1")
+    B = smilestomol("C1C=C(C)C=CC=1")
+    C = smilestomol("C1=C(C)C=CC=C1")
+    D = smilestomol("c1-c-c(C)-c-c-c1")
+    E = smilestomol("c1ccc(C)cc1")
+    A, B, C, D, E = MetaGraph.([A, B, C, D, E])
+
+    for (x, y) in with_replacement_combinations([A, B, C, D, E], 2)
+        for type in [:factor, :direct]
+            @test is_isomorphic(product_graph(x, x, type), product_graph(x, y, type))
+        end
+    end
+end
+
+@testset "factor product graph" begin
+    # Fig 1 of https://arxiv.org/ftp/arxiv/papers/1206/1206.6483.pdf
+    g₁ = MetaGraph(smilestomol("NC=O"))
+    g₂ = MetaGraph(smilestomol("CN(C=O)C=O"))
+
+    g₁xg₂ = MetaGraph(6)
+    set_props!(g₁xg₂, 1, Dict(:label => 7, :v₁v₂_pair => (1, 3)))
+    set_props!(g₁xg₂, 2, Dict(:label => 6, :v₁v₂_pair => (2, 2)))
+    set_props!(g₁xg₂, 3, Dict(:label => 6, :v₁v₂_pair => (2, 4)))
+    set_props!(g₁xg₂, 4, Dict(:label => 6, :v₁v₂_pair => (2, 5)))
+    set_props!(g₁xg₂, 5, Dict(:label => 8, :v₁v₂_pair => (3, 1)))
+    set_props!(g₁xg₂, 6, Dict(:label => 8, :v₁v₂_pair => (3, 6)))
+    add_edge!(g₁xg₂, 1, 2, Dict(:label => 1))
+    add_edge!(g₁xg₂, 1, 3, Dict(:label => 1))
+    add_edge!(g₁xg₂, 1, 4, Dict(:label => 1))
+    add_edge!(g₁xg₂, 1, 5, Dict(:label => 0)) # non-adj
+    add_edge!(g₁xg₂, 1, 6, Dict(:label => 0)) # non-adj
+    add_edge!(g₁xg₂, 5, 2, Dict(:label => 2))
+    add_edge!(g₁xg₂, 6, 4, Dict(:label => 2))
+
+    # TODO assert v₁v₂_pair labels the same too.
+    @test is_isomorphic(product_graph(g₁, g₂, :factor), g₁xg₂; edge_labels=[:label])
+
+    rem_edge!(g₁xg₂, 1, 5)
+    rem_edge!(g₁xg₂, 1, 6)
+    @test is_isomorphic(product_graph(g₁, g₂, :direct), g₁xg₂; edge_labels=[:label])
+
+end
+
 #@testset "csi_adj_mat" begin
 #    A = smilestomol("NC=O")
 #    B = smilestomol("CN(C=O)C=O")
 #    C = MetaGraph(6)
-#    set_props!(C, 1, Dict(:label => 7, :source_nodes => (1, 3)))
-#    set_props!(C, 2, Dict(:label => 6, :source_nodes => (2, 2)))
-#    set_props!(C, 3, Dict(:label => 6, :source_nodes => (2, 4)))
-#    set_props!(C, 4, Dict(:label => 6, :source_nodes => (2, 5)))
-#    set_props!(C, 5, Dict(:label => 8, :source_nodes => (3, 1)))
-#    set_props!(C, 6, Dict(:label => 8, :source_nodes => (3, 6)))
+#    set_props!(C, 1, Dict(:label => 7, :v₁v₂_pair => (1, 3)))
+#    set_props!(C, 2, Dict(:label => 6, :v₁v₂_pair => (2, 2)))
+#    set_props!(C, 3, Dict(:label => 6, :v₁v₂_pair => (2, 4)))
+#    set_props!(C, 4, Dict(:label => 6, :v₁v₂_pair => (2, 5)))
+#    set_props!(C, 5, Dict(:label => 8, :v₁v₂_pair => (3, 1)))
+#    set_props!(C, 6, Dict(:label => 8, :v₁v₂_pair => (3, 6)))
 #    add_edge!(C, 1, 2, Dict(:label => 1, :d_type => false))
 #    add_edge!(C, 1, 3, Dict(:label => 1, :d_type => false))
 #    add_edge!(C, 1, 4, Dict(:label => 1, :d_type => false))
