@@ -12,10 +12,10 @@ function _build_v₁v₂_pair_to_w_map(g₁::MetaGraph, g₂::MetaGraph)
     v₁v₂_pair_to_w = spzeros(Int, nv(g₁), nv(g₂))
     n_g₁xg₂_verts = 0 # nb of vertices in product graph (TBD)
     for v₂ in vertices(g₂) # switch order b/c COLUMN sparse matrix
-        l_v₂ = props(g₂, v₂)[:label] # label on g₁
+        l_v₂ = get_prop(g₂, v₂, :label) # label on g₂
         for v₁ in vertices(g₁)
             # add vertex pair to g₁xg₂ iff they share label.
-            l_v₁ = props(g₁, v₁)[:label]
+            l_v₁ = get_prop(g₁, v₁, :label)
             if l_v₁ == l_v₂
                 n_g₁xg₂_verts += 1
                 v₁v₂_pair_to_w[v₁, v₂] = n_g₁xg₂_verts
@@ -34,7 +34,7 @@ function _build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w::SparseMatrixCSC)
 end
 
 function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::MetaGraph
-	# get (v₁ ∈ g₁, v₂ ∈ g₂) <--> w ∈ g₁xg₂ mappings
+    # get (v₁ ∈ g₁, v₂ ∈ g₂) <--> w ∈ g₁xg₂ mappings
     v₁v₂_pair_to_w = _build_v₁v₂_pair_to_w_map(g₁, g₂)
     w_to_v₁v₂_pair = _build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w)
 
@@ -46,12 +46,12 @@ function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::MetaGrap
 
     # loop over pairs of vertices in the product graph
     for wᵢ = 1:n_g₁xg₂_vertices
-		# product graph vertex wᵢ = (u₁, u₂)
-		#    with u₁ ∈ g₁, u₂ ∈ g₂
+        # product graph vertex wᵢ = (u₁, u₂)
+        #    with u₁ ∈ g₁, u₂ ∈ g₂
         u₁, u₂ = w_to_v₁v₂_pair[wᵢ]
         for wⱼ = (wᵢ + 1):n_g₁xg₂_vertices
-			# product graph vertex wⱼ = (v₁, v₂)
-			#    with v₁ ∈ g₁, v₂ ∈ g₂
+            # product graph vertex wⱼ = (v₁, v₂)
+            #    with v₁ ∈ g₁, v₂ ∈ g₂
             v₁, v₂ = w_to_v₁v₂_pair[wⱼ]
 
             # does edge (u₁, v₁) exist in g₁?
@@ -68,18 +68,19 @@ function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::MetaGrap
                     add_edge!(g₁xg₂, wᵢ, wⱼ, Dict{Symbol, Int}(:label => l₁))
                 end
             # is there a common non-adjacency? (d-edge) "d" = disconnected.
-			#   (only relevant to factor graph)
-			elseif (type == :factor) && !e₁ && !e₂
+            #   (only relevant to factor graph)
+            #   see "Subgraph Matching Kernels for Attributed Graphs"
+            elseif (type == :factor) && !e₁ && !e₂ && (u₁ != v₁) && (u₂ != v₂)
                 add_edge!(g₁xg₂, wᵢ, wⱼ, Dict{Symbol, Int}(:label => 0))
             end
         end
     end
 
-	# loop over vertices in g₁xg₂
-	for w = 1:n_g₁xg₂_vertices
-		v₁, v₂ = w_to_v₁v₂_pair[w]
-		set_prop!(g₁xg₂, w, :v₁v₂_pair, (v₁, v₂))
-		set_prop!(g₁xg₂, w, :label, get_prop(g₁, v₁, :label))
-	end
+    # loop over vertices in g₁xg₂
+    for w = 1:n_g₁xg₂_vertices
+        v₁, v₂ = w_to_v₁v₂_pair[w]
+        set_prop!(g₁xg₂, w, :v₁v₂_pair, (v₁, v₂))
+        set_prop!(g₁xg₂, w, :label, get_prop(g₁, v₁, :label))
+    end
     return g₁xg₂
 end
