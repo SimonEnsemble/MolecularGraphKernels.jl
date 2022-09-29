@@ -1,199 +1,69 @@
-"""
-    cpg = csi_product_graph(graph_a, graph_b)
-
-Returns the common subgraph isomorphism product graph of `graph_a` and `graph_b`
-"""
-function csi_product_graph(mol_a::MetaGraph, mol_b::MetaGraph; node_label::Symbol=:label, edge_label::Symbol=:label)::MetaGraph
-    # map node pairs from input graphs to vertices of direct product graph
-    vertex_in_dpg = Dict{Tuple{Int, Int}, NamedTuple{(:l, :n), Tuple{Int, Int}}}()
-    n_verts = 0
-    for b in vertices(mol_b)
-        l_b = props(mol_b, b)[node_label]
-        for a in vertices(mol_a)
-            if props(mol_a, a)[node_label] == l_b
-                n_verts += 1
-                vertex_in_dpg[a, b] = (l=l_b, n=n_verts) # (vᵢ, vⱼ) ↦ (lₓ, nₓ)
+# map (u ∈ g₁, v ∈ g₂) ↦ w ∈ g₁ x g₂
+function _build_g₁g₂_vertex_pair_to_g₁xg₂_vertex_map(g₁::MetaGraph, g₂::MetaGraph; node_label::Symbol=:label)
+    g₁g₂_vertex_pair_to_g₁xg₂_vertex_id = spzeros(Int, nv(g₁), nv(g₂))
+    n_g₁xg₂_verts = 0 # nb of vertices in product graph (TBD)
+    for v in vertices(g₂) # switch order b/c COLUMN sparse matrix
+        l_v = props(g₂, v)[node_label] # label on g₁
+        for u in vertices(g₁)
+            # add vertex pair to g₁xg₂ iff they share label.
+            l_u = props(g₁, u)[node_label]
+            if l_v == l_u
+                n_g₁xg₂_verts += 1
+                g₁g₂_vertex_pair_to_g₁xg₂_vertex_id[u, v] = n_g₁xg₂_verts
             end
         end
     end
-
-    # instantiate graph to correct size
-    axb = MetaGraph(n_verts)
-
-    # label nodes from mapping
-    for v in values(vertex_in_dpg)
-        set_prop!(axb, v.n, node_label, v.l)
-    end
-
-    # make edges
-    for (a, b) in [[a, b] for a in vertex_in_dpg for b in vertex_in_dpg if b[2].n > a[2].n && a[1][1] ≠ b[1][1] && a[1][2] ≠ b[1][2]]
-        # `a` and `b` are key => value pairs where key::Tuple{Int,Int} and value::NamedTuple
-        # if the vertex pair in the product graph maps to correctly connected edges in the source graphs, make c-type edge
-        e1 = has_edge(mol_a, a[1][1], b[1][1])
-        e2 = has_edge(mol_b, a[1][2], b[1][2])
-        if e1 && e2 && props(mol_a, a[1][1], b[1][1])[edge_label] == props(mol_b, a[1][2], b[1][2])[edge_label]
-            add_edge!(axb, a[2].n, b[2].n, Dict(edge_label => props(mol_a, a[1][1], b[1][1])[edge_label], :d_type => false))
-        # if not a c-type edge, and neither source graph contains the corresponding edge, make d-type edge
-        elseif !e1 && !e2
-            add_edge!(axb, a[2].n, b[2].n, Dict(edge_label => 1, :d_type => true))
-        end
-    end
-
-    return axb
+    return g₁g₂_vertex_pair_to_g₁xg₂_vertex_id
 end
 
-csi_product_graph(mol_a::MetaGraph, mol_b::GraphMol; kwargs...) = csi_product_graph(mol_a, MetaGraph(mol_b); kwargs...)
-csi_product_graph(mol_a::GraphMol, mol_b::T; kwargs...) where T <: Union{MetaGraph, GraphMol} = csi_product_graph(MetaGraph(mol_a), mol_b; kwargs...)
-
-
-"""
-    cpg = csi_adj_mat(graph_a, graph_b)
-
-Returns the adjacency matrix of the CSI product graph of `graph_a` and `graph_b`
-"""
-function csi_adj_mat(mol_a::MetaGraph, mol_b::MetaGraph; node_label::Symbol=:label, edge_label::Symbol=:label)::SparseMatrixCSC
-    # map (vⱼ ∈ a, vₖ ∈ b) ↦ vᵢ ∈ a*b
-    vertex_in_dpg = spzeros(Bool, nv(mol_a), nv(mol_b))
-    for b in vertices(mol_b)
-        l_b = props(mol_b, b)[node_label]
-        for a in vertices(mol_a)
-            vertex_in_dpg[a, b] = props(mol_a, a)[node_label] == l_b
-        end
-    end
-    n_verts = sum(vertex_in_dpg)
-
-    # product graph nodes ↦ source node pairs
-    vertex_map = 1:n_verts .=> findall(vertex_in_dpg)
-
-    # build graph adjacency matrix
-    adj_mat = spzeros(Bool, n_verts, n_verts)
-    for (a, b) in [[a, b] for a in vertex_map for b in vertex_map if b[1] > a[1] && a[2][1] ≠ b[2][1] && a[2][2] ≠ b[2][2]]
-        # if the vertex pair in the product graph maps to correctly connected edges in the source graphs, make edge
-        # else, if neither source graph contains the corresponding edge, make edge
-        e1 = has_edge(mol_a, a[2][1], b[2][1])
-        e2 = has_edge(mol_b, a[2][2], b[2][2])
-        adj_mat[a[1], b[1]] = (e1 && e2 && props(mol_a, a[2][1], b[2][1])[edge_label] == props(mol_b, a[2][2], b[2][2])[edge_label]) || !e1 && !e2
-    end
-
-    return adj_mat .|| adj_mat'
+function _build_g₁xg₂_vertex_to_g₁g₂_vertex_pair_map(g₁g₂_vertex_pair_to_g₁xg₂_vertex_id::SparseMatrixCSC)
+    g₁g₂_vertex_pairs = findall(! iszero, g₁g₂_vertex_pair_to_g₁xg₂_vertex_id) # vector of Cartesian indices
+    return [(uv[1], uv[2]) for uv in g₁g₂_vertex_pairs] # vector of tuples
 end
 
-csi_adj_mat(mol_a::MetaGraph, mol_b::GraphMol; kwargs...) = csi_adj_mat(mol_a, MetaGraph(mol_b); kwargs...)
-csi_adj_mat(mol_a::GraphMol, mol_b::T; kwargs...) where T <: Union{MetaGraph, GraphMol} = csi_adj_mat(MetaGraph(mol_a), mol_b; kwargs...)
+function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::String; node_label::Symbol=:label, edge_label::Symbol=:label, add_g₁xg₂_labels::Bool=true)::MetaGraph
+    g₁g₂_vertex_pair_to_g₁xg₂_vertex_id = _build_g₁g₂_vertex_pair_to_g₁xg₂_vertex_map(g₁, g₂, node_label=node_label)
+    g₁xg₂_vertex_to_g₁g₂_vertex_pair = _build_g₁xg₂_vertex_to_g₁g₂_vertex_pair_map(g₁g₂_vertex_pair_to_g₁xg₂_vertex_id)
+    
+    # pre-allocate product graph
+    n_g₁xg₂_vertices = sum(g₁g₂_vertex_pair_to_g₁xg₂_vertex_id .!= 0)
+    g₁xg₂ = MetaGraph(n_g₁xg₂_vertices)
 
-
-"""
-    dpg = direct_product_graph(graph_a, graph_b)
-
-Returns the direct product graph of `graph_a` and `graph_b`.
-
-!!! note
-    If only the adjacency matrix of the DPG is needed (and not the DPG itself) `@ref(dpg_adj_mat)` should be used instead for performance.
-
-!!! warning
-    Edge and vertex labels should be of consistent, comparable types, preferably `Symbol`, `Int`, `Bool`, etc., for efficiency.
-    Comparing, for example, `String` labels will result in significantly poorer performance!
-"""
-function direct_product_graph(mol_a::MetaGraph, mol_b::MetaGraph; node_label::Symbol=:label, edge_label::Symbol=:label)::MetaGraph
-    # map node pairs from input graphs to vertices of direct product graph
-    vertex_in_dpg = Dict{Tuple{Int, Int}, NamedTuple{(:l, :n), Tuple{Int, Int}}}()
-    n_verts = 0
-    for b in vertices(mol_b)
-        l_b = props(mol_b, b)[node_label]
-        for a in vertices(mol_a)
-            if props(mol_a, a)[node_label] == l_b
-                n_verts += 1
-                vertex_in_dpg[a, b] = (l=l_b, n=n_verts) # (vᵢ, vⱼ) ↦ (lₓ, nₓ)
+    @assert type in ["factor", "direct"]
+    
+    # loop over pairs of vertices in the product graph
+    for u = 1:n_g₁xg₂_vertices
+        u_g₁, u_g₂ = g₁xg₂_vertex_to_g₁g₂_vertex_pair[u]
+        for v = (u + 1):n_g₁xg₂_vertices
+            # this pair of vertieces in the product graph (u, v) represents
+            #  (u_g₁, u_g₂) and (v_g₁, v_g₂).
+            v_g₁, v_g₂ = g₁xg₂_vertex_to_g₁g₂_vertex_pair[v]
+            
+            # does edge (u_g₁, v_g₁) exist in g₁?
+            e₁ = has_edge(g₁, u_g₁, v_g₁)
+            # does edge (u_g₂, v_g₂) exist in g₂?
+            e₂ = has_edge(g₂, u_g₂, v_g₂) 
+            
+            # is there a common adjacency? (c-edge) "c" = connected. 
+            if e₁ && e₂ 
+                # do they share an edge label?
+                l₁ = props(g₁, u_g₁, v_g₁)[edge_label]
+                l₂ = props(g₂, u_g₂, v_g₂)[edge_label]
+                if l₁ == l₂
+                    add_edge!(g₁xg₂, u, v, Dict(edge_label => l₁, :d_type => false))
+                end
+            # is there a common non-adjacency? (d-edge) "d" = disconnected. only relevant to factor graph.
+            elseif (type == "factor") && !e₁ && !e₂
+                add_edge!(g₁xg₂, u, v, Dict(edge_label => 0, :d_type => true))
             end
         end
     end
 
-    # instantiate graph to correct size
-    axb = MetaGraph(n_verts)
-
-    # label nodes from mapping
-    for v in values(vertex_in_dpg)
-        set_prop!(axb, v.n, node_label, v.l)
-    end
-
-    # make edges
-    for e_a in edges(mol_a)
-        for e_b in edges(mol_b)
-            # only a candidate if edge labels are the same
-            if props(mol_a, e_a)[edge_label] != props(mol_b, e_b)[edge_label]
-                continue
-            end
-
-            # check candidate edge (v1, v2) in axb:
-            #   v1 = (a1, b1)
-            #   v2 = (a2, b2)
-            if haskey(vertex_in_dpg, (src(e_a), src(e_b))) && haskey(vertex_in_dpg, (dst(e_a), dst(e_b)))
-                add_edge!(axb, vertex_in_dpg[src(e_a), src(e_b)].n, vertex_in_dpg[dst(e_a), dst(e_b)].n, Dict(edge_label => props(mol_a, e_a)[edge_label]))
-            end
-
-            # check candidate edge (v1, v2) in axb:
-            #   v1 = (a1, b2)
-            #   v2 = (a2, b1)
-            if haskey(vertex_in_dpg, (src(e_a), dst(e_b))) && haskey(vertex_in_dpg, (dst(e_a), src(e_b))) # if v1 and v2 are vertices in axb...
-                add_edge!(axb, vertex_in_dpg[src(e_a), dst(e_b)].n, vertex_in_dpg[dst(e_a), src(e_b)].n, Dict(edge_label => props(mol_a, e_a)[edge_label]))
-            end
+    if add_g₁xg₂_labels
+        for u = 1:n_g₁xg₂_vertices
+            set_prop!(g₁xg₂, u, :g₁g₂_vertex_pair, (g₁xg₂_vertex_to_g₁g₂_vertex_pair[1], g₁xg₂_vertex_to_g₁g₂_vertex_pair[2]))
+            set_prop!(g₁xg₂, u, node_label, get_prop(g₁, g₁xg₂_vertex_to_g₁g₂_vertex_pair[1], node_label))
         end
     end
-
-    return axb
+    return g₁xg₂
 end
-
-direct_product_graph(mol_a::MetaGraph, mol_b::GraphMol; kwargs...) = direct_product_graph(mol_a, MetaGraph(mol_b); kwargs...)
-direct_product_graph(mol_a::GraphMol, mol_b::T; kwargs...) where T <: Union{MetaGraph, GraphMol} = direct_product_graph(MetaGraph(mol_a), mol_b; kwargs...)
-
-"""
-    A = dpg_adj_mat(graph_a, graph_b)
-
-Returns the adjacency matrix of the DPG.
-"""
-function dpg_adj_mat(mol_a::MetaGraph, mol_b::MetaGraph; node_label::Symbol=:label, edge_label::Symbol=:label)::SparseMatrixCSC{Bool, Int}
-    # map (vⱼ ∈ a, vₖ ∈ b) ↦ vᵢ ∈ a*b
-    vertex_in_dpg = spzeros(Int, nv(mol_a), nv(mol_b))
-    for b in vertices(mol_b)
-        l_b = props(mol_b, b)[node_label]
-        for a in vertices(mol_a)
-            vertex_in_dpg[a, b] = props(mol_a, a)[node_label] == l_b
-        end
-    end
-    n_verts = sum(vertex_in_dpg)
-    vertex_in_dpg[vertex_in_dpg .== 1] .= 1:n_verts
-
-    # build graph adjacency matrix
-    adj_mat = spzeros(Bool, n_verts, n_verts)
-    for e_a in edges(mol_a)
-        for e_b in edges(mol_b)
-            # only a candidate if edge labels are the same
-            if props(mol_a, e_a)[edge_label] != props(mol_b, e_b)[edge_label]
-                continue
-            end
-
-            # check candidate edge (v1, v2) in axb:
-            #   v1 = (a1, b1)
-            #   v2 = (a2, b2)
-            v1 = vertex_in_dpg[src(e_a), src(e_b)]
-            v2 = vertex_in_dpg[dst(e_a), dst(e_b)]
-            if (v1 != 0) && (v2 != 0) # if v1 and v2 are vertices in axb...
-                adj_mat[v1, v2] = 1
-            end
-
-            # check candidate edge (v1, v2) in axb:
-            #   v1 = (a1, b2)
-            #   v2 = (a2, b1)
-            v1 = vertex_in_dpg[src(e_a), dst(e_b)]
-            v2 = vertex_in_dpg[dst(e_a), src(e_b)]
-            if (v1 != 0) && (v2 != 0) # if v1 and v2 are vertices in axb...
-                adj_mat[v1, v2] = 1
-            end
-        end
-    end
-
-    return adj_mat .|| adj_mat'
-end
-
-dpg_adj_mat(mol_a::MetaGraph, mol_b::GraphMol; kwargs...) = dpg_adj_mat(mol_a, MetaGraph(mol_b); kwargs...)
-dpg_adj_mat(mol_a::GraphMol, mol_b::T; kwargs...) where T <: Union{MetaGraph, GraphMol} = dpg_adj_mat(MetaGraph(mol_a), mol_b; kwargs...)
