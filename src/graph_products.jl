@@ -8,7 +8,7 @@
 """
 map (v₁ ∈ g₁, v₂ ∈ g₂) ↦ w ∈ g₁ x g₂
 """
-function _build_v₁v₂_pair_to_w_map(g₁::MetaGraph, g₂::MetaGraph)
+function build_v₁v₂_pair_to_w_map(g₁::MetaGraph, g₂::MetaGraph)::SparseMatrixCSC{Int, Int}
     v₁v₂_pair_to_w = spzeros(Int, nv(g₁), nv(g₂))
     n_g₁xg₂_verts = 0 # nb of vertices in product graph (TBD)
     for v₂ in vertices(g₂) # switch order b/c COLUMN sparse matrix
@@ -28,23 +28,24 @@ end
 """
 map w ∈ g₁ x g₂ ↦ (v₁ ∈ g₁, v₂ ∈ g₂)
 """
-function _build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w::SparseMatrixCSC)
-    v₁v₂_pairs = findall(! iszero, v₁v₂_pair_to_w) # vector of CartesianIndices
+function build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w::SparseMatrixCSC{Int, Int})::Vector{Tuple{Int, Int}}
+    v₁v₂_pairs = findall(!iszero, v₁v₂_pair_to_w) # vector of CartesianIndices
     return [(w[1], w[2]) for w in v₁v₂_pairs] # vector of tuples
 end
 
-function _product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)
+"""
+compute the product graph adjacency matrix and mappings (in each direction) for relating the source graphs and product graph
+"""
+function product_graph_matrix_and_maps(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::Tuple{SparseMatrixCSC{Bool, Int}, SparseMatrixCSC{Int, Int}, Vector{Tuple{Int, Int}}}
     @assert type in [:direct, :factor]
     
     # get (v₁ ∈ g₁, v₂ ∈ g₂) <--> w ∈ g₁xg₂ mappings
-    v₁v₂_pair_to_w = _build_v₁v₂_pair_to_w_map(g₁, g₂)
-    w_to_v₁v₂_pair = _build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w)
+    v₁v₂_pair_to_w = build_v₁v₂_pair_to_w_map(g₁, g₂)
+    w_to_v₁v₂_pair = build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w)
 
     # pre-allocate adj matrix
     n_g₁xg₂ = length(w_to_v₁v₂_pair)
     A = spzeros(Bool, n_g₁xg₂, n_g₁xg₂)
-    
-    @assert type in [:factor, :direct]
 
     # loop over pairs of vertices in the product graph
     for wᵢ = 1:n_g₁xg₂
@@ -80,8 +81,11 @@ function _product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)
     return A .|| A', v₁v₂_pair_to_w, w_to_v₁v₂_pair
 end
 
+"""
+compute the product graph (of type `type`) between g₁ and g₂
+"""
 function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::MetaGraph
-    A, v₁v₂_pair_to_w, w_to_v₁v₂_pair = _product_graph(g₁, g₂, type)
+    A, v₁v₂_pair_to_w, w_to_v₁v₂_pair = product_graph_matrix_and_maps(g₁, g₂, type)
     n_g₁xg₂ = length(w_to_v₁v₂_pair)
     
     g₁xg₂ = MetaGraph(SimpleGraph(A))
@@ -113,4 +117,15 @@ function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::MetaGrap
     end
     return g₁xg₂
 end
+
+product_graph(g₁::MetaGraph, g₂::GraphMol, type::Symbol) = product_graph(g₁, MetaGraph(g₂), type)
+product_graph(g₁::GraphMol, g₂::G, type::Symbol) where G <: Union{GraphMol, MetaGraph} = product_graph(MetaGraph(g₁), g₂, type)
+
+"""
+compute the adjacency matrix of the product graph (of type `type`) between g₁ and g₂, but do not explicitly construct the graph
+"""
+product_graph_adj_mat(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::SparseMatrixCSC{Bool, Int} = product_graph_matrix_and_maps(g₁, g₂, type)[1]
+
+product_graph_adj_mat(g₁::MetaGraph, g₂::GraphMol, type::Symbol) = product_graph_adj_mat(g₁, MetaGraph(g₂), type)
+product_graph_adj_mat(g₁::GraphMol, g₂::G, type::Symbol) where G <: Union{GraphMol, MetaGraph} = product_graph_adj_mat(MetaGraph(g₁), g₂, type)
 
