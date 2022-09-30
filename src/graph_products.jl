@@ -84,3 +84,47 @@ function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::MetaGrap
     end
     return g₁xg₂
 end
+
+function adj_mat(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)
+    @assert type in [:direct, :factor]
+    v₁v₂_pair_to_w = _build_v₁v₂_pair_to_w_map(g₁, g₂)
+    n_g₁xg₂ = sum(v₁v₂_pair_to_w .!= 0)
+
+    A = spzeros(Bool, n_g₁xg₂, n_g₁xg₂)
+
+    if type == :direct
+        for e₁ in edges(g₁)
+            l_e₁ = get_prop(g₁, e₁, :label)
+            u₁, v₁ = e₁.src, e₁.dst
+            for e₂ in edges(g₂)
+                l_e₂ = get_prop(g₂, e₂, :label)
+                if l_e₁ != l_e₂
+                    continue
+                end
+                u₂, v₂ = e₂.src, e₂.dst
+
+                # check candidate edge (wᵢ, wⱼ) ∈ g₁xg₂:
+                #   wᵢ = (u₁, u₂)
+                #   wⱼ = (v₁, v₂)
+                # are wᵢ and wⱼ are vertices in g₁xg₂?
+                wᵢ = v₁v₂_pair_to_w[u₁, u₂]
+                wⱼ = v₁v₂_pair_to_w[v₁, v₂]
+                if (wᵢ != 0) && (wⱼ != 0)
+                    A[wᵢ, wⱼ] = 1
+                end
+
+                # check candidate edge (wᵢ, wⱼ) ∈ g₁xg₂:
+                #   wᵢ = (u₁, v₂)
+                #   wⱼ = (v₁, u₂)
+                # are wᵢ and wⱼ are vertices in g₁xg₂?
+                wᵢ = v₁v₂_pair_to_w[u₁, v₂]
+                wⱼ = v₁v₂_pair_to_w[v₁, u₂]
+                if (wᵢ != 0) && (wⱼ != 0)
+                    A[wᵢ, wⱼ] = 1
+                end
+            end
+        end
+    elseif type == :factor
+            # TODO
+    return A .|| A'
+end
