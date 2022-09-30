@@ -33,25 +33,27 @@ function _build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w::SparseMatrixCSC)
     return [(w[1], w[2]) for w in v₁v₂_pairs] # vector of tuples
 end
 
-function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::MetaGraph
-    # get (v₁ ∈ g₁, v₂ ∈ g₂) <--> w ∈ g₁xg₂ mappings
+function _product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)
+	@assert type in [:direct, :factor]
+	
+	# get (v₁ ∈ g₁, v₂ ∈ g₂) <--> w ∈ g₁xg₂ mappings
     v₁v₂_pair_to_w = _build_v₁v₂_pair_to_w_map(g₁, g₂)
     w_to_v₁v₂_pair = _build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w)
 
-    # pre-allocate product graph
-    n_g₁xg₂_vertices = length(w_to_v₁v₂_pair)
-    g₁xg₂ = MetaGraph(n_g₁xg₂_vertices)
-
+    # pre-allocate adj matrix
+    n_g₁xg₂ = length(w_to_v₁v₂_pair)
+	A = spzeros(Bool, n_g₁xg₂, n_g₁xg₂)
+	
     @assert type in [:factor, :direct]
 
     # loop over pairs of vertices in the product graph
-    for wᵢ = 1:n_g₁xg₂_vertices
-        # product graph vertex wᵢ = (u₁, u₂)
-        #    with u₁ ∈ g₁, u₂ ∈ g₂
+    for wᵢ = 1:n_g₁xg₂
+		# product graph vertex wᵢ = (u₁, u₂)
+		#    with u₁ ∈ g₁, u₂ ∈ g₂
         u₁, u₂ = w_to_v₁v₂_pair[wᵢ]
-        for wⱼ = (wᵢ + 1):n_g₁xg₂_vertices
-            # product graph vertex wⱼ = (v₁, v₂)
-            #    with v₁ ∈ g₁, v₂ ∈ g₂
+        for wⱼ = (wᵢ + 1):n_g₁xg₂
+			# product graph vertex wⱼ = (v₁, v₂)
+			#    with v₁ ∈ g₁, v₂ ∈ g₂
             v₁, v₂ = w_to_v₁v₂_pair[wⱼ]
 
             # does edge (u₁, v₁) exist in g₁?
@@ -59,73 +61,56 @@ function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::MetaGrap
             # does edge (u₂, v₂) exist in g₂?
             e₂ = has_edge(g₂, u₂, v₂)
 
-            # is there a common adjacency? (c-edge) "c" = connected.
+            # is there a common adjacency? (c-edge) "c" = connected. 
             if e₁ && e₂
                 # do they share an edge label?
                 l₁ = get_prop(g₁, u₁, v₁, :label)
                 l₂ = get_prop(g₂, u₂, v₂, :label)
                 if l₁ == l₂
-                    add_edge!(g₁xg₂, wᵢ, wⱼ, Dict{Symbol, Int}(:label => l₁))
+                	A[wᵢ, wⱼ] = 1
                 end
             # is there a common non-adjacency? (d-edge) "d" = disconnected.
-            #   (only relevant to factor graph)
-            #   see "Subgraph Matching Kernels for Attributed Graphs"
-            elseif (type == :factor) && !e₁ && !e₂ && (u₁ != v₁) && (u₂ != v₂)
-                add_edge!(g₁xg₂, wᵢ, wⱼ, Dict{Symbol, Int}(:label => 0))
+			#   (only relevant to factor graph) 
+			#   see "Subgraph Matching Kernels for Attributed Graphs" 
+			elseif (type == :factor) && !e₁ && !e₂ && (u₁ != v₁) && (u₂ != v₂)
+                A[wᵢ, wⱼ] = 1
             end
         end
     end
+	return A .|| A', v₁v₂_pair_to_w, w_to_v₁v₂_pair
+end
 
-    # loop over vertices in g₁xg₂
-    for w = 1:n_g₁xg₂_vertices
-        v₁, v₂ = w_to_v₁v₂_pair[w]
-        set_prop!(g₁xg₂, w, :v₁v₂_pair, (v₁, v₂))
-        set_prop!(g₁xg₂, w, :label, get_prop(g₁, v₁, :label))
-    end
+function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::MetaGraph
+	A, v₁v₂_pair_to_w, w_to_v₁v₂_pair = _product_graph(g₁, g₂, type)
+	n_g₁xg₂ = length(w_to_v₁v₂_pair)
+	
+    g₁xg₂ = MetaGraph(SimpleGraph(A))
+
+	# label vertices
+	for w = 1:n_g₁xg₂
+		v₁, v₂ = w_to_v₁v₂_pair[w]
+		set_prop!(g₁xg₂, w, :v₁v₂_pair, (v₁, v₂))
+		set_prop!(g₁xg₂, w, :label, get_prop(g₁, v₁, :label))
+	end
+	# label edges
+	for wᵢ = 1:n_g₁xg₂
+		u₁, u₂ = w_to_v₁v₂_pair[wᵢ]
+		for wⱼ = (wᵢ + 1):n_g₁xg₂
+			v₁, v₂ = w_to_v₁v₂_pair[wⱼ]
+			if A[wᵢ, wⱼ]
+				if type == :direct
+					edge_label = get_prop(g₁, u₁, v₁, :label)
+				elseif type == :factor
+					if has_edge(g₁, u₁, v₁)
+						edge_label = get_prop(g₁, u₁, v₁, :label)
+					else
+						edge_label = 0
+					end
+				end
+				set_prop!(g₁xg₂, wᵢ, wⱼ, :label, edge_label)
+			end
+		end
+	end
     return g₁xg₂
 end
 
-function adj_mat(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)
-    @assert type in [:direct, :factor]
-    v₁v₂_pair_to_w = _build_v₁v₂_pair_to_w_map(g₁, g₂)
-    n_g₁xg₂ = sum(v₁v₂_pair_to_w .!= 0)
-
-    A = spzeros(Bool, n_g₁xg₂, n_g₁xg₂)
-
-    if type == :direct
-        for e₁ in edges(g₁)
-            l_e₁ = get_prop(g₁, e₁, :label)
-            u₁, v₁ = e₁.src, e₁.dst
-            for e₂ in edges(g₂)
-                l_e₂ = get_prop(g₂, e₂, :label)
-                if l_e₁ != l_e₂
-                    continue
-                end
-                u₂, v₂ = e₂.src, e₂.dst
-
-                # check candidate edge (wᵢ, wⱼ) ∈ g₁xg₂:
-                #   wᵢ = (u₁, u₂)
-                #   wⱼ = (v₁, v₂)
-                # are wᵢ and wⱼ are vertices in g₁xg₂?
-                wᵢ = v₁v₂_pair_to_w[u₁, u₂]
-                wⱼ = v₁v₂_pair_to_w[v₁, v₂]
-                if (wᵢ != 0) && (wⱼ != 0)
-                    A[wᵢ, wⱼ] = 1
-                end
-
-                # check candidate edge (wᵢ, wⱼ) ∈ g₁xg₂:
-                #   wᵢ = (u₁, v₂)
-                #   wⱼ = (v₁, u₂)
-                # are wᵢ and wⱼ are vertices in g₁xg₂?
-                wᵢ = v₁v₂_pair_to_w[u₁, v₂]
-                wⱼ = v₁v₂_pair_to_w[v₁, u₂]
-                if (wᵢ != 0) && (wⱼ != 0)
-                    A[wᵢ, wⱼ] = 1
-                end
-            end
-        end
-    elseif type == :factor
-            # TODO
-    end
-    return A .|| A'
-end
