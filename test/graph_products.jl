@@ -57,28 +57,23 @@ end
     add_edge!(g₁xg₂, 5, 2, Dict(:label => 2))
     add_edge!(g₁xg₂, 6, 4, Dict(:label => 2))
 
-    @test is_isomorphic(product_graph(g₁, g₂, :factor), g₁xg₂; edge_labels=[:label])
+    #  # test: calculated result equivalent to manual construction
+    @test is_isomorphic(product_graph(g₁, g₂, :factor), g₁xg₂)
 
     dpg = deepcopy(g₁xg₂)
     rem_edge!(dpg, 1, 5)
     rem_edge!(dpg, 1, 6)
 
     # test: removing d-type edges from FPG gives DPG
-    @test is_isomorphic(product_graph(g₁, g₂, :direct), dpg; node_labels=[:label])
+    @test is_isomorphic(product_graph(g₁, g₂, :direct), dpg)
+
+    # test: type signatures (MetaGraph/GraphMol)
+    @test is_isomorphic(product_graph(mol₁, mol₂, :factor), g₁xg₂)
+    @test is_isomorphic(product_graph(g₁, mol₂, :factor), g₁xg₂)
+    @test is_isomorphic(product_graph(mol₁, g₂, :factor), g₁xg₂)
 
     ## TODO assert v₁v₂_pair labels the same too.
-    ##* replace previous two tests w/ the following
-    ##! Doesn't work yet b/c need to account for isomorphism in v-pair comparisons
-    #  # test: calculated result equivalent to manual construction
-    #  @test is_isomorphic(product_graph(g₁, g₂, :factor), g₁xg₂; node_labels=[:label, :v₁v₂_pair])
-
-    #  # test: type signatures (MetaGraph/GraphMol)
-    #  @test is_isomorphic(product_graph(mol₁, mol₂, :factor), g₁xg₂; node_labels=[:label, :v₁v₂_pair])
-    #  @test is_isomorphic(product_graph(g₁, mol₂, :factor), g₁xg₂; node_labels=[:label, :v₁v₂_pair])
-    #  @test is_isomorphic(product_graph(mol₁, g₂, :factor), g₁xg₂; node_labels=[:label, :v₁v₂_pair])
-
-    # # test: removing d-type edges from FPG gives DPG
-    # @test is_isomorphic(product_graph(g₁, g₂, :direct), dpg; node_labels=[:label, :v₁v₂_pair])
+    ##! Labels aren't the same, b/c numbering in original graphs arbitrary and non-identical
 end
 
 @testset verbose=true "product graph adjacency matrices" begin
