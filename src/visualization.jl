@@ -1,7 +1,7 @@
-function viz_graph(mol::MetaGraph; savename=nothing)
-    locs_x, locs_y = spring_layout(mol, C=0.25)
+function viz_graph(mol::MetaGraph; savename=nothing, C=0.25)
+    locs_x, locs_y = spring_layout(mol, C=C)
 
-    nodelabels = ["v<sub>$i</sub>" for i = 1:nv(mol)]
+    nodelabels = ["$i" for i = 1:nv(mol)]
 
     edgelabels = ["$(get_prop(mol, e, :label))" for e in edges(mol)]
     replace!(edgelabels, "-1" => "a")

@@ -126,5 +126,6 @@ function adj_mat(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)
         end
     elseif type == :factor
             # TODO
+    end
     return A .|| A'
 end
