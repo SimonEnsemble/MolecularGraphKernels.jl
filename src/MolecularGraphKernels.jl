@@ -21,7 +21,7 @@ end
 
 export
     # graph_products.jl
-    product_graph, adj_mat,
+    product_graph,
 
     # graph_kernels.jl
     random_walk_kernel, 

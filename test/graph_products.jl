@@ -2,37 +2,37 @@ using Combinatorics, Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Te
 
 include("check_isom.jl")
 
-@testset "dpg_adj_mat" begin
-    A = MetaGraph(3)
-    add_edge!(A, 1, 2, Dict(:label => 1))
-    add_edge!(A, 2, 3, Dict(:label => 1))
-    add_edge!(A, 3, 1, Dict(:label => 1))
-    set_prop!(A, 1, :label, 6)
-    set_prop!(A, 2, :label, 6)
-    set_prop!(A, 3, :label, 6)
-
-    B = deepcopy(A)
-    set_prop!(B, 3, 1, :label, 2)
-    
-    @test adj_mat(A, B, :direct) == sparse(
-        [5, 6, 4, 6, 4, 5, 2, 3, 8, 9, 1, 3, 7, 9, 1, 2, 7, 8, 5, 6, 4, 6, 4, 5], 
-        [1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 9, 9], 
-        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-        9, 9
-    )
-
-    C = MetaGraph(2)
-    add_edge!(C, 1, 2, Dict(:label => 1))
-    set_prop!(C, 1, :label, 1)
-    set_prop!(C, 2, :label, 1)
-    h2 = MetaGraph(smilestomol("[H]-[H]"))
-
-    x = adj_mat(C, C, :direct)
-
-    @test x == adj_mat(h2, h2, :direct)
-    @test x == adj_mat(h2, C, :direct)
-    @test x == adj_mat(C, h2, :direct)
-end
+#@testset "dpg_adj_mat" begin
+#    A = MetaGraph(3)
+#    add_edge!(A, 1, 2, Dict(:label => 1))
+#    add_edge!(A, 2, 3, Dict(:label => 1))
+#    add_edge!(A, 3, 1, Dict(:label => 1))
+#    set_prop!(A, 1, :label, 6)
+#    set_prop!(A, 2, :label, 6)
+#    set_prop!(A, 3, :label, 6)
+#
+#    B = deepcopy(A)
+#    set_prop!(B, 3, 1, :label, 2)
+#    
+#    @test adj_mat(A, B, :direct) == sparse(
+#        [5, 6, 4, 6, 4, 5, 2, 3, 8, 9, 1, 3, 7, 9, 1, 2, 7, 8, 5, 6, 4, 6, 4, 5], 
+#        [1, 1, 2, 2, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6, 6, 7, 7, 8, 8, 9, 9], 
+#        [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+#        9, 9
+#    )
+#
+#    C = MetaGraph(2)
+#    add_edge!(C, 1, 2, Dict(:label => 1))
+#    set_prop!(C, 1, :label, 1)
+#    set_prop!(C, 2, :label, 1)
+#    h2 = MetaGraph(smilestomol("[H]-[H]"))
+#
+#    x = adj_mat(C, C, :direct)
+#
+#    @test x == adj_mat(h2, h2, :direct)
+#    @test x == adj_mat(h2, C, :direct)
+#    @test x == adj_mat(C, h2, :direct)
+#end
 
 @testset "direct product graph" begin
 #    # TODO it seems these are repeated.
@@ -91,7 +91,6 @@ end
     
     computed_g₁xg₂ = product_graph(g₁, g₂, :direct)
     @test is_isomorphic(computed_g₁xg₂, g₁xg₂)
-    @test adjacency_matrix(computed_g₁xg₂) == adj_mat(g₁, g₂, :direct)
 end
 
  @testset "SMILES flexibility and symmetry" begin
