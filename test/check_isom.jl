@@ -1,17 +1,25 @@
-using Graphs.Experimental: vf2, IsomorphismProblem
+using MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 
-function is_isomorphic(A::AbstractGraph, B::AbstractGraph; edge_labels::Vector{Symbol}=[:label], node_labels::Vector{Symbol}=[:label])::Bool
-    isomorphic = false
+@testset "is_isomporphic" begin
+    A = MetaGraph(smilestomol("C1CC=1"))
+    
+    # trivial test (identical graphs)
+    B = deepcopy(A)
+    @test is_isomorphic(A, B)
 
-    vf2(
-        # check graph isomorphism between A and B, comparing node and edge labels
-        SimpleGraph(A), SimpleGraph(B), IsomorphismProblem();
-        vertex_relation = (v, w) -> all([get_prop(A, v, x) == get_prop(B, w, x) for x in node_labels]),
-        edge_relation   = (j, k) -> all([get_prop(A, j, x)  == get_prop(B, k, x) for x in edge_labels])
-    ) do x
-        isomorphic = true
-        return false
-    end
+    # less trivial test (isomorphic but not identical)
+    B = deepcopy(A)
+    set_prop!(B, 3, 1, :label, 1)
+    set_prop!(B, 1, 2, :label, 2)
+    @test is_isomorphic(A, B)
+    
+    # isomorphism broken by changing atom identity
+    B = deepcopy(A)
+    set_prop!(B, 2, :label, 7)
+    @test !is_isomorphic(A, B)
 
-    return isomorphic
+    # isomorphism broken by changing bond order
+    B = deepcopy(A)
+    set_prop!(B, 3, 1, :label, 1)
+    @test !is_isomorphic(A, B)
 end
