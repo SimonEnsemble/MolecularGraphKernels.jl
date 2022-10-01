@@ -19,8 +19,9 @@ function banner()
 end
 
 export
+
     # graph_products.jl
-    product_graph, product_graph_adj_mat,
+    ProductGraph, Factor, Direct,
 
     # graph_kernels.jl
     graph_kernel, 
