@@ -9,7 +9,7 @@ function graph_kernel(adj_mat::AbstractMatrix, l::Int)::Int
     return sum(adj_mat ^ l)
 end
 
-graph_kernel(g₁xg₂::AbstractGraph, l::Int) = graph_kernel(adjacency_matrix(g₁xg₂), l)
-graph_kernel(A::AbstractGraph, B::AbstractGraph, l::Int, type::Symbol) = graph_kernel(product_graph_adj_mat(A, B, type), l)
-graph_kernel(A::AbstractGraph, B::GraphMol, l::Int, type::Symbol) = graph_kernel(A, MetaGraph(B), l, type)
-graph_kernel(A::GraphMol, B::T, l::Int, type::Symbol) where T <: Union{AbstractGraph, GraphMol} = graph_kernel(MetaGraph(A), B, l, type)
+graph_kernel(A::ProductGraphMatrix{T}, l::Int) where T <: AbstractProductGraph = graph_kernel(A.matrix, l)
+graph_kernel(A::ProductGraph{T}, l::Int) where T <: AbstractProductGraph = graph_kernel(A.graph, l)
+graph_kernel(g₁xg₂::MetaGraph, l::Int) = graph_kernel(adjacency_matrix(g₁xg₂), l)
+graph_kernel(A::G1, B::G2, l::Int, type::Type{T}) where {T <: AbstractProductGraph, G1,G2 <: Union{GraphMol, MetaGraph}} = graph_kernel(ProductGraphMatrix{type}(A, B), l)
