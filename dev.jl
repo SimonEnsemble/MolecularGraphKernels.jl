@@ -94,10 +94,43 @@ begin
 	fpg_adj_mat = @btime ProductGraphMatrix{Factor}(a, b)
 end;
 
+# ╔═╡ feb99479-6e23-4838-8e22-f6307b7ba339
+ProductGraph{Direct}(a, b)
+
+# ╔═╡ eba23f46-559b-440a-8009-16eb69d1ecc5
+ProductGraph{Factor}(a, b)
+
+# ╔═╡ 42cd2333-3776-43af-a162-ea4b65660e11
+ProductGraph{Direct}(ProductGraph{Factor}(a, b))
+
+# ╔═╡ 6c69ed44-459e-4a08-aa0f-5d05e7cd5d3e
+function isequal(a::ProductGraph, b::ProductGraph)::Bool
+	if nv(a.graph) ≠ nv(b.graph)
+		return false
+	end
+	for v in vertices(a.graph)
+		if props(a.graph, v) ≠ props(b.graph, v)
+			return false
+		end
+	end
+	if ne(a.graph) ≠ ne(b.graph)
+		return false
+	end
+	for e in edges(a.graph)
+		if props(a.graph, e) ≠ props(b.graph, e)
+			return false
+		end
+	end
+	return true
+end
+
 # ╔═╡ 13f3966f-4d67-4385-a37e-efffc4165280
 md"""
 ### Tests
 """
+
+# ╔═╡ ff5f8f53-8f2f-496f-b258-79689971db27
+l = 4
 
 # ╔═╡ a001dda5-584f-4d4d-baa4-95f9f1e3ef5a
 @test is_isomorphic(dpg, ProductGraph{Direct}(fpg))
@@ -105,14 +138,23 @@ md"""
 # ╔═╡ bbe96dac-fbd2-4d8d-a419-869cb4d48b26
 @test is_isomorphic(ProductGraphMatrix(dpg), dpg_adj_mat)
 
+# ╔═╡ 4f73d6a9-4174-48d4-a4bb-cfe996b2fe31
+@test graph_kernel(dpg.graph, l) == graph_kernel(dpg, l)
+
 # ╔═╡ 3dcaab69-898b-4704-83ed-18a3b863e498
 @test is_isomorphic(dpg, dpg)
 
+# ╔═╡ 5853c817-1a6a-4056-afdc-c95f2013b612
+@test graph_kernel(fpg, l) == graph_kernel(fpg_adj_mat, l)
+
+# ╔═╡ 7746cfbf-ab46-42b8-9358-7720dae20da5
+@test graph_kernel(dpg, l) == graph_kernel(dpg_adj_mat, l)
+
+# ╔═╡ dcb43b58-0121-4e18-9ee8-392ac7265fdc
+@test graph_kernel(fpg, l) == graph_kernel(fpg.graph, l)
+
 # ╔═╡ c5c86404-7ed5-46ef-9ed9-4ca566c80021
 @test is_isomorphic(fpg, fpg)
-
-# ╔═╡ 6fa712a6-332a-4874-a15c-c5a92df4deb8
-@test is_isomorphic(dpg, ProductGraph{Direct}(fpg))
 
 # ╔═╡ 52e50588-0bed-4727-b9f7-ec8edfa4ac47
 md"""
@@ -144,57 +186,10 @@ begin
 	add_edge!(g2, 2, 3, Dict(:label => 1))
 end;
 
-# ╔═╡ c0bb0d4b-c914-43e1-abd2-d87d7dd23721
-begin
-	h1 = MetaGraph(3)
-	h2 = MetaGraph(3)
-
-	set_prop!(h1, 1, :label, 8)
-	set_prop!(h1, 2, :label, 1)
-	set_prop!(h1, 3, :label, 1)
-
-	set_prop!(h2, 1, :label, 1)
-	set_prop!(h2, 2, :label, 1)
-	set_prop!(h2, 3, :label, 8)
-
-	add_edge!(h1, 1, 2, Dict(:label => 1))
-	add_edge!(h1, 1, 3, Dict(:label => 1))
-
-	add_edge!(h2, 1, 3, Dict(:label => 1))
-	add_edge!(h2, 2, 3, Dict(:label => 1))
-end;
-
-# ╔═╡ f28850c4-633d-460e-8708-bb6390694f53
-viz_graph(g1)
-
-# ╔═╡ 658a2625-59eb-4493-b28d-83f27455e3e7
-viz_graph(g2)
-
-# ╔═╡ 50a30de1-467a-4e2d-84e6-9a02eca806dd
-viz_graph(h1)
-
-# ╔═╡ 25912f04-5e13-4f0e-a4b0-aa5df8a5ed46
-viz_graph(h2)
-
 # ╔═╡ c3d51178-60fb-4921-b749-5bd7a1a2176f
 begin
-	G = product_graph(g1, g2, :direct)
-	H = product_graph(h1, h2, :direct)
+	G = ProductGraph{Direct}(g1, g2)
 end;
-
-# ╔═╡ d3a87146-84e4-4435-b3ee-47426a125180
-viz_graph(G)
-
-# ╔═╡ 992a889e-99a9-456e-a2fe-5fcd7ef6b2ad
-viz_graph(H)
-
-# ╔═╡ 3b4da30c-735e-4bc1-8a95-188c1f41054f
-md"""
-### Tests
-"""
-
-# ╔═╡ 0b016bc3-eca7-495a-a43c-c5779e731a81
-@test is_isomorphic(G, H)
 
 # ╔═╡ 2d9a1890-74d0-4f16-9211-cea53fb64ad6
 function display(g::MetaGraph)
@@ -213,14 +208,11 @@ function display(g::MetaGraph)
     end
 end
 
-# ╔═╡ 42d6001b-d078-426a-887b-c381f72224ab
+# ╔═╡ 3990081f-259a-40d8-b35f-a110071dba90
+display(g::ProductGraph) = display(g.graph)
+
+# ╔═╡ af102c60-af61-4219-9442-95698a855a61
 display(G)
-
-# ╔═╡ 7643b18e-bee2-4a6e-b20a-25a8efde345a
-display(H)
-
-# ╔═╡ 236d188c-fc31-487d-9031-c7d0d5151755
-@test is_isomorphic(G, H; node_labels=[:label, :v₁v₂_pair])
 
 # ╔═╡ Cell order:
 # ╠═e9f5391d-4832-440e-b61c-357daf275332
@@ -236,26 +228,24 @@ display(H)
 # ╟─f4f182e7-e8fe-4f1e-9867-0e01c8a850b1
 # ╠═2f9e0038-5365-407f-8725-eae6c35c24e0
 # ╠═3ff0f6ee-6f55-4442-b276-f7aece131b05
+# ╠═feb99479-6e23-4838-8e22-f6307b7ba339
+# ╠═eba23f46-559b-440a-8009-16eb69d1ecc5
+# ╠═42cd2333-3776-43af-a162-ea4b65660e11
+# ╠═6c69ed44-459e-4a08-aa0f-5d05e7cd5d3e
 # ╟─13f3966f-4d67-4385-a37e-efffc4165280
+# ╠═ff5f8f53-8f2f-496f-b258-79689971db27
 # ╠═a001dda5-584f-4d4d-baa4-95f9f1e3ef5a
 # ╠═bbe96dac-fbd2-4d8d-a419-869cb4d48b26
+# ╠═4f73d6a9-4174-48d4-a4bb-cfe996b2fe31
 # ╠═3dcaab69-898b-4704-83ed-18a3b863e498
+# ╠═5853c817-1a6a-4056-afdc-c95f2013b612
+# ╠═7746cfbf-ab46-42b8-9358-7720dae20da5
+# ╠═dcb43b58-0121-4e18-9ee8-392ac7265fdc
 # ╠═c5c86404-7ed5-46ef-9ed9-4ca566c80021
-# ╠═6fa712a6-332a-4874-a15c-c5a92df4deb8
 # ╟─52e50588-0bed-4727-b9f7-ec8edfa4ac47
 # ╟─63287daf-9dcc-4a18-b416-1e11e543b042
 # ╠═4c8619ee-1e8a-4f56-a7a7-903a043daa86
-# ╠═c0bb0d4b-c914-43e1-abd2-d87d7dd23721
-# ╠═f28850c4-633d-460e-8708-bb6390694f53
-# ╠═658a2625-59eb-4493-b28d-83f27455e3e7
-# ╠═50a30de1-467a-4e2d-84e6-9a02eca806dd
-# ╠═25912f04-5e13-4f0e-a4b0-aa5df8a5ed46
 # ╠═c3d51178-60fb-4921-b749-5bd7a1a2176f
-# ╠═d3a87146-84e4-4435-b3ee-47426a125180
-# ╠═992a889e-99a9-456e-a2fe-5fcd7ef6b2ad
-# ╟─3b4da30c-735e-4bc1-8a95-188c1f41054f
-# ╠═0b016bc3-eca7-495a-a43c-c5779e731a81
 # ╠═2d9a1890-74d0-4f16-9211-cea53fb64ad6
-# ╠═42d6001b-d078-426a-887b-c381f72224ab
-# ╠═7643b18e-bee2-4a6e-b20a-25a8efde345a
-# ╠═236d188c-fc31-487d-9031-c7d0d5151755
+# ╠═3990081f-259a-40d8-b35f-a110071dba90
+# ╠═af102c60-af61-4219-9442-95698a855a61
