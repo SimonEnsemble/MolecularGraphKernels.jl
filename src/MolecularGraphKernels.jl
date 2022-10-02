@@ -1,6 +1,7 @@
 module MolecularGraphKernels
 
 using Cairo, Colors, Compose, FIGlet, GraphPlot, Graphs, MetaGraphs, MolecularGraph, SparseArrays, Xtals
+using Graphs.Experimental: vf2, IsomorphismProblem
 
 include.([
     "graph_products.jl"
@@ -21,7 +22,7 @@ end
 export
 
     # graph_products.jl
-    ProductGraph, Factor, Direct,
+    ProductGraph, ProductGraphMatrix, Factor, Direct,
 
     # graph_kernels.jl
     graph_kernel, 

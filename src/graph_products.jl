@@ -5,21 +5,35 @@
 #       w = (v₁, v₂) is a vertex in the product graph
 =#
 
+"""
+abstract type for product graphs
+"""
 abstract type AbstractProductGraph end
 
+"""
+concrete product graph types
+"""
+struct Factor <: AbstractProductGraph end
+struct Direct <: AbstractProductGraph end
+
+"""
+type-parameterized struct for product graphs
+"""
 struct ProductGraph{T <: AbstractProductGraph}
     graph::MetaGraph
 end
+ProductGraph{T}(matrix::AbstractMatrix) where T <: AbstractProductGraph = ProductGraph{T}(MetaGraph(matrix))
+ProductGraph{T}(g₁::G1, g₂::G2) where {T <: AbstractProductGraph, G1,G2 <: Union{GraphMol, MetaGraph}} = product_graph(g₁, g₂, T)
 
-struct Factor <: AbstractProductGraph end
-
-struct Direct <: AbstractProductGraph end
-
-ProductGraph{T}() where T <: AbstractProductGraph = ProductGraph{T}(MetaGraph())
-
-ProductGraph{T}(n::Union{Int, AbstractMatrix}) where T <: AbstractProductGraph = ProductGraph{T}(MetaGraph(n))
-
-ProductGraph{T}(g₁::G1, g₂::G2) where {T <: AbstractProductGraph, G1,G2 <: Union{GraphMol, MetaGraph}} = ProductGraph{T}(product_graph(g₁, g₂, T))
+"""
+type-parameterized struct for product graph adjacency matrices
+"""
+struct ProductGraphMatrix{T <: AbstractProductGraph, M <: AbstractMatrix}
+    matrix::M
+end
+ProductGraphMatrix{T}(matrix::M) where {T <: AbstractProductGraph, M <: AbstractMatrix} = ProductGraphMatrix{T, M}(matrix)
+ProductGraphMatrix{T}(g₁xg₂::G) where {T <: AbstractProductGraph, G <: MetaGraph} = ProductGraphMatrix{T}(MetaGraph(g₁xg₂))
+ProductGraphMatrix{T}(g₁::G1, g₂::G2) where {T <: AbstractProductGraph, G1,G2 <: Union{GraphMol, MetaGraph}} = product_graph_adj_mat(g₁, g₂, T)
 
 """
 map (v₁ ∈ g₁, v₂ ∈ g₂) ↦ w ∈ g₁ x g₂
@@ -50,10 +64,36 @@ function build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w::SparseMatrixCSC{Int, I
 end
 
 """
+applies the direct product graph adjacency matrix marking rule: common adjacency
+"""
+function mark_A!(A::SparseMatrixCSC{Bool, Int}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Direct})::Bool
+    if e₁ && e₂
+        if get_prop(g₁, u₁, v₁, :label) == get_prop(g₂, u₂, v₂, :label)
+            A[wᵢ, wⱼ] = 1
+        end
+        return true
+    end
+    return false
+end
+
+"""
+applies the factor product graph adjacency matrix marking rules: common adjacency (a.k.a. the direct product graph rule) and common non-adjacency
+"""
+function mark_A!(A::SparseMatrixCSC{Bool, Int}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Factor})
+    # is there a common adjacency? (c-edge) "c" = connected. 
+    if mark_A!(A, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ, Direct)
+    # is there a common non-adjacency? (d-edge) "d" = disconnected.
+    #   (only relevant to factor graph) 
+    #   see "Subgraph Matching Kernels for Attributed Graphs" 
+    elseif !e₁ && !e₂ && (u₁ != v₁) && (u₂ != v₂)
+        A[wᵢ, wⱼ] = 1
+    end
+end
+
+"""
 compute the product graph adjacency matrix and mappings (in each direction) for relating the source graphs and product graph
 """
-function product_graph_matrix_and_maps(g₁::MetaGraph, g₂::MetaGraph, type::Type{T})::Tuple{SparseMatrixCSC{Bool, Int}, SparseMatrixCSC{Int, Int}, Vector{Tuple{Int, Int}}} where T <: AbstractProductGraph
-    
+function product_graph_matrix_and_maps(g₁::MetaGraph, g₂::MetaGraph, type::Type{T})::Tuple{ProductGraphMatrix{T}, SparseMatrixCSC{Int, Int}, Vector{Tuple{Int, Int}}} where T <: AbstractProductGraph
     # get (v₁ ∈ g₁, v₂ ∈ g₂) <--> w ∈ g₁xg₂ mappings
     v₁v₂_pair_to_w = build_v₁v₂_pair_to_w_map(g₁, g₂)
     w_to_v₁v₂_pair = build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w)
@@ -71,71 +111,56 @@ function product_graph_matrix_and_maps(g₁::MetaGraph, g₂::MetaGraph, type::T
             # product graph vertex wⱼ = (v₁, v₂)
             #    with v₁ ∈ g₁, v₂ ∈ g₂
             v₁, v₂ = w_to_v₁v₂_pair[wⱼ]
-
             # does edge (u₁, v₁) exist in g₁?
             e₁ = has_edge(g₁, u₁, v₁)
             # does edge (u₂, v₂) exist in g₂?
             e₂ = has_edge(g₂, u₂, v₂)
-
-            # is there a common adjacency? (c-edge) "c" = connected. 
-            if e₁ && e₂
-                # do they share an edge label?
-                l₁ = get_prop(g₁, u₁, v₁, :label)
-                l₂ = get_prop(g₂, u₂, v₂, :label)
-                if l₁ == l₂
-                    A[wᵢ, wⱼ] = 1
-                end
-            # is there a common non-adjacency? (d-edge) "d" = disconnected.
-            #   (only relevant to factor graph) 
-            #   see "Subgraph Matching Kernels for Attributed Graphs" 
-            elseif (type == Factor) && !e₁ && !e₂ && (u₁ != v₁) && (u₂ != v₂)
-                A[wᵢ, wⱼ] = 1
-            end
+            # apply the adjacency matrix marking rules for the product graph type
+            mark_A!(A, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ, type)
         end
     end
-    return A .|| A', v₁v₂_pair_to_w, w_to_v₁v₂_pair
+    return ProductGraphMatrix{T}(A .|| A'), v₁v₂_pair_to_w, w_to_v₁v₂_pair
 end
 
-@inline label_product_graph_edge(g₁::MetaGraph, u₁::Int, v₁::Int, ::Type{Direct}) = get_prop(g₁, u₁, v₁, :label)
-@inline label_product_graph_edge(g₁::MetaGraph, u₁::Int, v₁::Int, ::Type{Factor}) = has_edge(g₁, u₁, v₁) ? get_prop(g₁, u₁, v₁, :label) : 0
+"""
+return the appropriate label for an edge in a product graph given its type
+"""
+product_graph_edge_label(g₁::MetaGraph, u₁::Int, v₁::Int, ::Type{Direct}) = get_prop(g₁, u₁, v₁, :label)
+product_graph_edge_label(g₁::MetaGraph, u₁::Int, v₁::Int, ::Type{Factor}) = has_edge(g₁, u₁, v₁) ? get_prop(g₁, u₁, v₁, :label) : 0
 
 """
-compute the product graph (of type `type`) between g₁ and g₂
+compute the product graph of given type between g₁ and g₂
 """
-function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Type{T})::MetaGraph where T <: AbstractProductGraph
+function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Type{T})::ProductGraph{T} where T <: AbstractProductGraph
     A, _, w_to_v₁v₂_pair = product_graph_matrix_and_maps(g₁, g₂, type)
     n_g₁xg₂ = length(w_to_v₁v₂_pair)
     
-    g₁xg₂ = MetaGraph(SimpleGraph(A))
+    g₁xg₂ = ProductGraph{T}(MetaGraph(SimpleGraph(A.matrix)))
 
     # label vertices
     for w = 1:n_g₁xg₂
         v₁, v₂ = w_to_v₁v₂_pair[w]
-        set_prop!(g₁xg₂, w, :v₁v₂_pair, (v₁, v₂))
-        set_prop!(g₁xg₂, w, :label, get_prop(g₁, v₁, :label))
+        set_prop!(g₁xg₂.graph, w, :v₁v₂_pair, (v₁, v₂))
+        set_prop!(g₁xg₂.graph, w, :label, get_prop(g₁, v₁, :label))
     end
     # label edges
     for wᵢ = 1:n_g₁xg₂
         u₁, _ = w_to_v₁v₂_pair[wᵢ]
         for wⱼ = (wᵢ + 1):n_g₁xg₂
             v₁, _ = w_to_v₁v₂_pair[wⱼ]
-            if A[wᵢ, wⱼ]
-                edge_label = label_product_graph_edge(g₁, u₁, v₁, type)
-                set_prop!(g₁xg₂, wᵢ, wⱼ, :label, edge_label)
+            if A.matrix[wᵢ, wⱼ]
+                set_prop!(g₁xg₂.graph, wᵢ, wⱼ, :label, product_graph_edge_label(g₁, u₁, v₁, type))
             end
         end
     end
     return g₁xg₂
 end
-
-product_graph(g₁::MetaGraph, g₂::GraphMol, type::Symbol) = product_graph(g₁, MetaGraph(g₂), type)
-product_graph(g₁::GraphMol, g₂::G, type::Symbol) where G <: Union{GraphMol, MetaGraph} = product_graph(MetaGraph(g₁), g₂, type)
+product_graph(g₁::MetaGraph, g₂::GraphMol, type::Type{T}) where T <: AbstractProductGraph = product_graph(g₁, MetaGraph(g₂), type)
+product_graph(g₁::GraphMol, g₂::G, type::Type{T}) where {G <: Union{GraphMol, MetaGraph}, T <: AbstractProductGraph} = product_graph(MetaGraph(g₁), g₂, type)
 
 """
-compute the adjacency matrix of the product graph (of type `type`) between g₁ and g₂, but do not explicitly construct the graph
+compute the adjacency matrix of the product graph of given type between g₁ and g₂, but do not explicitly construct the graph
 """
-product_graph_adj_mat(g₁::MetaGraph, g₂::MetaGraph, type::Symbol)::SparseMatrixCSC{Bool, Int} = product_graph_matrix_and_maps(g₁, g₂, type)[1]
-
-product_graph_adj_mat(g₁::MetaGraph, g₂::GraphMol, type::Symbol) = product_graph_adj_mat(g₁, MetaGraph(g₂), type)
-product_graph_adj_mat(g₁::GraphMol, g₂::G, type::Symbol) where G <: Union{GraphMol, MetaGraph} = product_graph_adj_mat(MetaGraph(g₁), g₂, type)
-
+product_graph_adj_mat(g₁::MetaGraph, g₂::MetaGraph, type::Type{T}) where T <: AbstractProductGraph = product_graph_matrix_and_maps(g₁, g₂, type)[1]
+product_graph_adj_mat(g₁::MetaGraph, g₂::GraphMol, type::Type{T}) where T <: AbstractProductGraph = product_graph_adj_mat(g₁, MetaGraph(g₂), type)
+product_graph_adj_mat(g₁::GraphMol, g₂::G, type::Type{T}) where {G <: Union{GraphMol, MetaGraph}, T <: AbstractProductGraph} = product_graph_adj_mat(MetaGraph(g₁), g₂, type)
