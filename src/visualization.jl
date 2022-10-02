@@ -1,3 +1,6 @@
+"""
+Visualize a molecular or product graph
+"""
 function viz_graph(mol::MetaGraph; savename=nothing, C=0.25)
     locs_x, locs_y = spring_layout(mol, C=C)
 
@@ -31,3 +34,5 @@ function viz_graph(mol::MetaGraph; savename=nothing, C=0.25)
 end
 
 viz_graph(mol::GraphMol; kwargs...) = viz_graph(MetaGraph(mol); kwargs...)
+
+viz_graph(g::ProductGraph; kwargs...) = viz_graph(g.graph; kwargs...)
