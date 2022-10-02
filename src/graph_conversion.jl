@@ -27,10 +27,10 @@ end
 converts a factor product graph into the corresponding direct product graph
 """
 function ProductGraph{Direct}(fpg::ProductGraph{Factor})::ProductGraph{Direct}
-    dpg = ProductGraph{Direct}(fpg.graph)
-    for e in edges(dpg.graph)
-        if get_prop(dpg.graph, e, :label) == 0
-            rem_edge!(dpg.graph, e)
+    dpg = ProductGraph{Direct}(deepcopy(fpg.graph))
+    for e in edges(fpg.graph)
+        if get_prop(fpg.graph, e, :label) == 0
+           rem_edge!(dpg.graph, e)
         end
     end
     return dpg
