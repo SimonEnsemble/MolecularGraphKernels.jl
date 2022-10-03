@@ -15,7 +15,7 @@ subtypes(AbstractProductGraph)
 # output
 2-element Vector{Any}:
  Direct
- Factor
+ Modular
 ```
 
 The adjacency matrix of a product graph is stored in the [`ProductGraphMatrix`](@ref) type.

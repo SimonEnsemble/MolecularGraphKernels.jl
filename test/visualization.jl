@@ -19,12 +19,12 @@ using MolecularGraph, MolecularGraphKernels, Test
         end
     end
 
-    @testset "Factor Product Graph" begin
-        @test !isnothing(viz_graph(ProductGraph{Factor}(smilestomol("NC=O"), smilestomol("C(NC=O)NC=O")); savename="fpg"))
+    @testset "Modular Product Graph" begin
+        @test !isnothing(viz_graph(ProductGraph{Modular}(smilestomol("NC=O"), smilestomol("C(NC=O)NC=O")); savename="fpg"))
         vis = isfile("fpg.pdf")
         @test vis
         if vis
-            @info "Factor product graph visualization in fpg.pdf"
+            @info "Modular product graph visualization in fpg.pdf"
         end
     end
 end

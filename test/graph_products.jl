@@ -35,7 +35,7 @@ using Combinatorics, Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Te
     @test is_isomorphic(computed_g₁xg₂, g₁xg₂)
 end
 
-@testset "factor product graph" begin
+@testset "modular product graph" begin
     # Test case: Fig 1 of https://arxiv.org/ftp/arxiv/papers/1206/1206.6483.pdf
     mol₁ = smilestomol("NC=O")
     mol₂ = smilestomol("CN(C=O)C=O")
@@ -58,7 +58,7 @@ end
     add_edge!(g₁xg₂, 6, 4, Dict(:label => 2))
 
     # test: calculated result equivalent to manual construction
-    @test is_isomorphic(ProductGraph{Factor}(g₁, g₂), g₁xg₂)
+    @test is_isomorphic(ProductGraph{Modular}(g₁, g₂), g₁xg₂)
 
     # test: removing d-type edges from FPG gives DPG
     dpg = deepcopy(g₁xg₂)
@@ -67,9 +67,9 @@ end
     @test is_isomorphic(ProductGraph{Direct}(g₁, g₂), dpg)
 
     # test: type signatures (MetaGraph/GraphMol)
-    @test is_isomorphic(ProductGraph{Factor}(mol₁, mol₂), g₁xg₂)
-    @test is_isomorphic(ProductGraph{Factor}(g₁, mol₂), g₁xg₂)
-    @test is_isomorphic(ProductGraph{Factor}(mol₁, g₂), g₁xg₂)
+    @test is_isomorphic(ProductGraph{Modular}(mol₁, mol₂), g₁xg₂)
+    @test is_isomorphic(ProductGraph{Modular}(g₁, mol₂), g₁xg₂)
+    @test is_isomorphic(ProductGraph{Modular}(mol₁, g₂), g₁xg₂)
 
     ## TODO assert v₁v₂_pair labels the same too.
     ##! Labels aren't the same, b/c numbering in original graphs arbitrary and non-identical
@@ -81,7 +81,7 @@ end
     g₁ = MetaGraph(mol₁)
     g₂ = MetaGraph(mol₂)
     
-    for type in [Direct, Factor]
+    for type in [Direct, Modular]
         @testset "$type" begin
             g₁xg₂ = ProductGraph{type}(g₁, g₂)
             # test: adjacency matrix gives same topology as explicit graph
@@ -102,7 +102,7 @@ end
     E = smilestomol("c1ccc(C)cc1")
     A, B, C, D, E = MetaGraph.([A, B, C, D, E])
 
-    for type in [Factor, Direct]
+    for type in [Modular, Direct]
         @testset "$type" begin
             for (x, y) in with_replacement_combinations([A, B, C, D, E], 2)
                 @test is_isomorphic(ProductGraph{type}(x, x), ProductGraph{type}(x, y))

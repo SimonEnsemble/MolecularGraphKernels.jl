@@ -24,9 +24,9 @@ function MetaGraph(mol::GraphMol)::MetaGraph
 end
 
 """
-converts a factor product graph into the corresponding direct product graph
+converts a modular product graph into the corresponding direct product graph
 """
-function ProductGraph{Direct}(fpg::ProductGraph{Factor})::ProductGraph{Direct}
+function ProductGraph{Direct}(fpg::ProductGraph{Modular})::ProductGraph{Direct}
     dpg = ProductGraph{Direct}(deepcopy(fpg.graph))
     for e in edges(fpg.graph)
         if get_prop(fpg.graph, e, :label) == 0

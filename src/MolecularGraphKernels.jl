@@ -15,7 +15,7 @@ include.([
 export
 
     # graph_products.jl
-    ProductGraph, ProductGraphMatrix, Factor, Direct,
+    ProductGraph, ProductGraphMatrix, Modular, Direct,
 
     # random_walk_graph_kernels.jl
     random_walk_graph_kernel, 

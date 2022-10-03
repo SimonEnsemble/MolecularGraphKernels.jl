@@ -15,7 +15,7 @@ end
 
 viz_edge_labels(graph::MetaGraph, ::Type{T}) where T <: AbstractProductGraph = viz_edge_labels(graph, MetaGraph)
 
-function viz_edge_labels(graph::MetaGraph, ::Type{Factor})::Vector{String}
+function viz_edge_labels(graph::MetaGraph, ::Type{Modular})::Vector{String}
     edgelabels = viz_edge_labels(graph, MetaGraph)
     replace!(edgelabels, "0" => "d")
     return edgelabels

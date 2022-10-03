@@ -22,7 +22,7 @@ using Graphs, MetaGraphs, MolecularGraphKernels, Test
 
     l = 4
 
-    for type in [Direct, Factor]
+    for type in [Direct, Modular]
         @testset "$type" begin
             x = random_walk_graph_kernel(ProductGraphMatrix{type}(A, B), l)
 

@@ -28,7 +28,7 @@ using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
     B = smilestomol("c1c(c(CCN(C)C)c[nH]2)c2ccc1")
 
     @testset "ProductGraph to ProductGraph" begin
-        @test is_isomorphic(ProductGraph{Direct}(A, B), ProductGraph{Direct}(ProductGraph{Factor}(A, B)))
+        @test is_isomorphic(ProductGraph{Direct}(A, B), ProductGraph{Direct}(ProductGraph{Modular}(A, B)))
     end
 
     @testset "ProductGraph to ProductGraphMatrix" begin

@@ -28,7 +28,7 @@ using MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
     @testset "ProductGraphMatrix vs ProductGraph" begin
         g₁ = MetaGraph(smilestomol("CN1C=NC2=C1C(=O)N(C(=O)N2C)C"))
         g₂ = MetaGraph(smilestomol("O=C1[C@H](C)[C@@H]2[C@](C(C)C)(C1)C2"))
-        for type in [Factor, Direct]
+        for type in [Modular, Direct]
             @test is_isomorphic(ProductGraphMatrix{type}(g₁, g₂), ProductGraph{type}(g₁, g₂))
         end
     end

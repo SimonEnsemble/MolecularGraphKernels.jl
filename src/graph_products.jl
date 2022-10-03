@@ -13,7 +13,7 @@ abstract type AbstractProductGraph end
 """
 concrete product graph types
 """
-struct Factor <: AbstractProductGraph end
+struct Modular <: AbstractProductGraph end
 struct Direct <: AbstractProductGraph end
 
 """
@@ -75,13 +75,13 @@ function mark_A!(A::SparseMatrixCSC{Bool, Int}, g₁::MetaGraph, g₂::MetaGraph
 end
 
 """
-applies the factor product graph adjacency matrix marking rules: common adjacency (a.k.a. the direct product graph rule) and common non-adjacency
+applies the modular product graph adjacency matrix marking rules: common adjacency (a.k.a. the direct product graph rule) and common non-adjacency
 """
-function mark_A!(A::SparseMatrixCSC{Bool, Int}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Factor})
+function mark_A!(A::SparseMatrixCSC{Bool, Int}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Modular})
     # is there a common adjacency? (c-edge) "c" = connected. 
     if mark_A!(A, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ, Direct)
     # is there a common non-adjacency? (d-edge) "d" = disconnected.
-    #   (only relevant to factor graph) 
+    #   (only relevant to modular graph) 
     #   see "Subgraph Matching Kernels for Attributed Graphs" 
     elseif !e₁ && !e₂ && (u₁ != v₁) && (u₂ != v₂)
         A[wᵢ, wⱼ] = 1
@@ -124,7 +124,7 @@ end
 return the appropriate label for an edge in a product graph given its type
 """
 product_graph_edge_label(g₁::MetaGraph, u₁::Int, v₁::Int, ::Type{Direct}) = get_prop(g₁, u₁, v₁, :label)
-product_graph_edge_label(g₁::MetaGraph, u₁::Int, v₁::Int, ::Type{Factor}) = has_edge(g₁, u₁, v₁) ? get_prop(g₁, u₁, v₁, :label) : 0
+product_graph_edge_label(g₁::MetaGraph, u₁::Int, v₁::Int, ::Type{Modular}) = has_edge(g₁, u₁, v₁) ? get_prop(g₁, u₁, v₁, :label) : 0
 
 """
 compute the product graph of given type between g₁ and g₂

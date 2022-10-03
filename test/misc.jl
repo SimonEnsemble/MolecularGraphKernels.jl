@@ -4,7 +4,7 @@ using IOCapture, MolecularGraphKernels, Test
     @testset "display" begin
         g₁ = smilestomol("c1ccccc1")
         g₂ = smilestomol("c1ncccc1")
-        dpg = ProductGraph{Factor}(g₁, g₂)
+        dpg = ProductGraph{Modular}(g₁, g₂)
 
         captured_text = IOCapture.capture() do
             display(dpg)
@@ -17,7 +17,7 @@ using IOCapture, MolecularGraphKernels, Test
         g₁ = MetaGraph(smilestomol("CN(CC(=O)O)C(=N)N"))
         g₂ = MetaGraph(smilestomol("C(CCN)C[C@@H](C(=O)O)N"))
         dpg = ProductGraph{Direct}(g₁, g₂)
-        @test isequal(dpg, ProductGraph{Direct}(ProductGraph{Factor}(g₁, g₂)))
+        @test isequal(dpg, ProductGraph{Direct}(ProductGraph{Modular}(g₁, g₂)))
         g₃ = MetaGraph(smilestomol("c1ccccc1"))
         @test !isequal(dpg, ProductGraph{Direct}(g₂, g₃))
         dpg2 = deepcopy(dpg)
