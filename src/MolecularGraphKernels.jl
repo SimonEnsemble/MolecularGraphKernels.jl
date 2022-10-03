@@ -5,7 +5,7 @@ using Graphs.Experimental: vf2, IsomorphismProblem
 
 include.([
     "graph_products.jl"
-    "random_walk_graph_kernels.jl"
+    "graph_kernels.jl"
     "visualization.jl"
     "graph_conversion.jl"
     "check_isom.jl"
