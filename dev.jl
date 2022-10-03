@@ -73,7 +73,71 @@ md"""
 """
 
 # ╔═╡ d02a6771-32aa-4f1d-97ad-7c3380f7b9da
-# tinker with code for the new feature (or bug fix) here
+begin
+	import Graphs: is_directed, SimpleEdge
+	import MetaGraphs: weighttype, PropDict, MetaDict
+	
+	struct Foo{T <: MolecularGraphKernels.AbstractProductGraph, U <: Real} <: AbstractMetaGraph{Int}
+		graph::SimpleGraph{Int}
+	    vprops::Dict{Int,PropDict}
+	    eprops::Dict{SimpleEdge{Int},PropDict}
+	    gprops::PropDict
+	    weightfield::Symbol
+	    defaultweight::U
+	    metaindex::MetaDict
+	    indices::Set{Symbol}
+	end
+
+	function Foo{S}(x, weightfield::Symbol, defaultweight::U) where {U <: Real, S <: MolecularGraphKernels.AbstractProductGraph}
+	    T = eltype(x)
+	    g = SimpleGraph(x)
+	    vprops = Dict{T,PropDict}()
+	    eprops = Dict{SimpleEdge{T},PropDict}()
+	    gprops = PropDict()
+	    metaindex = MetaDict()
+	    idxs = Set{Symbol}()
+	    return Foo{S}(g, vprops, eprops, gprops, weightfield, defaultweight, metaindex, idxs)
+	end
+
+	Foo{T}(x) where T = Foo{T}(x, :weight, 1.0)
+
+	is_directed(::Foo) = false
+	weighttype(foo::Foo) = Int
+
+	Foo{T}(g1::MetaGraph, g2::MetaGraph) where T = Foo{T}(ProductGraph{T}(g1, g2).graph)
+
+	function Foo{T}(g::MetaGraph) where T <: MolecularGraphKernels.AbstractProductGraph
+	    newg = SimpleGraph{Int}(g.graph)
+	    return MetaGraph(newg, g.defaultweight)
+	end
+end
+
+# ╔═╡ 2b981075-65f5-45e7-b059-721aba3895eb
+begin
+	g1 = MetaGraph(smilestomol("c1ccccc1"))
+	g2 = MetaGraph(smilestomol("c1ncccc1"))
+end
+
+# ╔═╡ 80e0a665-3ce1-4bf8-bc20-b5b68746c31e
+Foo{Direct}(g1, g2)
+
+# ╔═╡ 20c8a3e5-2d0e-4009-889d-541e52971f15
+dpg = @btime ProductGraph{Direct}(g1, g2)
+
+# ╔═╡ e52a708b-0b02-4a59-9881-2ad101ce0ad0
+nv(dpg)
+
+# ╔═╡ 2fe031a5-6295-44fe-8024-4dae6ce26438
+ne(dpg)
+
+# ╔═╡ 722ee3fa-f0f3-44c3-9011-f6b9484885d9
+edges(dpg)
+
+# ╔═╡ 37a62afe-1daa-4e61-855e-0463da06a94e
+vertices(dpg)
+
+# ╔═╡ 0263a5bf-7fbd-4fcd-b78e-c0e985051ebf
+
 
 # ╔═╡ 13f3966f-4d67-4385-a37e-efffc4165280
 md"""
@@ -94,5 +158,13 @@ md"""
 # ╟─cda1019e-8970-4586-9c30-d9c5be453f58
 # ╟─f4f182e7-e8fe-4f1e-9867-0e01c8a850b1
 # ╠═d02a6771-32aa-4f1d-97ad-7c3380f7b9da
+# ╠═2b981075-65f5-45e7-b059-721aba3895eb
+# ╠═80e0a665-3ce1-4bf8-bc20-b5b68746c31e
+# ╠═20c8a3e5-2d0e-4009-889d-541e52971f15
+# ╠═e52a708b-0b02-4a59-9881-2ad101ce0ad0
+# ╠═2fe031a5-6295-44fe-8024-4dae6ce26438
+# ╠═722ee3fa-f0f3-44c3-9011-f6b9484885d9
+# ╠═37a62afe-1daa-4e61-855e-0463da06a94e
+# ╠═0263a5bf-7fbd-4fcd-b78e-c0e985051ebf
 # ╟─13f3966f-4d67-4385-a37e-efffc4165280
 # ╠═509a14f1-8e0b-4a88-9cbc-8010c4992aa0

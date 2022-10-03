@@ -4,35 +4,6 @@
 #   v₂ is a node in g₂
 #       w = (v₁, v₂) is a vertex in the product graph
 =#
-
-"""
-abstract type for product graphs
-"""
-abstract type AbstractProductGraph end
-
-"""
-concrete product graph types
-"""
-struct Modular <: AbstractProductGraph end
-struct Direct <: AbstractProductGraph end
-
-"""
-type-parameterized struct for product graphs
-"""
-struct ProductGraph{T <: AbstractProductGraph}
-    graph::MetaGraph
-end
-ProductGraph{T}(g₁::G1, g₂::G2) where {T <: AbstractProductGraph, G1,G2 <: Union{GraphMol, MetaGraph}} = product_graph(g₁, g₂, T)
-
-"""
-type-parameterized struct for product graph adjacency matrices
-"""
-struct ProductGraphMatrix{T <: AbstractProductGraph, M <: AbstractMatrix}
-    matrix::M
-end
-ProductGraphMatrix{T}(matrix::M) where {T <: AbstractProductGraph, M <: AbstractMatrix} = ProductGraphMatrix{T, M}(matrix)
-ProductGraphMatrix{T}(g₁::G1, g₂::G2) where {T <: AbstractProductGraph, G1,G2 <: Union{GraphMol, MetaGraph}} = product_graph_adj_mat(g₁, g₂, T)
-
 """
 map (v₁ ∈ g₁, v₂ ∈ g₂) ↦ w ∈ g₁ x g₂
 """

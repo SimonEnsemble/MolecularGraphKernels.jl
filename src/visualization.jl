@@ -24,7 +24,7 @@ end
 """
 Visualize a molecular or product graph
 """
-function viz_graph(graph::MetaGraph, type::Type{T}=MetaGraph; savename::String="", C::Float64=0.1, layout_style=nothing) where T <: Union{MetaGraph, AbstractProductGraph}
+function viz_graph(graph::MetaGraph, type::Type{T}=MetaGraph; savename::String="", C::Float64=0.1, layout_style::Union{Nothing, Symbol}=nothing, node_borders::Bool=true) where T <: Union{MetaGraph, AbstractProductGraph}
     layout = (args...) -> 
         if isnothing(layout_style)
             spring_layout(args..., C=C)
@@ -46,7 +46,7 @@ function viz_graph(graph::MetaGraph, type::Type{T}=MetaGraph; savename::String="
         NODELABELSIZE=5.,
         EDGELABELSIZE=6.,
         NODESIZE=0.3 / sqrt(nv(graph)),
-        nodestrokelw=0.5, ##! only gives perimeter width EDGELINEWIDTH (default 1) or 0
+        nodestrokelw = node_borders ? 1. : 0.,
     )
 
     if savename ≠ ""
