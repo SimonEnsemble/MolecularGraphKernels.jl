@@ -27,4 +27,6 @@ As such, it may be more efficient to work with the [`ProductGraphMatrix`](@ref).
 To create a new [`ProductGraph`](@ref) or [`ProductGraphMatrix`](@ref), define a new [`AbstractProductGraph`](@ref) subtype and two functions, `mark_A!` and `product_graph_edge_label`, parameterized by the new type.
 
 ```@docs
+ProductGraph
+ProductGraphMatrix
 ```
