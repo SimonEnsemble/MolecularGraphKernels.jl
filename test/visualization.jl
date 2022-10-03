@@ -27,4 +27,15 @@ using MolecularGraph, MolecularGraphKernels, Test
             @info "Modular product graph visualization in fpg.pdf"
         end
     end
+
+    @testset "Graph Plot Styles" begin
+        for style in [:circular, :spectral]
+            @test !isnothing(viz_graph(smilestomol("C(NC=O)NC=O"); savename="$style", layout_style=style))
+            vis = isfile("$style.pdf")
+            @test vis
+            if vis
+                @info "Modular product graph visualization in $style.pdf"
+            end
+        end
+    end
 end
