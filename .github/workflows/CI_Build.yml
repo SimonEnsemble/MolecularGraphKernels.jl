@@ -12,7 +12,7 @@ concurrency: # only allow the most recent workflow to execute
   cancel-in-progress: true
 
 env: # environment variables
-  julia_version: '1.8.1' # julia version to use on all runners (except cross-platform)
+  julia_version: '1.8.2' # julia version to use on all runners (except cross-platform)
 
 
 jobs: # run in parallel within workflow
@@ -32,9 +32,6 @@ jobs: # run in parallel within workflow
       
       - name: build package
         uses: julia-actions/julia-buildpkg@latest
-
-      - name: install dependencies
-        run: julia --project --color=yes -e 'import Pkg; Pkg.add.(["Documenter", "Coverage"])'
 
       - name: test # run the unit tests
         run: julia --project --color=yes --code-coverage -e 'import Pkg; Pkg.test(coverage=true)'
@@ -65,9 +62,6 @@ jobs: # run in parallel within workflow
 
       - name: build package
         uses: julia-actions/julia-buildpkg@latest
-
-      - name: install dependencies
-        run: julia --project --color=yes -e 'import Pkg; Pkg.add.(["Aqua"])'
 
       - name: Aqua.jl
         run: julia --project --color=yes ./test/aqua.jl
