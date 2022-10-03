@@ -8,5 +8,6 @@ include.([
     "graph_products.jl"
     "graph_kernels.jl"
     "visualization.jl"
+    "misc.jl"
     "docs.jl"
 ])
