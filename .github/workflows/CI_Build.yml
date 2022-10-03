@@ -60,6 +60,9 @@ jobs: # run in parallel within workflow
         with:
           version: ${{ env.julia_version }}
 
+      - name: add Aqua
+        run: julia --project --color=yes -e 'import Pkg; Pkg.add("Aqua")'
+
       - name: build package
         uses: julia-actions/julia-buildpkg@latest
 
