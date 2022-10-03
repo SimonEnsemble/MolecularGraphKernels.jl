@@ -1,38 +1,61 @@
 """
-Visualize a molecular or product graph
+returns the node labels for the indicated type of graph visualization
 """
-function viz_graph(mol::MetaGraph; savename=nothing, C=0.25)
-    locs_x, locs_y = spring_layout(mol, C=C)
+viz_node_labels(graph::MetaGraph, ::Type{MetaGraph}) = ["$v" for v in vertices(graph)]
+viz_node_labels(graph::MetaGraph, ::Type{T}) where T <: AbstractProductGraph = ["$(get_prop(graph, v, :v₁v₂_pair))" for v in vertices(graph)]
 
-    nodelabels = ["$i" for i = 1:nv(mol)]
-
-    edgelabels = ["$(get_prop(mol, e, :label))" for e in edges(mol)]
+"""
+returns the edge labels for the indicated type of graph visualization
+"""
+function viz_edge_labels(graph::MetaGraph, ::Type{MetaGraph})::Vector{String}
+    edgelabels = ["$(get_prop(graph, e, :label))" for e in edges(graph)]
     replace!(edgelabels, "-1" => "a")
-    
-    colors = [RGB((rc[:cpk_colors][atomsymbol(atom)] ./ 255)...) for atom in [props(mol, v)[:label] for v in vertices(mol)]]
-    gp = gplot(
-        mol, 
-        locs_x, 
-        locs_y, 
-        nodestrokec=colors, 
-        nodesize=1.0, 
-        NODESIZE=0.3 / sqrt(nv(mol)), 
-        nodefillc=colors, 
-        NODELABELSIZE=5.0,
-        EDGELABELSIZE=5.0,
-        EDGELINEWIDTH=15.0/nv(mol),
-        nodestrokelw=1,
-        nodelabel=nodelabels,
-        edgelinewidth=1,
-        edgelabel=edgelabels
-    )
-
-    if ! isnothing(savename)
-        draw(PDF(savename * ".pdf", 13cm, 13cm), gp)
-    end
-    return gp
+    return edgelabels
 end
 
-viz_graph(mol::GraphMol; kwargs...) = viz_graph(MetaGraph(mol); kwargs...)
+viz_edge_labels(graph::MetaGraph, ::Type{T}) where T <: AbstractProductGraph = viz_edge_labels(graph, MetaGraph)
 
-viz_graph(g::ProductGraph; kwargs...) = viz_graph(g.graph; kwargs...)
+function viz_edge_labels(graph::MetaGraph, ::Type{Factor})::Vector{String}
+    edgelabels = viz_edge_labels(graph, MetaGraph)
+    replace!(edgelabels, "0" => "d")
+    return edgelabels
+end
+
+"""
+Visualize a molecular or product graph
+"""
+function viz_graph(graph::MetaGraph, type::Type{T}=MetaGraph; savename::String="", C::Float64=0.1, layout_style=nothing) where T <: Union{MetaGraph, AbstractProductGraph}
+    layout = (args...) -> 
+        if isnothing(layout_style)
+            spring_layout(args..., C=C)
+        elseif layout_style == :circular
+            circular_layout(args...)
+        elseif layout_style == :spectral
+            spectral_layout(args...)
+        else
+            error("Invalid layout style: ", layout_style)
+        end
+
+    plot = gplot(
+        graph, 
+        layout=layout,
+        nodestrokec=RGB(0, 0, 0), 
+        nodefillc=[RGB((rc[:cpk_colors][atomsymbol(atom)] ./ 255)...) for atom in [props(graph, v)[:label] for v in vertices(graph)]], 
+        nodelabel=viz_node_labels(graph, type),
+        edgelabel=viz_edge_labels(graph, type),
+        NODELABELSIZE=5.,
+        EDGELABELSIZE=6.,
+        NODESIZE=0.3 / sqrt(nv(graph)),
+        nodestrokelw=0.5, ##! only gives perimeter width EDGELINEWIDTH (default 1) or 0
+    )
+
+    if savename ≠ ""
+        draw(PDF(savename * ".pdf", 13cm, 13cm), plot)
+    end
+
+    return plot
+end
+
+viz_graph(graph::GraphMol; kwargs...) = viz_graph(MetaGraph(graph); kwargs...)
+
+viz_graph(g::ProductGraph{T}; kwargs...) where T <: AbstractProductGraph = viz_graph(g.graph, T; kwargs...)

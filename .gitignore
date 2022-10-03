@@ -1,4 +1,4 @@
 Project.toml
 Manifest.toml
 docs/build/*
-test/*.pdf
+*.pdf
