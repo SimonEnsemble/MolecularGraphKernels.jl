@@ -19,8 +19,6 @@ function display(g::MetaGraph)
 end
 
 display(g::ProductGraph{T}) where T <: AbstractProductGraph = display(g.graph)
-display(m::AbstractMatrix) = display(SimpleGraph(m))
-display(m::ProductGraphMatrix{T}) where T <: AbstractProductGraph = display(m.matrix)
 
 """
 Prints the stylized ASCII console banner for the package.
