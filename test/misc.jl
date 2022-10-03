@@ -17,5 +17,7 @@ using IOCapture, MolecularGraphKernels, Test
         g₁ = MetaGraph(smilestomol("CN(CC(=O)O)C(=N)N"))
         g₂ = MetaGraph(smilestomol("C(CCN)C[C@@H](C(=O)O)N"))
         @test isequal(ProductGraph{Direct}(g₁, g₂), ProductGraph{Direct}(ProductGraph{Factor}(g₁, g₂)))
+        g₃ = MetaGraph(smilestomol("c1ccccc1"))
+        @test !isequal(ProductGraph{Direct}(g₁, g₂), ProductGraph{Direct}(g₂, g₃))
     end
 end
