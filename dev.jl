@@ -103,27 +103,6 @@ ProductGraph{Factor}(a, b)
 # ╔═╡ 42cd2333-3776-43af-a162-ea4b65660e11
 ProductGraph{Direct}(ProductGraph{Factor}(a, b))
 
-# ╔═╡ 6c69ed44-459e-4a08-aa0f-5d05e7cd5d3e
-function isequal(a::ProductGraph, b::ProductGraph)::Bool
-	if nv(a.graph) ≠ nv(b.graph)
-		return false
-	end
-	for v in vertices(a.graph)
-		if props(a.graph, v) ≠ props(b.graph, v)
-			return false
-		end
-	end
-	if ne(a.graph) ≠ ne(b.graph)
-		return false
-	end
-	for e in edges(a.graph)
-		if props(a.graph, e) ≠ props(b.graph, e)
-			return false
-		end
-	end
-	return true
-end
-
 # ╔═╡ 13f3966f-4d67-4385-a37e-efffc4165280
 md"""
 ### Tests
@@ -191,26 +170,6 @@ begin
 	G = ProductGraph{Direct}(g1, g2)
 end;
 
-# ╔═╡ 2d9a1890-74d0-4f16-9211-cea53fb64ad6
-function display(g::MetaGraph)
-	function get_props(i)
-		prop_vec = ["$k:$v" for (k, v) in props(g, i)]
-		return reduce(*, [" "] .* prop_vec)
-	end
-    println("---VERTICES---")
-    for i in 1:nv(g)
-        println("[$i]", get_props(i))
-    end
-    
-    println("---EDGES---")
-    for ed in edges(g)
-        println("($(ed.src), $(ed.dst))", get_props(ed))
-    end
-end
-
-# ╔═╡ 3990081f-259a-40d8-b35f-a110071dba90
-display(g::ProductGraph) = display(g.graph)
-
 # ╔═╡ af102c60-af61-4219-9442-95698a855a61
 display(G)
 
@@ -231,7 +190,6 @@ display(G)
 # ╠═feb99479-6e23-4838-8e22-f6307b7ba339
 # ╠═eba23f46-559b-440a-8009-16eb69d1ecc5
 # ╠═42cd2333-3776-43af-a162-ea4b65660e11
-# ╠═6c69ed44-459e-4a08-aa0f-5d05e7cd5d3e
 # ╟─13f3966f-4d67-4385-a37e-efffc4165280
 # ╠═ff5f8f53-8f2f-496f-b258-79689971db27
 # ╠═a001dda5-584f-4d4d-baa4-95f9f1e3ef5a
@@ -246,6 +204,4 @@ display(G)
 # ╟─63287daf-9dcc-4a18-b416-1e11e543b042
 # ╠═4c8619ee-1e8a-4f56-a7a7-903a043daa86
 # ╠═c3d51178-60fb-4921-b749-5bd7a1a2176f
-# ╠═2d9a1890-74d0-4f16-9211-cea53fb64ad6
-# ╠═3990081f-259a-40d8-b35f-a110071dba90
 # ╠═af102c60-af61-4219-9442-95698a855a61
