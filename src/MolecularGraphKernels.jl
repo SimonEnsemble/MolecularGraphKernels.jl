@@ -9,15 +9,8 @@ include.([
     "visualization.jl"
     "graph_conversion.jl"
     "check_isom.jl"
+    "misc.jl"
 ])
-
-"""
-    RWGKSVM.banner()
-Prints the stylized ASCII console banner for the package.
-"""
-function banner()
-    FIGlet.render("MolecularGraphKernels", FIGlet.availablefonts()[449])
-end
 
 export
 
@@ -34,6 +27,9 @@ export
     viz_graph,
 
     # check_isom.jl
-    is_isomorphic
+    is_isomorphic,
+
+    # misc.jl
+    display, isequal
 
 end
