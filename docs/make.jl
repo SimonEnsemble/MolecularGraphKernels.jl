@@ -10,7 +10,7 @@ makedocs(
             "MolecularGraphKernels" => "index.md"
             "Molecular Graphs" => "molecular_graphs.md"
             "Product Graphs" => "product_graphs.md"
-            "Graph Kernels" => "graph_kernels.md"
+            "Graph Kernels" => "random_walk_graph_kernels.md"
             "Isomorphism" => "isomorphism.md"
             "Visualization" => "visualization.md"
             ],

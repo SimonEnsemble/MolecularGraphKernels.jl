@@ -5,7 +5,7 @@ using Graphs.Experimental: vf2, IsomorphismProblem
 
 include.([
     "graph_products.jl"
-    "graph_kernels.jl"
+    "random_walk_graph_kernels.jl"
     "visualization.jl"
     "graph_conversion.jl"
     "check_isom.jl"
@@ -17,8 +17,8 @@ export
     # graph_products.jl
     ProductGraph, ProductGraphMatrix, Factor, Direct,
 
-    # graph_kernels.jl
-    graph_kernel, 
+    # random_walk_graph_kernels.jl
+    random_walk_graph_kernel, 
     
     # graph_conversion.jl
     MetaGraph, 

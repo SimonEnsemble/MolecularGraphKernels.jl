@@ -24,17 +24,17 @@ using Graphs, MetaGraphs, MolecularGraphKernels, Test
 
     for type in [Direct, Factor]
         @testset "$type" begin
-            x = graph_kernel(ProductGraphMatrix{type}(A, B), l)
+            x = random_walk_graph_kernel(ProductGraphMatrix{type}(A, B), l)
 
-            @test x == graph_kernel(ProductGraph{type}(A, B), l)
-            @test x == graph_kernel(A, B, l, type)
+            @test x == random_walk_graph_kernel(ProductGraph{type}(A, B), l)
+            @test x == random_walk_graph_kernel(A, B, l, type)
         
-            x = graph_kernel(ProductGraph{type}(mol, g), l)
+            x = random_walk_graph_kernel(ProductGraph{type}(mol, g), l)
         
-            @test x == graph_kernel(g, g, l, type)
-            @test x == graph_kernel(mol, mol, l, type)
-            @test x == graph_kernel(g, mol, l, type)
-            @test x == graph_kernel(mol, g, l, type)
+            @test x == random_walk_graph_kernel(g, g, l, type)
+            @test x == random_walk_graph_kernel(mol, mol, l, type)
+            @test x == random_walk_graph_kernel(g, mol, l, type)
+            @test x == random_walk_graph_kernel(mol, g, l, type)
         end
     end
 end
