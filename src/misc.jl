@@ -27,6 +27,7 @@ function banner()
     FIGlet.render("MolecularGraphKernels", FIGlet.availablefonts()[449])
 end
 
+import Base.isequal
 """
 determines if two product graphs are not just isomorphic, but identical
 """
