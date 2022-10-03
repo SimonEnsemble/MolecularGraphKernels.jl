@@ -22,7 +22,6 @@ type-parameterized struct for product graphs
 struct ProductGraph{T <: AbstractProductGraph}
     graph::MetaGraph
 end
-ProductGraph{T}(matrix::AbstractMatrix) where T <: AbstractProductGraph = ProductGraph{T}(MetaGraph(matrix))
 ProductGraph{T}(g₁::G1, g₂::G2) where {T <: AbstractProductGraph, G1,G2 <: Union{GraphMol, MetaGraph}} = product_graph(g₁, g₂, T)
 
 """
@@ -32,7 +31,6 @@ struct ProductGraphMatrix{T <: AbstractProductGraph, M <: AbstractMatrix}
     matrix::M
 end
 ProductGraphMatrix{T}(matrix::M) where {T <: AbstractProductGraph, M <: AbstractMatrix} = ProductGraphMatrix{T, M}(matrix)
-ProductGraphMatrix{T}(g₁xg₂::G) where {T <: AbstractProductGraph, G <: MetaGraph} = ProductGraphMatrix{T}(MetaGraph(g₁xg₂))
 ProductGraphMatrix{T}(g₁::G1, g₂::G2) where {T <: AbstractProductGraph, G1,G2 <: Union{GraphMol, MetaGraph}} = product_graph_adj_mat(g₁, g₂, T)
 
 """
