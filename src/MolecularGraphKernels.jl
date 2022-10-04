@@ -3,9 +3,10 @@ module MolecularGraphKernels
 using Cairo, Colors, Compose, FIGlet, GraphPlot, Graphs, MetaGraphs, MolecularGraph, SparseArrays, Xtals
 using Graphs.Experimental: vf2, IsomorphismProblem
 
-import Base: display
+import Base: display, size
 import Graphs: is_directed, SimpleEdge
 import MetaGraphs: weighttype, PropDict, MetaDict, set_props!, props
+import SparseArrays: AbstractSparseMatrixCSC, _checkbuffers, getcolptr, rowvals, nonzeros
 
 """
 abstract type for product graphs

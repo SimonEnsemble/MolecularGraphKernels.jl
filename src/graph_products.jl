@@ -35,7 +35,7 @@ end
 """
 applies the direct product graph adjacency matrix marking rule: common adjacency
 """
-function mark_A!(A::SparseMatrixCSC{Bool, Int}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Direct})::Bool
+function mark_A!(A::ProductGraphMatrix{T}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Direct})::Bool where T
     if e₁ && e₂
         if get_prop(g₁, u₁, v₁, :label) == get_prop(g₂, u₂, v₂, :label)
             A[wᵢ, wⱼ] = 1
@@ -48,7 +48,7 @@ end
 """
 applies the modular product graph adjacency matrix marking rules: common adjacency (a.k.a. the direct product graph rule) and common non-adjacency
 """
-function mark_A!(A::SparseMatrixCSC{Bool, Int}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Modular})
+function mark_A!(A::ProductGraphMatrix{T}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Modular}) where T
     # is there a common adjacency? (c-edge) "c" = connected. 
     if mark_A!(A, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ, Direct)
     # is there a common non-adjacency? (d-edge) "d" = disconnected.
@@ -69,7 +69,7 @@ function product_graph_matrix_and_maps(g₁::MetaGraph, g₂::MetaGraph, type::T
 
     # pre-allocate adj matrix
     n_g₁xg₂ = length(w_to_v₁v₂_pair)
-    A = spzeros(Bool, n_g₁xg₂, n_g₁xg₂)
+    A = ProductGraphMatrix{type}(n_g₁xg₂)
 
     # loop over pairs of vertices in the product graph
     for wᵢ = 1:n_g₁xg₂
@@ -88,7 +88,10 @@ function product_graph_matrix_and_maps(g₁::MetaGraph, g₂::MetaGraph, type::T
             mark_A!(A, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ, type)
         end
     end
-    return ProductGraphMatrix{T}(A .|| A'), v₁v₂_pair_to_w, w_to_v₁v₂_pair
+    for cart_idx in findall(A)
+		A[cart_idx[2], cart_idx[1]] = true
+	end
+    return A, v₁v₂_pair_to_w, w_to_v₁v₂_pair
 end
 
 """
@@ -104,7 +107,7 @@ function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Type{T})::Product
     A, _, w_to_v₁v₂_pair = product_graph_matrix_and_maps(g₁, g₂, type)
     n_g₁xg₂ = length(w_to_v₁v₂_pair)
     
-    g₁xg₂ = ProductGraph{T}(MetaGraph(SimpleGraph(A.matrix)))
+    g₁xg₂ = ProductGraph{T}(MetaGraph(SimpleGraph(A)))
 
     # label vertices
     for w = 1:n_g₁xg₂
@@ -117,7 +120,7 @@ function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Type{T})::Product
         u₁, _ = w_to_v₁v₂_pair[wᵢ]
         for wⱼ = (wᵢ + 1):n_g₁xg₂
             v₁, _ = w_to_v₁v₂_pair[wⱼ]
-            if A.matrix[wᵢ, wⱼ]
+            if A[wᵢ, wⱼ]
                 set_prop!(g₁xg₂, wᵢ, wⱼ, :label, product_graph_edge_label(g₁, u₁, v₁, type))
             end
         end

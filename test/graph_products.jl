@@ -70,9 +70,6 @@ end
     @test is_isomorphic(ProductGraph{Modular}(mol₁, mol₂), g₁xg₂)
     @test is_isomorphic(ProductGraph{Modular}(g₁, mol₂), g₁xg₂)
     @test is_isomorphic(ProductGraph{Modular}(mol₁, g₂), g₁xg₂)
-
-    ## TODO assert v₁v₂_pair labels the same too.
-    ##! Labels aren't the same, b/c numbering in original graphs arbitrary and non-identical
 end
 
 @testset verbose=true "product graph adjacency matrices" begin
