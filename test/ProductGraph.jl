@@ -12,5 +12,6 @@ import Graphs: SimpleGraphs.SimpleEdgeIter
         @test typeof(vertices(empty)) <: Base.OneTo
         @test typeof(props(empty, 1)) <: Dict
         @test_throws ErrorException props(empty, 1, 2)
+        @test weighttype(empty) == Int
     end
 end

@@ -1,9 +1,9 @@
 using MolecularGraph, MolecularGraphKernels, Test
 
-function test_vis(graph, graph_name, set_name)
+function test_vis(graph, graph_name, set_name, style=nothing)
     @testset "$set_name" begin
         rm("$graph_name.pdf", force=true)
-        @test !isnothing(viz_graph(graph; savename=graph_name))
+        @test !isnothing(viz_graph(graph; savename=graph_name, layout_style=style))
         vis = isfile("$graph_name.pdf")
         @test vis
         if vis
@@ -20,6 +20,6 @@ end
 
 @testset verbose=true "Graph Plot Styles" begin
     for style in [:circular, :spectral]
-        test_vis(smilestomol("C(NC=O)NC=O"), "$style", "$style")
+        test_vis(smilestomol("C(NC=O)NC=O"), "$style", "$style", style)
     end
 end
