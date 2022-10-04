@@ -16,11 +16,7 @@ function is_isomorphic(A::AbstractGraph, B::AbstractGraph; edge_labels::Vector{S
 
     return isomorphic
 end
-
-is_isomorphic(A::AbstractGraph, B::ProductGraph{T}; kwargs...) where T <: AbstractProductGraph = is_isomorphic(A, B.graph; kwargs...)
-is_isomorphic(A::ProductGraph{T}, B::S; kwargs...) where {T <: AbstractProductGraph, S <: Union{MetaGraph, ProductGraph{T}}} = is_isomorphic(A.graph, B; kwargs...)
-
 is_isomorphic(A::ProductGraphMatrix{T}, B::ProductGraphMatrix{T}) where T <: AbstractProductGraph = 
     is_isomorphic(SimpleGraph(A.matrix), SimpleGraph(B.matrix); edge_labels=Symbol[], node_labels=Symbol[])
 is_isomorphic(A::ProductGraphMatrix{T}, B::ProductGraph{T}) where {T <: AbstractProductGraph} = is_isomorphic(A, ProductGraphMatrix(B))
-is_isomorphic(A::ProductGraph{T}, B::ProductGraphMatrix{T}) where {T <: AbstractProductGraph} = is_isomorphic(ProductGraphMatrix(A), B)
+is_isomorphic(A::ProductGraph{T}, B::Union{ProductGraph{T}, ProductGraphMatrix{T}}) where {T <: AbstractProductGraph} = is_isomorphic(ProductGraphMatrix(A), B)

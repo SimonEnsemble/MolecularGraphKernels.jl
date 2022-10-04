@@ -27,10 +27,10 @@ end
 converts a modular product graph into the corresponding direct product graph
 """
 function ProductGraph{Direct}(fpg::ProductGraph{Modular})::ProductGraph{Direct}
-    dpg = ProductGraph{Direct}(deepcopy(fpg.graph))
-    for e in edges(fpg.graph)
-        if get_prop(fpg.graph, e, :label) == 0
-           rem_edge!(dpg.graph, e)
+    dpg = ProductGraph{Direct}(fpg.graph)
+    for e in edges(fpg)
+        if get_prop(fpg, e, :label) == 0
+           rem_edge!(dpg, e)
         end
     end
     return dpg
@@ -39,4 +39,9 @@ end
 """
 converts a product graph into the corresponding product graph matrix
 """
-ProductGraphMatrix(g::ProductGraph{T}) where T <: AbstractProductGraph = ProductGraphMatrix{T}(adjacency_matrix(g.graph))
+ProductGraphMatrix(g::ProductGraph{T}) where T <: AbstractProductGraph = ProductGraphMatrix{T}(adjacency_matrix(g))
+
+"""
+convert a product graph into the corresponding simple graph
+"""
+SimpleGraph(g::ProductGraph{T}) where T = g.graph

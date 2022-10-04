@@ -3,6 +3,7 @@ using MolecularGraphKernels
 MolecularGraphKernels.banner()
 
 include.([
+    "ProductGraph.jl"
     "check_isom.jl"
     "graph_conversion.jl"
     "graph_products.jl"

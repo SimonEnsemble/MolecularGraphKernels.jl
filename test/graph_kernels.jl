@@ -29,12 +29,7 @@ using Graphs, MetaGraphs, MolecularGraphKernels, Test
             @test x == random_walk_graph_kernel(ProductGraph{type}(A, B), l)
             @test x == random_walk_graph_kernel(A, B, l, type)
         
-            x = random_walk_graph_kernel(ProductGraph{type}(mol, g), l)
-        
-            @test x == random_walk_graph_kernel(g, g, l, type)
-            @test x == random_walk_graph_kernel(mol, mol, l, type)
-            @test x == random_walk_graph_kernel(g, mol, l, type)
-            @test x == random_walk_graph_kernel(mol, g, l, type)
+            @test random_walk_graph_kernel(ProductGraph{type}(mol, g), l) == random_walk_graph_kernel(g, g, l, type)
         end
     end
 end

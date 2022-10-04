@@ -2,18 +2,18 @@
 returns the node labels for the indicated type of graph visualization
 """
 viz_node_labels(graph::MetaGraph, ::Type{MetaGraph}) = ["$v" for v in vertices(graph)]
-viz_node_labels(graph::MetaGraph, ::Type{T}) where T <: AbstractProductGraph = ["$(get_prop(graph, v, :v₁v₂_pair))" for v in vertices(graph)]
+viz_node_labels(graph::ProductGraph, ::Type{T}) where T <: AbstractProductGraph = ["$(get_prop(graph, v, :v₁v₂_pair))" for v in vertices(graph)]
 
 """
 returns the edge labels for the indicated type of graph visualization
 """
-function viz_edge_labels(graph::MetaGraph, ::Type{MetaGraph})::Vector{String}
+function viz_edge_labels(graph::AbstractGraph, ::Type{MetaGraph})::Vector{String}
     edgelabels = ["$(get_prop(graph, e, :label))" for e in edges(graph)]
     replace!(edgelabels, "-1" => "a")
     return edgelabels
 end
 
-viz_edge_labels(graph::MetaGraph, ::Type{T}) where T <: AbstractProductGraph = viz_edge_labels(graph, MetaGraph)
+viz_edge_labels(graph::ProductGraph, ::Type{T}) where T <: AbstractProductGraph = viz_edge_labels(graph, MetaGraph)
 
 function viz_edge_labels(graph::MetaGraph, ::Type{Modular})::Vector{String}
     edgelabels = viz_edge_labels(graph, MetaGraph)
@@ -24,7 +24,7 @@ end
 """
 Visualize a molecular or product graph
 """
-function viz_graph(graph::MetaGraph, type::Type{T}=MetaGraph; savename::String="", C::Float64=0.1, layout_style::Union{Nothing, Symbol}=nothing, node_borders::Bool=true) where T <: Union{MetaGraph, AbstractProductGraph}
+function viz_graph(graph::AbstractMetaGraph, type::Type{T}=MetaGraph; savename::String="", C::Float64=0.1, layout_style::Union{Nothing, Symbol}=nothing, node_borders::Bool=true) where T <: Union{MetaGraph, AbstractProductGraph}
     layout = (args...) -> 
         if isnothing(layout_style)
             spring_layout(args..., C=C)
@@ -57,5 +57,4 @@ function viz_graph(graph::MetaGraph, type::Type{T}=MetaGraph; savename::String="
 end
 
 viz_graph(graph::GraphMol; kwargs...) = viz_graph(MetaGraph(graph); kwargs...)
-
-viz_graph(g::ProductGraph{T}; kwargs...) where T <: AbstractProductGraph = viz_graph(g.graph, T; kwargs...)
+viz_graph(g::ProductGraph{T}; kwargs...) where T <: AbstractProductGraph = viz_graph(g, T; kwargs...)

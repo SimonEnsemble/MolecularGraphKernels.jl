@@ -109,8 +109,8 @@ function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Type{T})::Product
     # label vertices
     for w = 1:n_g₁xg₂
         v₁, v₂ = w_to_v₁v₂_pair[w]
-        set_prop!(g₁xg₂.graph, w, :v₁v₂_pair, (v₁, v₂))
-        set_prop!(g₁xg₂.graph, w, :label, get_prop(g₁, v₁, :label))
+        set_prop!(g₁xg₂, w, :v₁v₂_pair, (v₁, v₂))
+        set_prop!(g₁xg₂, w, :label, get_prop(g₁, v₁, :label))
     end
     # label edges
     for wᵢ = 1:n_g₁xg₂
@@ -118,7 +118,7 @@ function product_graph(g₁::MetaGraph, g₂::MetaGraph, type::Type{T})::Product
         for wⱼ = (wᵢ + 1):n_g₁xg₂
             v₁, _ = w_to_v₁v₂_pair[wⱼ]
             if A.matrix[wᵢ, wⱼ]
-                set_prop!(g₁xg₂.graph, wᵢ, wⱼ, :label, product_graph_edge_label(g₁, u₁, v₁, type))
+                set_prop!(g₁xg₂, wᵢ, wⱼ, :label, product_graph_edge_label(g₁, u₁, v₁, type))
             end
         end
     end

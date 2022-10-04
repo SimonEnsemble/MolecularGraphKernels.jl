@@ -3,8 +3,9 @@ module MolecularGraphKernels
 using Cairo, Colors, Compose, FIGlet, GraphPlot, Graphs, MetaGraphs, MolecularGraph, SparseArrays, Xtals
 using Graphs.Experimental: vf2, IsomorphismProblem
 
+import Base: display
 import Graphs: is_directed, SimpleEdge
-import MetaGraphs: weighttype, PropDict, MetaDict
+import MetaGraphs: weighttype, PropDict, MetaDict, set_props!, props
 
 """
 abstract type for product graphs
@@ -46,6 +47,6 @@ export
     is_isomorphic,
 
     # misc.jl
-    display, isequal
+    display
 
 end
