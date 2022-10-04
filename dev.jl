@@ -32,7 +32,7 @@ end
 @revise using MolecularGraphKernels
 
 # ╔═╡ e9f5391d-4832-440e-b61c-357daf275332
-using Graphs, MetaGraphs, MolecularGraph
+using Graphs, MetaGraphs, MolecularGraph, SparseArrays
 
 # ╔═╡ cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
 md"""
@@ -72,8 +72,27 @@ md"""
 ### Development Code
 """
 
-# ╔═╡ 2b981075-65f5-45e7-b059-721aba3895eb
+# ╔═╡ a23ae5a3-0c7f-41ad-815d-2a05e4407da4
+begin
+	import MolecularGraphKernels: AbstractProductGraph
+	import SparseArrays: AbstractSparseMatrixCSC
+end
 
+# ╔═╡ 2b981075-65f5-45e7-b059-721aba3895eb
+begin
+	mutable struct Foo{T <: AbstractProductGraph, U <: Real} <: AbstractSparseMatrixCSC{U, Int}
+		m::Int                
+	    n::Int                
+	    colptr::Vector{Int}   
+	    rowval::Vector{Int}   
+	    nzval::Vector{U}      
+	end
+
+	Foo{T}(m::Int, n::Int) where T <: AbstractProductGraph = Foo{T}(spzeros(Bool, Int, m, n)...)
+end
+
+# ╔═╡ b7d70ba7-552e-428e-b58c-5759999a541e
+Foo{Direct}(2, 3)
 
 # ╔═╡ 13f3966f-4d67-4385-a37e-efffc4165280
 md"""
@@ -93,6 +112,8 @@ md"""
 # ╠═e9f5391d-4832-440e-b61c-357daf275332
 # ╟─cda1019e-8970-4586-9c30-d9c5be453f58
 # ╟─f4f182e7-e8fe-4f1e-9867-0e01c8a850b1
+# ╠═a23ae5a3-0c7f-41ad-815d-2a05e4407da4
 # ╠═2b981075-65f5-45e7-b059-721aba3895eb
+# ╠═b7d70ba7-552e-428e-b58c-5759999a541e
 # ╟─13f3966f-4d67-4385-a37e-efffc4165280
 # ╠═b8637b31-3fe3-42ba-9bd0-8621c710f422
