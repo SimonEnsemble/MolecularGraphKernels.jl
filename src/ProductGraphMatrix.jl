@@ -20,7 +20,7 @@ getcolptr(m::ProductGraphMatrix{T, Bool}) where T = m.colptr
 rowvals(m::ProductGraphMatrix{T, Bool}) where T = m.rowval
 nonzeros(m::ProductGraphMatrix{T, Bool}) where T = m.nzval
 
-function ProductGraphMatrix{T}(matrix::AbstractMatrix{Bool}) where T <: AbstractProductGraph
+function ProductGraphMatrix{T}(matrix::AbstractMatrix) where T <: AbstractProductGraph
     @assert size(matrix)[1] == size(matrix)[2] "Adjacency matrix must be square!"
     pgm = ProductGraphMatrix{T}(size(matrix)[1])
     pgm .= matrix
