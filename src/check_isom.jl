@@ -1,4 +1,7 @@
 """
+    isomorphism_detected = is_isomorphic(A, B)
+    isomorphic_topology = is_isomorphic(A, B)
+    
 compare two molecular graphs, product graphs for isomorphism using node and edge labels; or, compare the graph topologies of two adjacency matrices
 """
 function is_isomorphic(A::AbstractGraph, B::AbstractGraph; edge_labels::Vector{Symbol}=[:label], node_labels::Vector{Symbol}=[:label])::Bool

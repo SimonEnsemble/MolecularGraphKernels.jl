@@ -35,7 +35,7 @@ end
 """
 applies the direct product graph adjacency matrix marking rule: common adjacency
 """
-function record_adjacency!(A::ProductGraphMatrix{T}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Direct})::Bool where T
+function record_adjacency!(A::ProductGraphMatrix{T}, ::Type{Direct}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int)::Bool where T
     if e₁ && e₂
         if get_prop(g₁, u₁, v₁, :label) == get_prop(g₂, u₂, v₂, :label)
             A[wᵢ, wⱼ] = 1
@@ -48,9 +48,9 @@ end
 """
 applies the modular product graph adjacency matrix marking rules: common adjacency (a.k.a. the direct product graph rule) and common non-adjacency
 """
-function record_adjacency!(A::ProductGraphMatrix{T}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int, ::Type{Modular}) where T
+function record_adjacency!(A::ProductGraphMatrix{T}, ::Type{Modular}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int) where T
     # is there a common adjacency? (c-edge) "c" = connected. 
-    if record_adjacency!(A, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ, Direct)
+    if record_adjacency!(A, Direct, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ)
     # is there a common non-adjacency? (d-edge) "d" = disconnected.
     #   (only relevant to modular graph) 
     #   see "Subgraph Matching Kernels for Attributed Graphs" 
@@ -85,12 +85,12 @@ function product_graph_matrix_and_maps(g₁::MetaGraph, g₂::MetaGraph, type::T
             # does edge (u₂, v₂) exist in g₂?
             e₂ = has_edge(g₂, u₂, v₂)
             # apply the adjacency matrix marking rules for the product graph type
-            record_adjacency!(A, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ, type)
+            record_adjacency!(A, type, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ)
         end
     end
     for cart_idx in findall(A)
-		A[cart_idx[2], cart_idx[1]] = true
-	end
+        A[cart_idx[2], cart_idx[1]] = true
+    end
     return A, v₁v₂_pair_to_w, w_to_v₁v₂_pair
 end
 
