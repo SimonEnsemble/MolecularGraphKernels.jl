@@ -24,7 +24,7 @@ The adjacency matrix of a product graph is stored in the [`ProductGraphMatrix`](
 While a [`ProductGraph`](@ref) contains the full representation of the product graph between two molecules, the adjacency matrix may be all that is required.
 As such, it may be more efficient to work with the [`ProductGraphMatrix`](@ref).
 
-To create a new [`ProductGraph`](@ref) or [`ProductGraphMatrix`](@ref), define a new `AbstractProductGraph` subtype and two functions, `mark_A!` and `product_graph_edge_label`, parameterized by the new type.
+To create a new [`ProductGraph`](@ref) or [`ProductGraphMatrix`](@ref), define a new `AbstractProductGraph` subtype and two functions, `record_adjacency!` and `product_graph_edge_label`, parameterized by the new type.
 
 ```@docs
 ProductGraph
