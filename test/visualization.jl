@@ -19,7 +19,9 @@ end
 end
 
 @testset verbose=true "Graph Plot Styles" begin
+    mol = smilestomol("C(NC=O)NC=O")
     for style in [:circular, :spectral]
-        test_vis(smilestomol("C(NC=O)NC=O"), "$style", "$style", style)
+        test_vis(mol, "$style", "$style", style)
     end
+    @test_throws ErrorException viz_graph(mol, layout_style=:bogus_style)
 end
