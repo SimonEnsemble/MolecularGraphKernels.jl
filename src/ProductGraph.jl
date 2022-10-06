@@ -12,7 +12,7 @@ struct ProductGraph{T <: AbstractProductGraph, U <: Real} <: AbstractMetaGraph{I
     indices::Set{Symbol}
 end
 
-function ProductGraph{S}(x::R, weightfield::Symbol=:weight, defaultweight::U=1.) where {U <: Real, S <: AbstractProductGraph, R <: Union{AbstractMatrix, AbstractGraph}}
+function ProductGraph{S}(x::Union{AbstractMatrix, AbstractGraph}, weightfield::Symbol=:weight, defaultweight::U=1.) where {U <: Real, S <: AbstractProductGraph}
     graph     = SimpleGraph(x)
     vprops    = Dict{Int, PropDict}()
     eprops    = Dict{SimpleEdge{Int}, PropDict}()
@@ -22,9 +22,10 @@ function ProductGraph{S}(x::R, weightfield::Symbol=:weight, defaultweight::U=1.)
     return ProductGraph{S, U}(graph, vprops, eprops, gprops, weightfield, defaultweight, metaindex, indices)
 end
 
-ProductGraph{T}(g₁::G1, g₂::G2) where {T <: AbstractProductGraph, G1,G2 <: Union{GraphMol, MetaGraph}} = product_graph(g₁, g₂, T)
+ProductGraph{T}(g₁::Union{GraphMol, MetaGraph}, g₂::Union{GraphMol, MetaGraph}) where {T <: AbstractProductGraph} = product_graph(g₁, g₂, T)
 
 is_directed(::ProductGraph) = false
+is_directed(::Type{ProductGraph}) = false
 
 weighttype(::ProductGraph) = Int
 

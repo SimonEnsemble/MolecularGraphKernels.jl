@@ -35,10 +35,11 @@ end
 """
 applies the direct product graph adjacency matrix marking rule: common adjacency
 """
-function record_adjacency!(A::ProductGraphMatrix{T}, ::Type{Direct}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int)::Bool where T
+function record_adjacency!(A::ProductGraphMatrix, ::Type{Direct}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int)::Bool
     if e₁ && e₂
         if get_prop(g₁, u₁, v₁, :label) == get_prop(g₂, u₂, v₂, :label)
             A[wᵢ, wⱼ] = 1
+            A[wⱼ, wᵢ] = 1
         end
         return true
     end
@@ -48,7 +49,7 @@ end
 """
 applies the modular product graph adjacency matrix marking rules: common adjacency (a.k.a. the direct product graph rule) and common non-adjacency
 """
-function record_adjacency!(A::ProductGraphMatrix{T}, ::Type{Modular}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int) where T
+function record_adjacency!(A::ProductGraphMatrix, ::Type{Modular}, g₁::MetaGraph, g₂::MetaGraph, e₁::Bool, e₂::Bool, u₁::Int, u₂::Int, v₁::Int, v₂::Int, wᵢ::Int, wⱼ::Int)
     # is there a common adjacency? (c-edge) "c" = connected. 
     if record_adjacency!(A, Direct, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ)
     # is there a common non-adjacency? (d-edge) "d" = disconnected.
@@ -56,6 +57,7 @@ function record_adjacency!(A::ProductGraphMatrix{T}, ::Type{Modular}, g₁::Meta
     #   see "Subgraph Matching Kernels for Attributed Graphs" 
     elseif !e₁ && !e₂ && (u₁ != v₁) && (u₂ != v₂)
         A[wᵢ, wⱼ] = 1
+        A[wⱼ, wᵢ] = 1
     end
 end
 
@@ -87,9 +89,6 @@ function product_graph_matrix_and_maps(g₁::MetaGraph, g₂::MetaGraph, type::T
             # apply the adjacency matrix marking rules for the product graph type
             record_adjacency!(A, type, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ)
         end
-    end
-    for cart_idx in findall(A)
-        A[cart_idx[2], cart_idx[1]] = true
     end
     return A, v₁v₂_pair_to_w, w_to_v₁v₂_pair
 end

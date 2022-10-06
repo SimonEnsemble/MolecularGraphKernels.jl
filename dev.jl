@@ -1,8 +1,18 @@
 ### A Pluto.jl notebook ###
-# v0.19.12
+# v0.17.3
 
 using Markdown
 using InteractiveUtils
+
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
 
 # ╔═╡ 6fe97eb4-c85d-4c2c-b892-e1c5ec91cc61
 begin
@@ -94,8 +104,13 @@ begin
 	display(mol::GraphMol) = HTML(drawsvg(mol, 250, 250))
 end
 
+# ╔═╡ 64b5c570-3f5a-4c58-96b3-29d54abcedaa
+md"""
+Molecule 1 SMILES: $(@bind mol₁_smiles confirm(TextField(default="O=C(OCCC(C)C)C")))
+"""
+
 # ╔═╡ 9ff77179-36ff-49d3-9447-99307660ca8f
-mol₁ = smilestomol("O=C(OCCC(C)C)C")
+mol₁ = smilestomol(mol₁_smiles)
 
 # ╔═╡ e9f2c9b6-a17a-42e1-96cc-1935dc1cb48e
 display(mol₁)
@@ -106,8 +121,13 @@ g₁ = MetaGraph(mol₁)
 # ╔═╡ e19e9fc9-40db-439e-a947-26169aa222e7
 viz_graph(g₁, layout_style=:circular)
 
+# ╔═╡ a48556ba-cd3b-473e-b051-029a008556ee
+md"""
+Molecule 2 SMILES: $(@bind mol₂_smiles confirm(TextField(default="O=C1C[C@@H](C\\C=C1\\C)C(C)=C")))
+"""
+
 # ╔═╡ 03ef0f25-1381-4170-843f-b0b47ae3e744
-mol₂ = smilestomol("Oc1ccc(cc1OC)CC=C")
+mol₂ = smilestomol(mol₂_smiles)
 
 # ╔═╡ 454a92f8-4c82-4462-b345-3104e7c2a55f
 display(mol₂)
@@ -116,7 +136,7 @@ display(mol₂)
 g₂ = MetaGraph(mol₂)
 
 # ╔═╡ 4ad2115d-4b90-433f-8943-e51386cddd00
-viz_graph(g₂, layout_style=:circular)
+viz_graph(g₂, layout_style=:spectral)
 
 # ╔═╡ 6f19658a-c06e-47ee-8e42-a6358071c170
 dpg = ProductGraph{Direct}(g₁, g₂)
@@ -133,14 +153,26 @@ random_walk_graph_kernel(dpg, 4)
 # ╔═╡ 4c0b8a27-5457-4fac-bec3-43a7becd69a9
 mpg = ProductGraph{Modular}(g₁, g₂)
 
+# ╔═╡ a37e5286-52aa-477d-8ad8-b74090a58270
+viz_graph(g₁)
+
+# ╔═╡ 797a2fda-c3b0-4a4f-8c56-dcc159b263c6
+viz_graph(g₂)
+
 # ╔═╡ 0ad1de21-6abf-4eec-8db0-620647ace465
-viz_graph(mpg, layout_style=:circular)
+viz_graph(mpg, layout_style=nothing)
 
 # ╔═╡ 6df530e6-a2fa-4fbb-bc0a-098a114593ec
 ProductGraphMatrix{Modular}(g₁, g₂)
 
-# ╔═╡ eafa9c90-a3c4-4dc1-88b0-bb052379f69b
-random_walk_graph_kernel(mpg, 4)
+# ╔═╡ a04ff14a-1fc9-452b-a640-a9807ecaafe6
+cliques = maximal_cliques(SimpleGraph(mpg))
+
+# ╔═╡ f988f09d-0c17-46d4-a478-3aac8b0d08c3
+[props(mpg, v) for v in cliques[3]]
+
+# ╔═╡ e1003775-9e64-4493-bf51-204e1c47430f
+viz_graph(MetaGraph(induced_subgraph(SimpleGraph(mpg), cliques[3])[1]); edge_labels=[], node_labels=[])
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -157,10 +189,12 @@ random_walk_graph_kernel(mpg, 4)
 # ╠═f0bb9a05-bfbe-4b65-b001-97e9563b34c5
 # ╟─509c88ec-c05a-44ca-ba0c-e26f87c80f43
 # ╠═2cb9a9ce-150b-44ca-aeca-12c694d41f90
+# ╟─64b5c570-3f5a-4c58-96b3-29d54abcedaa
 # ╠═9ff77179-36ff-49d3-9447-99307660ca8f
 # ╠═e9f2c9b6-a17a-42e1-96cc-1935dc1cb48e
 # ╠═af4c6617-2ea5-47ba-b21a-12d38e0c1025
 # ╠═e19e9fc9-40db-439e-a947-26169aa222e7
+# ╟─a48556ba-cd3b-473e-b051-029a008556ee
 # ╠═03ef0f25-1381-4170-843f-b0b47ae3e744
 # ╠═454a92f8-4c82-4462-b345-3104e7c2a55f
 # ╠═9acb5371-3699-41cd-a70f-97d08d846462
@@ -170,6 +204,10 @@ random_walk_graph_kernel(mpg, 4)
 # ╠═b8637b31-3fe3-42ba-9bd0-8621c710f422
 # ╠═4962c727-6f19-4c2d-9dc5-338ecc2914e3
 # ╠═4c0b8a27-5457-4fac-bec3-43a7becd69a9
+# ╠═a37e5286-52aa-477d-8ad8-b74090a58270
+# ╠═797a2fda-c3b0-4a4f-8c56-dcc159b263c6
 # ╠═0ad1de21-6abf-4eec-8db0-620647ace465
 # ╠═6df530e6-a2fa-4fbb-bc0a-098a114593ec
-# ╠═eafa9c90-a3c4-4dc1-88b0-bb052379f69b
+# ╠═a04ff14a-1fc9-452b-a640-a9807ecaafe6
+# ╠═f988f09d-0c17-46d4-a478-3aac8b0d08c3
+# ╠═e1003775-9e64-4493-bf51-204e1c47430f
