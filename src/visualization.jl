@@ -8,21 +8,16 @@ viz_node_labels(::Type{T}, graph::ProductGraph) where T <: ProductGraph = ["$(ge
 """
 returns the edge labels for the indicated type of graph visualization
 """
-function viz_edge_labels(::Type{T}, graph::AbstractGraph)::Vector{String} where T <: MetaGraph
+function viz_edge_labels(graph::T)::Vector{String} where T <: AbstractMetaGraph
     # for general metagraphs
     edgelabels = ["$(get_prop(graph, e, :label))" for e in edges(graph)]
     replace!(edgelabels, "-1" => "a")
     return edgelabels
 end
 
-viz_edge_labels(graph::AbstractGraph) = viz_edge_labels(typeof(graph), graph)
-
-# fallback for all product graph types (e.g. direct product graph)
-viz_edge_labels(::Type{T}, graph::ProductGraph) where T <: ProductGraph = viz_edge_labels(MetaGraph, graph)
-
 # modular product graph specific
-function viz_edge_labels(::Type{ProductGraph{Modular}}, graph::ProductGraph)::Vector{String}
-    edgelabels = viz_edge_labels(MetaGraph, graph)
+function viz_edge_labels(graph::ProductGraph{Modular})::Vector{String}
+    edgelabels = viz_edge_labels(MetaGraph(graph))
     replace!(edgelabels, "0" => "d")
     return edgelabels
 end
@@ -63,4 +58,3 @@ function viz_graph(graph::AbstractMetaGraph; savename::String="", C::Float64=0.1
 end
 
 viz_graph(graph::GraphMol; kwargs...) = viz_graph(MetaGraph(graph); kwargs...)
-viz_graph(g::ProductGraph{AbstractProductGraph}; kwargs...) = viz_graph(g; kwargs...)

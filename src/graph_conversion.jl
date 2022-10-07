@@ -39,4 +39,9 @@ end
 """
 convert a product graph into the corresponding simple graph
 """
-SimpleGraph(g::ProductGraph{T}) where T = g.graph
+SimpleGraph(g::T) where T <: ProductGraph = g.graph
+
+"""
+convert a product grpah into the corresponding metagraph
+"""
+MetaGraph(g::T) where T <: ProductGraph = MetaGraph(g.graph, g.vprops, g.eprops, g.gprops, g.weightfield, g.defaultweight, g.metaindex, g.indices)
