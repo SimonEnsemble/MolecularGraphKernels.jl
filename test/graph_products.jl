@@ -31,11 +31,11 @@ using Combinatorics, Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Te
     add_edge!(g₁xg₂, 4, 11, Dict(:label => 1))
     add_edge!(g₁xg₂, 5, 12, Dict(:label => 1))
     
-    computed_g₁xg₂ = product_graph(g₁, g₂, :direct)
+    computed_g₁xg₂ = ProductGraph{Direct}(g₁, g₂)
     @test is_isomorphic(computed_g₁xg₂, g₁xg₂)
 end
 
-@testset "factor product graph" begin
+@testset "modular product graph" begin
     # Test case: Fig 1 of https://arxiv.org/ftp/arxiv/papers/1206/1206.6483.pdf
     mol₁ = smilestomol("NC=O")
     mol₂ = smilestomol("CN(C=O)C=O")
@@ -57,23 +57,19 @@ end
     add_edge!(g₁xg₂, 5, 2, Dict(:label => 2))
     add_edge!(g₁xg₂, 6, 4, Dict(:label => 2))
 
-    #  # test: calculated result equivalent to manual construction
-    @test is_isomorphic(product_graph(g₁, g₂, :factor), g₁xg₂)
+    # test: calculated result equivalent to manual construction
+    @test is_isomorphic(ProductGraph{Modular}(g₁, g₂), g₁xg₂)
 
+    # test: removing d-type edges from FPG gives DPG
     dpg = deepcopy(g₁xg₂)
     rem_edge!(dpg, 1, 5)
     rem_edge!(dpg, 1, 6)
-
-    # test: removing d-type edges from FPG gives DPG
-    @test is_isomorphic(product_graph(g₁, g₂, :direct), dpg)
+    @test is_isomorphic(ProductGraph{Direct}(g₁, g₂), dpg)
 
     # test: type signatures (MetaGraph/GraphMol)
-    @test is_isomorphic(product_graph(mol₁, mol₂, :factor), g₁xg₂)
-    @test is_isomorphic(product_graph(g₁, mol₂, :factor), g₁xg₂)
-    @test is_isomorphic(product_graph(mol₁, g₂, :factor), g₁xg₂)
-
-    ## TODO assert v₁v₂_pair labels the same too.
-    ##! Labels aren't the same, b/c numbering in original graphs arbitrary and non-identical
+    @test is_isomorphic(ProductGraph{Modular}(mol₁, mol₂), g₁xg₂)
+    @test is_isomorphic(ProductGraph{Modular}(g₁, mol₂), g₁xg₂)
+    @test is_isomorphic(ProductGraph{Modular}(mol₁, g₂), g₁xg₂)
 end
 
 @testset verbose=true "product graph adjacency matrices" begin
@@ -82,15 +78,15 @@ end
     g₁ = MetaGraph(mol₁)
     g₂ = MetaGraph(mol₂)
     
-    for type in [:direct, :factor]
-        @testset "$type product graph" begin
-            g₁xg₂ = product_graph(g₁, g₂, type)
+    for type in [Direct, Modular]
+        @testset "$type" begin
+            g₁xg₂ = ProductGraph{type}(g₁, g₂)
             # test: adjacency matrix gives same topology as explicit graph
-            @test is_isomorphic(g₁xg₂, SimpleGraph(product_graph_adj_mat(g₁, g₂, type)); edge_labels=Symbol[], node_labels=Symbol[])
+            @test is_isomorphic(g₁xg₂, product_graph_adjacency_matrix(type, g₁, g₂))
             # test: type signatures (MetaGraph/GraphMol)
-            @test is_isomorphic(g₁xg₂, SimpleGraph(product_graph_adj_mat(g₁, mol₂, type)); edge_labels=Symbol[], node_labels=Symbol[])
-            @test is_isomorphic(g₁xg₂, SimpleGraph(product_graph_adj_mat(mol₁, g₂, type)); edge_labels=Symbol[], node_labels=Symbol[])
-            @test is_isomorphic(g₁xg₂, SimpleGraph(product_graph_adj_mat(mol₁, mol₂, type)); edge_labels=Symbol[], node_labels=Symbol[])
+            @test is_isomorphic(g₁xg₂, product_graph_adjacency_matrix(type, g₁, mol₂))
+            @test is_isomorphic(g₁xg₂, product_graph_adjacency_matrix(type, mol₁, g₂))
+            @test is_isomorphic(g₁xg₂, product_graph_adjacency_matrix(type, mol₁, mol₂))
         end
     end
  end
@@ -103,10 +99,10 @@ end
     E = smilestomol("c1ccc(C)cc1")
     A, B, C, D, E = MetaGraph.([A, B, C, D, E])
 
-    for type in [:factor, :direct]
-        @testset "$type product graph" begin
+    for type in [Modular, Direct]
+        @testset "$type" begin
             for (x, y) in with_replacement_combinations([A, B, C, D, E], 2)
-                @test is_isomorphic(product_graph(x, x, type), product_graph(x, y, type))
+                @test is_isomorphic(ProductGraph{type}(x, x), ProductGraph{type}(x, y))
             end
         end
     end

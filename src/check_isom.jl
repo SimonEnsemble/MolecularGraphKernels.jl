@@ -1,5 +1,9 @@
-using Graphs.Experimental: vf2, IsomorphismProblem
-
+"""
+    isomorphism_detected = is_isomorphic(A, B)
+    isomorphic_topology = is_isomorphic(A, B)
+    
+compare two graphs for isomorphism using node and edge labels; or, compare the graph topologies of two adjacency matrices
+"""
 function is_isomorphic(A::AbstractGraph, B::AbstractGraph; edge_labels::Vector{Symbol}=[:label], node_labels::Vector{Symbol}=[:label])::Bool
     isomorphic = false
 
@@ -15,3 +19,7 @@ function is_isomorphic(A::AbstractGraph, B::AbstractGraph; edge_labels::Vector{S
 
     return isomorphic
 end
+is_isomorphic(A::SimpleGraph, B::SimpleGraph) = is_isomorphic(A, B; edge_labels=Symbol[], node_labels=Symbol[])
+is_isomorphic(A::AbstractMatrix, B::AbstractMatrix) = is_isomorphic(SimpleGraph(A), SimpleGraph(B))
+is_isomorphic(A::AbstractMatrix, B::ProductGraph) = is_isomorphic(A, adjacency_matrix(B))
+is_isomorphic(A::ProductGraph, B::Union{ProductGraph, AbstractMatrix}) = is_isomorphic(adjacency_matrix(A), B)

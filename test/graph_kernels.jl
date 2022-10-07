@@ -22,19 +22,12 @@ using Graphs, MetaGraphs, MolecularGraphKernels, Test
 
     l = 4
 
-    for type in [:direct, :factor]
-        @testset "$type product graph" begin
-            x = graph_kernel(product_graph_adj_mat(A, B, type), l)
+    @testset "random walk" begin
+        x = random_walk(product_graph_adjacency_matrix(Direct, A, B), l)
 
-            @test x == graph_kernel(product_graph(A, B, type), l)
-            @test x == graph_kernel(A, B, l, type)
-        
-            x = graph_kernel(product_graph(mol, g, type), l)
-        
-            @test x == graph_kernel(g, g, l, type)
-            @test x == graph_kernel(mol, mol, l, type)
-            @test x == graph_kernel(g, mol, l, type)
-            @test x == graph_kernel(mol, g, l, type)
-        end
+        @test x == random_walk(ProductGraph{Direct}(A, B), l)
+        @test x == random_walk(A, B, l)
+    
+        @test random_walk(ProductGraph{Direct}(mol, g), l) == random_walk(g, g, l)
     end
 end

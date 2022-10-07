@@ -22,3 +22,26 @@ function MetaGraph(mol::GraphMol)::MetaGraph
     end
     return g
 end
+
+"""
+converts a modular product graph into the corresponding direct product graph
+"""
+function ProductGraph{Direct}(fpg::ProductGraph{Modular})::ProductGraph{Direct}
+    dpg = ProductGraph{Direct}(fpg.graph)
+    for e in edges(fpg)
+        if get_prop(fpg, e, :label) == 0
+           rem_edge!(dpg, e)
+        end
+    end
+    return dpg
+end
+
+"""
+convert a product graph into the corresponding simple graph
+"""
+SimpleGraph(g::T) where T <: ProductGraph = g.graph
+
+"""
+convert a product grpah into the corresponding metagraph
+"""
+MetaGraph(g::T) where T <: ProductGraph = MetaGraph(g.graph, g.vprops, g.eprops, g.gprops, g.weightfield, g.defaultweight, g.metaindex, g.indices)
