@@ -25,7 +25,6 @@ end
 ProductGraph{T}(g₁::Union{GraphMol, MetaGraph}, g₂::Union{GraphMol, MetaGraph}) where {T <: AbstractProductGraph} = product_graph(T, g₁, g₂)
 
 is_directed(::ProductGraph) = false
-is_directed(::Type{ProductGraph}) = false
 
 weighttype(::ProductGraph) = Int
 
