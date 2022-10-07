@@ -21,7 +21,6 @@ struct Direct <: AbstractProductGraph end
 
 include.([
     "ProductGraph.jl"
-    "ProductGraphMatrix.jl"
     "graph_products.jl"
     "graph_kernels.jl"
     "visualization.jl"
@@ -33,10 +32,10 @@ include.([
 export
 
     # graph_products.jl
-    ProductGraph, ProductGraphMatrix, Modular, Direct,
+    ProductGraph, product_graph_adjacency_matrix, Modular, Direct,
 
-    # random_walk_graph_kernels.jl
-    random_walk_graph_kernel, 
+    # random_walks.jl
+    random_walk, 
     
     # graph_conversion.jl
     MetaGraph, 

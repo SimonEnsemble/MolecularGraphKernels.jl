@@ -18,15 +18,12 @@ subtypes(AbstractProductGraph)
  Modular
 ```
 
-The adjacency matrix of a product graph is stored in the [`ProductGraphMatrix`](@ref) type.
-[`ProductGraphMatrix`](@ref) is also parameterized by subtypes of `AbstractProductGraph`.
-
 While a [`ProductGraph`](@ref) contains the full representation of the product graph between two molecules, the adjacency matrix may be all that is required.
-As such, it may be more efficient to work with the [`ProductGraphMatrix`](@ref).
+As such, it may be more efficient to work with the adjacency matrix (see [`product_graph_adjacency_matrix`](@ref)).
 
-To create a new [`ProductGraph`](@ref) or [`ProductGraphMatrix`](@ref), define a new `AbstractProductGraph` subtype and two functions, `record_adjacency!` and `product_graph_edge_label`, parameterized by the new type.
+To create a new [`ProductGraph`](@ref), define a new `AbstractProductGraph` subtype and two functions, `record_adjacency!` and `product_graph_edge_label`, parameterized by the new type.
 
 ```@docs
 ProductGraph
-ProductGraphMatrix
+product_graph_adjacency_matrix
 ```

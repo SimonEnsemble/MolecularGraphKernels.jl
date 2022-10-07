@@ -22,7 +22,7 @@ function ProductGraph{S}(x::Union{AbstractMatrix, AbstractGraph}, weightfield::S
     return ProductGraph{S, U}(graph, vprops, eprops, gprops, weightfield, defaultweight, metaindex, indices)
 end
 
-ProductGraph{T}(g₁::Union{GraphMol, MetaGraph}, g₂::Union{GraphMol, MetaGraph}) where {T <: AbstractProductGraph} = product_graph(g₁, g₂, T)
+ProductGraph{T}(g₁::Union{GraphMol, MetaGraph}, g₂::Union{GraphMol, MetaGraph}) where {T <: AbstractProductGraph} = product_graph(T, g₁, g₂)
 
 is_directed(::ProductGraph) = false
 is_directed(::Type{ProductGraph}) = false

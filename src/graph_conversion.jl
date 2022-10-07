@@ -37,11 +37,6 @@ function ProductGraph{Direct}(fpg::ProductGraph{Modular})::ProductGraph{Direct}
 end
 
 """
-converts a product graph into the corresponding product graph matrix
-"""
-ProductGraphMatrix(g::ProductGraph{T}) where T <: AbstractProductGraph = ProductGraphMatrix{T}(adjacency_matrix(g))
-
-"""
 convert a product graph into the corresponding simple graph
 """
 SimpleGraph(g::ProductGraph{T}) where T = g.graph

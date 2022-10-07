@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.17.3
+# v0.19.12
 
 using Markdown
 using InteractiveUtils
@@ -119,7 +119,7 @@ display(mol₁)
 g₁ = MetaGraph(mol₁)
 
 # ╔═╡ e19e9fc9-40db-439e-a947-26169aa222e7
-viz_graph(g₁, layout_style=:circular)
+viz_graph(g₁, layout_style=nothing)
 
 # ╔═╡ a48556ba-cd3b-473e-b051-029a008556ee
 md"""
@@ -145,7 +145,7 @@ dpg = ProductGraph{Direct}(g₁, g₂)
 viz_graph(dpg, layout_style=:circular)
 
 # ╔═╡ b8637b31-3fe3-42ba-9bd0-8621c710f422
-ProductGraphMatrix{Direct}(g₁, g₂)
+product_graph_adjacency_matrix{Direct}(g₁, g₂)
 
 # ╔═╡ 4962c727-6f19-4c2d-9dc5-338ecc2914e3
 random_walk_graph_kernel(dpg, 4)
@@ -163,16 +163,10 @@ viz_graph(g₂)
 viz_graph(mpg, layout_style=nothing)
 
 # ╔═╡ 6df530e6-a2fa-4fbb-bc0a-098a114593ec
-ProductGraphMatrix{Modular}(g₁, g₂)
+product_graph_adjacency_matrix{Modular}(g₁, g₂)
 
 # ╔═╡ a04ff14a-1fc9-452b-a640-a9807ecaafe6
-cliques = maximal_cliques(SimpleGraph(mpg))
-
-# ╔═╡ f988f09d-0c17-46d4-a478-3aac8b0d08c3
-[props(mpg, v) for v in cliques[3]]
-
-# ╔═╡ e1003775-9e64-4493-bf51-204e1c47430f
-viz_graph(MetaGraph(induced_subgraph(SimpleGraph(mpg), cliques[3])[1]); edge_labels=[], node_labels=[])
+length(maximal_cliques(SimpleGraph(mpg)))
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -209,5 +203,3 @@ viz_graph(MetaGraph(induced_subgraph(SimpleGraph(mpg), cliques[3])[1]); edge_lab
 # ╠═0ad1de21-6abf-4eec-8db0-620647ace465
 # ╠═6df530e6-a2fa-4fbb-bc0a-098a114593ec
 # ╠═a04ff14a-1fc9-452b-a640-a9807ecaafe6
-# ╠═f988f09d-0c17-46d4-a478-3aac8b0d08c3
-# ╠═e1003775-9e64-4493-bf51-204e1c47430f

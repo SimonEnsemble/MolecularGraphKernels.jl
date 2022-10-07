@@ -82,11 +82,11 @@ end
         @testset "$type" begin
             g₁xg₂ = ProductGraph{type}(g₁, g₂)
             # test: adjacency matrix gives same topology as explicit graph
-            @test is_isomorphic(g₁xg₂, ProductGraphMatrix{type}(g₁, g₂))
+            @test is_isomorphic(g₁xg₂, product_graph_adjacency_matrix(type, g₁, g₂))
             # test: type signatures (MetaGraph/GraphMol)
-            @test is_isomorphic(g₁xg₂, ProductGraphMatrix{type}(g₁, mol₂))
-            @test is_isomorphic(g₁xg₂, ProductGraphMatrix{type}(mol₁, g₂))
-            @test is_isomorphic(g₁xg₂, ProductGraphMatrix{type}(mol₁, mol₂))
+            @test is_isomorphic(g₁xg₂, product_graph_adjacency_matrix(type, g₁, mol₂))
+            @test is_isomorphic(g₁xg₂, product_graph_adjacency_matrix(type, mol₁, g₂))
+            @test is_isomorphic(g₁xg₂, product_graph_adjacency_matrix(type, mol₁, mol₂))
         end
     end
  end

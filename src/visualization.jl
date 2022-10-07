@@ -1,22 +1,28 @@
 """
 returns the node labels for the indicated type of graph visualization
 """
-viz_node_labels(graph::MetaGraph, ::Type{MetaGraph}) = ["$v" for v in vertices(graph)]
-viz_node_labels(graph::ProductGraph, ::Type{T}) where T <: AbstractProductGraph = ["$(get_prop(graph, v, :v₁v₂_pair))" for v in vertices(graph)]
+viz_node_labels(graph::AbstractGraph) = viz_node_labels(typeof(graph), graph)
+viz_node_labels(::Type{T}, graph::MetaGraph) where T <: MetaGraph = ["$v" for v in vertices(graph)]
+viz_node_labels(::Type{T}, graph::ProductGraph) where T <: ProductGraph = ["$(get_prop(graph, v, :v₁v₂_pair))" for v in vertices(graph)]
 
 """
 returns the edge labels for the indicated type of graph visualization
 """
-function viz_edge_labels(graph::AbstractGraph, ::Type{MetaGraph})::Vector{String}
+function viz_edge_labels(::Type{T}, graph::AbstractGraph)::Vector{String} where T <: MetaGraph
+    # for general metagraphs
     edgelabels = ["$(get_prop(graph, e, :label))" for e in edges(graph)]
     replace!(edgelabels, "-1" => "a")
     return edgelabels
 end
 
-viz_edge_labels(graph::ProductGraph, ::Type{T}) where T <: AbstractProductGraph = viz_edge_labels(graph, MetaGraph)
+viz_edge_labels(graph::AbstractGraph) = viz_edge_labels(typeof(graph), graph)
 
-function viz_edge_labels(graph::ProductGraph, ::Type{Modular})::Vector{String}
-    edgelabels = viz_edge_labels(graph, MetaGraph)
+# fallback for all product graph types (e.g. direct product graph)
+viz_edge_labels(::Type{T}, graph::ProductGraph) where T <: ProductGraph = viz_edge_labels(MetaGraph, graph)
+
+# modular product graph specific
+function viz_edge_labels(::Type{ProductGraph{Modular}}, graph::ProductGraph)::Vector{String}
+    edgelabels = viz_edge_labels(MetaGraph, graph)
     replace!(edgelabels, "0" => "d")
     return edgelabels
 end
@@ -24,9 +30,9 @@ end
 """
 Visualize a molecular or product graph
 """
-function viz_graph(graph::AbstractMetaGraph, type::Type{T}=MetaGraph; savename::String="", C::Float64=0.1, layout_style::Union{Nothing, Symbol}=nothing, node_borders::Bool=true) where T <: Union{MetaGraph, AbstractProductGraph}
+function viz_graph(graph::AbstractMetaGraph; savename::String="", C::Float64=0.1, layout_style::Symbol=:spring, node_borders::Bool=true)
     layout = (args...) -> 
-        if isnothing(layout_style)
+        if layout_style == :spring
             spring_layout(args..., C=C)
         elseif layout_style == :circular
             circular_layout(args...)
@@ -41,8 +47,8 @@ function viz_graph(graph::AbstractMetaGraph, type::Type{T}=MetaGraph; savename::
         layout=layout,
         nodestrokec=RGB(0, 0, 0), 
         nodefillc=[RGB((rc[:cpk_colors][atomsymbol(atom)] ./ 255)...) for atom in [props(graph, v)[:label] for v in vertices(graph)]], 
-        nodelabel=viz_node_labels(graph, type),
-        edgelabel=viz_edge_labels(graph, type),
+        nodelabel=viz_node_labels(graph),
+        edgelabel=viz_edge_labels(graph),
         NODELABELSIZE=5.,
         EDGELABELSIZE=6.,
         NODESIZE=0.3 / sqrt(nv(graph)),
@@ -57,4 +63,4 @@ function viz_graph(graph::AbstractMetaGraph, type::Type{T}=MetaGraph; savename::
 end
 
 viz_graph(graph::GraphMol; kwargs...) = viz_graph(MetaGraph(graph); kwargs...)
-viz_graph(g::ProductGraph{T}; kwargs...) where T <: AbstractProductGraph = viz_graph(g, T; kwargs...)
+viz_graph(g::ProductGraph{AbstractProductGraph}; kwargs...) = viz_graph(g; kwargs...)
