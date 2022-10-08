@@ -26,6 +26,7 @@ GraphPlot = "0.5"
 Graphs = "1.7"
 MetaGraphs = "0.7"
 MolecularGraph = "0.11"
+PrecompileSignatures = "3.0"
 Xtals = "0.4"
 julia = "1.7"
 
