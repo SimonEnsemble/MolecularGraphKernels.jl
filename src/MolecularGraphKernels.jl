@@ -2,6 +2,7 @@ module MolecularGraphKernels
 
 using Cairo, Colors, Compose, FIGlet, GraphPlot, Graphs, MetaGraphs, MolecularGraph, SparseArrays, Xtals
 using Graphs.Experimental: vf2, IsomorphismProblem
+using PrecompileSignatures: @precompile_signatures
 
 import Base: display, size
 import Graphs: is_directed, SimpleEdge
@@ -48,5 +49,7 @@ export
 
     # misc.jl
     display
+
+@precompile_signatures(MolecularGraphKernels)
 
 end
