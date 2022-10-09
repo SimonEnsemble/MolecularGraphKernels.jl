@@ -39,7 +39,7 @@ jobs:
       - if: ${{ failure() }}
         id: juliaformatter-pr
         name: Formatting PR
-        uses: peter-evans/create-pull-request@v3
+        uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: JuliaFormatter Action Bot
