@@ -1,28 +1,25 @@
 name: format-check
 
 on:
-  push:
-    branches:
-      - 'main'
-  pull_request:
   workflow_dispatch:
 
 jobs:
-  build:
+  formatting:
     runs-on: ubuntu-latest
     steps:
       - uses: julia-actions/setup-julia@latest
         with:
-          version: '1.8.2'
+          version: ${{ env.julia_version }}
 
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@main
       
-      - name: Install JuliaFormatter and format
-        run: |
-          julia  -e 'using Pkg; Pkg.add(PackageSpec(name="JuliaFormatter"))'
-          julia  -e 'using JuliaFormatter; format(".", verbose=true)'
+      - name: Install JuliaFormatter
+        run: julia  -e 'using Pkg; Pkg.add("JuliaFormatter")'
+      
+      - name: Run JuliaFormatter
+        run: julia  -e 'using JuliaFormatter; format(".", verbose=true)'
           
-      - name: Format check
+      - name: Formatting Check
         run: |
           julia -e '
           out = Cmd(`git diff --name-only`) |> read |> String
@@ -33,3 +30,20 @@ jobs:
               write(stdout, out)
               exit(1)
           end'
+
+      - if: ${{ failure() }}
+        id: juliaformatter-pr
+        name: Formatting PR
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: JuliaFormatter Action Bot
+          title: 'Automatic JuliaFormatter.jl run'
+          branch: auto-juliaformatter-pr
+          delete-branch: true
+          labels: formatting, automated pr, no changelog
+
+      - name: PR Info
+        run: |
+          echo "Pull Request Number - ${{ steps.juliaformatter-pr.outputs.pull-request-number }}"
+          echo "Pull Request URL - ${{ steps.juliaformatter-pr.outputs.pull-request-url }}"

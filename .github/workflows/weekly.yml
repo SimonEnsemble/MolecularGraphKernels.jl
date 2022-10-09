@@ -10,7 +10,7 @@ concurrency: # only allow the most recent workflow to execute
   cancel-in-progress: true
 
 env: # environment variables
-  julia_version: '1.8.1' # julia version to use on all runners (except cross-platform-julia)
+  julia_version: '1.8.2' # julia version to use on all runners (except cross-platform-julia)
 
 
 jobs: # run in parallel within workflow
@@ -48,7 +48,7 @@ jobs: # run in parallel within workflow
     strategy:
       fail-fast: true
       matrix:
-        julia: ['1.7.3', '1.8.0']
+        julia: ['1.6.7', '1.7.3', '1.8.0']
     runs-on: ubuntu-latest
     timeout-minutes: 30
     
@@ -71,4 +71,3 @@ jobs: # run in parallel within workflow
       - name: run tests
         run: doctest=false julia --project --color=yes -e 'import Pkg; Pkg.test()'
         shell: bash
-          
