@@ -30,7 +30,7 @@ using Combinatorics, Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Te
     add_edge!(g₁xg₂, 3, 10, Dict(:label => 1))
     add_edge!(g₁xg₂, 4, 11, Dict(:label => 1))
     add_edge!(g₁xg₂, 5, 12, Dict(:label => 1))
-    
+
     computed_g₁xg₂ = ProductGraph{Direct}(g₁, g₂)
     @test is_isomorphic(computed_g₁xg₂, g₁xg₂)
 end
@@ -72,12 +72,12 @@ end
     @test is_isomorphic(ProductGraph{Modular}(mol₁, g₂), g₁xg₂)
 end
 
-@testset verbose=true "product graph adjacency matrices" begin
+@testset verbose = true "product graph adjacency matrices" begin
     mol₁ = smilestomol("CNCCC(c1ccccc1)Oc2ccc(cc2)C(F)(F)F") # fluoxetine
     mol₂ = smilestomol("c1cc(ccc1C(=O)CCCN2CCC(CC2)(c3ccc(cc3)Cl)O)F") # haloperidol
     g₁ = MetaGraph(mol₁)
     g₂ = MetaGraph(mol₂)
-    
+
     for type in [Direct, Modular]
         @testset "$type" begin
             g₁xg₂ = ProductGraph{type}(g₁, g₂)
@@ -89,9 +89,9 @@ end
             @test is_isomorphic(g₁xg₂, product_graph_adjacency_matrix(type, mol₁, mol₂))
         end
     end
- end
+end
 
-@testset verbose=true "SMILES flexibility and symmetry" begin
+@testset verbose = true "SMILES flexibility and symmetry" begin
     A = smilestomol("c1c(C)cccc1")
     B = smilestomol("C1C=C(C)C=CC=1")
     C = smilestomol("C1=C(C)C=CC=C1")

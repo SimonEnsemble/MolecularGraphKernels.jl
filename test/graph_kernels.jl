@@ -1,6 +1,6 @@
 using Graphs, MetaGraphs, MolecularGraphKernels, Test
 
-@testset verbose=true "graph kernels" begin
+@testset verbose = true "graph kernels" begin
     A = MetaGraph(3)
     add_edge!(A, 1, 2, Dict(:label => 1))
     add_edge!(A, 2, 3, Dict(:label => 1))
@@ -27,7 +27,7 @@ using Graphs, MetaGraphs, MolecularGraphKernels, Test
 
         @test x == random_walk(ProductGraph{Direct}(A, B), l)
         @test x == random_walk(A, B, l)
-    
+
         @test random_walk(ProductGraph{Direct}(mol, g), l) == random_walk(g, g, l)
     end
 end

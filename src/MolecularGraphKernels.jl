@@ -1,6 +1,15 @@
 module MolecularGraphKernels
 
-using Cairo, Colors, Compose, FIGlet, GraphPlot, Graphs, MetaGraphs, MolecularGraph, SparseArrays, Xtals
+using Cairo,
+    Colors,
+    Compose,
+    FIGlet,
+    GraphPlot,
+    Graphs,
+    MetaGraphs,
+    MolecularGraph,
+    SparseArrays,
+    Xtals
 using Graphs.Experimental: vf2, IsomorphismProblem
 using PrecompileSignatures: @precompile_signatures
 
@@ -20,27 +29,32 @@ concrete product graph types
 struct Modular <: AbstractProductGraph end
 struct Direct <: AbstractProductGraph end
 
-include.([
-    "ProductGraph.jl"
-    "graph_products.jl"
-    "graph_kernels.jl"
-    "visualization.jl"
-    "graph_conversion.jl"
-    "check_isom.jl"
-    "misc.jl"
-])
+include.(
+    [
+        "ProductGraph.jl"
+        "graph_products.jl"
+        "graph_kernels.jl"
+        "visualization.jl"
+        "graph_conversion.jl"
+        "check_isom.jl"
+        "misc.jl"
+    ]
+)
 
 export
 
     # graph_products.jl
-    ProductGraph, product_graph_adjacency_matrix, Modular, Direct,
+    ProductGraph,
+    product_graph_adjacency_matrix,
+    Modular,
+    Direct,
 
     # random_walks.jl
-    random_walk, 
-    
+    random_walk,
+
     # graph_conversion.jl
-    MetaGraph, 
-    
+    MetaGraph,
+
     # visualization.jl
     viz_graph,
 

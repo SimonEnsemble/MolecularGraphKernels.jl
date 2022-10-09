@@ -8,10 +8,10 @@ function display(g::AbstractMetaGraph)
     end
 
     println("---NODES---")
-    for i in 1:nv(g)
+    for i = 1:nv(g)
         println("[$i]", get_props(i))
     end
-    
+
     println("---EDGES---")
     for ed in edges(g)
         println("($(ed.src), $(ed.dst))", get_props(ed))
