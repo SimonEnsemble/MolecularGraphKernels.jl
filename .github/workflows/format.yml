@@ -5,6 +5,9 @@ on:
     branches:
       - main
 
+env: # environment variables
+  julia_version: '1.8.2'
+
 jobs:
   formatting:
     runs-on: ubuntu-latest
