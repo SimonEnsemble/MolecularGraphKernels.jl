@@ -1,6 +1,6 @@
 using IOCapture, MolecularGraphKernels, Test
 
-@testset verbose=true "misc" begin
+@testset verbose = true "misc" begin
     @testset "display" begin
         g₁ = smilestomol("c1ccccc1")
         g₂ = smilestomol("c1ncccc1")

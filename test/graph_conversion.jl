@@ -1,6 +1,6 @@
 using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 
-@testset verbose=true "graph conversion" begin
+@testset verbose = true "graph conversion" begin
     @testset "GraphMol to MetaGraph" begin
         # test that graph converted from GraphMol equivalent to manually generated
         A = MetaGraph(smilestomol("C1CC=1"))
@@ -28,10 +28,16 @@ using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
     B = smilestomol("c1c(c(CCN(C)C)c[nH]2)c2ccc1")
 
     @testset "ProductGraph to ProductGraph" begin
-        @test is_isomorphic(ProductGraph{Direct}(A, B), ProductGraph{Direct}(ProductGraph{Modular}(A, B)))
+        @test is_isomorphic(
+            ProductGraph{Direct}(A, B),
+            ProductGraph{Direct}(ProductGraph{Modular}(A, B)),
+        )
     end
 
     @testset "ProductGraph to adjacency matrix" begin
-        @test is_isomorphic(adjacency_matrix(ProductGraph{Direct}(A, B)), product_graph_adjacency_matrix(Direct, A, B))
+        @test is_isomorphic(
+            adjacency_matrix(ProductGraph{Direct}(A, B)),
+            product_graph_adjacency_matrix(Direct, A, B),
+        )
     end
 end
