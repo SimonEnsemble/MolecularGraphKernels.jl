@@ -42,6 +42,7 @@ jobs:
         uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
           commit-message: JuliaFormatter Action Bot
           title: 'Automatic JuliaFormatter.jl run'
           branch: auto-juliaformatter-pr
