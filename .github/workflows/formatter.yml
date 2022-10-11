@@ -11,14 +11,14 @@ concurrency: # only allow the most recent workflow to execute
 env: # environment variables
   julia_version: '1.8.2' # julia version to use on all runners (except cross-platform-julia)
 
-
+jobs:
   formatting:
     runs-on: ubuntu-latest
     steps:
       - uses: mdecoleman/pr-branch-name@1.2.0
-      id: vars
-      with:
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        id: vars
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: julia-actions/setup-julia@latest
         with:
