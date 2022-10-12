@@ -45,7 +45,7 @@ jobs:
           end'
 
       - if: ${{ failure() }}
-        id: juliaformatter-pr
+        id: cpr
         name: Formatting PR
         uses: peter-evans/create-pull-request@v4
         with:
@@ -56,3 +56,11 @@ jobs:
           branch: auto-juliaformatter-pr
           delete-branch: true
           labels: formatting, automated pr, no changelog
+          
+      - name: comment on PR
+        uses: thollander/actions-comment-pull-request@v1
+        with:
+          message: |
+            Code formatting requirements not met.  See PR #${{ steps.cpr.outputs.pull-request-number }}
+          pr_number: ${{ github.event.issue.number }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
