@@ -10,7 +10,7 @@ macro bind(def, element)
         local iv = try
             Base.loaded_modules[Base.PkgId(
                 Base.UUID("6e696c72-6542-2067-7265-42206c756150"),
-                "AbstractPlutoDingetjes",
+                "AbstractPlutoDingetjes"
             )].Bonds.initial_value
         catch
             b -> missing
@@ -26,7 +26,7 @@ begin
     import IOCapture, Pkg
     IOCapture.capture() do
         Pkg.activate(".")
-        Pkg.add.(
+        return Pkg.add.(
             [
                 "Documenter"
                 "Aqua"
@@ -126,7 +126,7 @@ display(mol₁)
 g₁ = MetaGraph(mol₁)
 
 # ╔═╡ e19e9fc9-40db-439e-a947-26169aa222e7
-viz_graph(g₁, layout_style = nothing)
+viz_graph(g₁; layout_style=nothing)
 
 # ╔═╡ a48556ba-cd3b-473e-b051-029a008556ee
 md"""
@@ -143,13 +143,13 @@ display(mol₂)
 g₂ = MetaGraph(mol₂)
 
 # ╔═╡ 4ad2115d-4b90-433f-8943-e51386cddd00
-viz_graph(g₂, layout_style = :spectral)
+viz_graph(g₂; layout_style=:spectral)
 
 # ╔═╡ 6f19658a-c06e-47ee-8e42-a6358071c170
 dpg = ProductGraph{Direct}(g₁, g₂)
 
 # ╔═╡ 90f93435-0941-44bb-97c3-852c4a1736b2
-viz_graph(dpg, layout_style = :circular)
+viz_graph(dpg; layout_style=:circular)
 
 # ╔═╡ b8637b31-3fe3-42ba-9bd0-8621c710f422
 product_graph_adjacency_matrix{Direct}(g₁, g₂)
@@ -167,7 +167,7 @@ viz_graph(g₁)
 viz_graph(g₂)
 
 # ╔═╡ 0ad1de21-6abf-4eec-8db0-620647ace465
-viz_graph(mpg, layout_style = nothing)
+viz_graph(mpg; layout_style=nothing)
 
 # ╔═╡ 6df530e6-a2fa-4fbb-bc0a-098a114593ec
 product_graph_adjacency_matrix{Modular}(g₁, g₂)

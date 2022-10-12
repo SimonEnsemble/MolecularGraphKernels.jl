@@ -1,12 +1,12 @@
 using Documenter
 using MolecularGraphKernels
 
-makedocs(
-    root = joinpath(dirname(pathof(MolecularGraphKernels)), "..", "docs"),
-    modules = [MolecularGraphKernels],
-    sitename = "MolecularGraphKernels.jl",
-    clean = true,
-    pages = [
+makedocs(;
+    root=joinpath(dirname(pathof(MolecularGraphKernels)), "..", "docs"),
+    modules=[MolecularGraphKernels],
+    sitename="MolecularGraphKernels.jl",
+    clean=true,
+    pages=[
         "MolecularGraphKernels" => "index.md"
         "Molecular Graphs" => "molecular_graphs.md"
         "Product Graphs" => "product_graphs.md"
@@ -14,7 +14,7 @@ makedocs(
         "Isomorphism" => "isomorphism.md"
         "Visualization" => "visualization.md"
     ],
-    format = Documenter.HTML(assets = ["assets/flux.css"]),
+    format=Documenter.HTML(; assets=["assets/flux.css"])
 )
 
-deploydocs(repo = "github.com/SimonEnsemble/MolecularGraphKernels.jl.git")
+deploydocs(; repo="github.com/SimonEnsemble/MolecularGraphKernels.jl.git")

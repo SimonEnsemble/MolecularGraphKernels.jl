@@ -4,6 +4,7 @@
 Convert a `GraphMol` object into the corresponding `MetaGraph`
 
 !!! note
+    
     Hydrogen atoms are generally treated implicitly.
 """
 function MetaGraph(mol::GraphMol)::MetaGraph
@@ -39,18 +40,20 @@ end
 """
 convert a product graph into the corresponding simple graph
 """
-SimpleGraph(g::T) where {T<:ProductGraph} = g.graph
+SimpleGraph(g::T) where {T <: ProductGraph} = g.graph
 
 """
 convert a product grpah into the corresponding metagraph
 """
-MetaGraph(g::T) where {T<:ProductGraph} = MetaGraph(
-    g.graph,
-    g.vprops,
-    g.eprops,
-    g.gprops,
-    g.weightfield,
-    g.defaultweight,
-    g.metaindex,
-    g.indices,
-)
+function MetaGraph(g::T) where {T <: ProductGraph}
+    return MetaGraph(
+        g.graph,
+        g.vprops,
+        g.eprops,
+        g.gprops,
+        g.weightfield,
+        g.defaultweight,
+        g.metaindex,
+        g.indices
+    )
+end
