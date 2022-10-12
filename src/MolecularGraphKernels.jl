@@ -1,7 +1,6 @@
 module MolecularGraphKernels
 
-using 
-    Base.Threads,
+using Base.Threads,
     Cairo,
     Colors,
     Compose,

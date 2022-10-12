@@ -1,6 +1,6 @@
 using MolecularGraphKernels, Test
 
-@testset verbose=true "Gram matrix" begin
+@testset verbose = true "Gram matrix" begin
     graphs = MetaGraph.(smilestomol.([
         "c1ccccc1"
         "NC=O"
