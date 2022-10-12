@@ -30,7 +30,27 @@ jobs:
         run: julia  -e 'using Pkg; Pkg.add("JuliaFormatter")'
       
       - name: Run JuliaFormatter
-        run: julia  -e 'using JuliaFormatter; format(".", verbose=true)'
+        run: | 
+          julia  -e '
+            using JuliaFormatter; 
+            format(
+              ".", 
+              verbose=true,
+              always_for_in=true,
+              whitespace_typedefs=true,
+              whitespace_ops_in_indices=true,
+              remove_extra_newlines=true,
+              short_to_long_function_def=true,
+              long_to_short_function_def=true,
+              always_use_return=true,
+              whitespace_in_kwargs=false,
+              format_docstrings=true,
+              conditional_to_if=true,
+              normalize_line_endings="unix",
+              trailing_comma=false,
+              separate_kwargs_with_semicolon=true,
+              format_markdown=true
+            )'
           
       - name: Formatting Check
         run: |
