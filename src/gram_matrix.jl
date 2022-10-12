@@ -1,4 +1,8 @@
-function gram_matrix(kernel::Function, molecules::Vector{T}; kwargs...)::Matrix{Int} where {T <: AbstractMetaGraph}
+function gram_matrix(
+    kernel::Function,
+    molecules::Vector{T};
+    kwargs...
+)::Matrix{Int} where {T <: AbstractMetaGraph}
     nb_mols = length(molecules)
     matrix = zeros(Int, nb_mols, nb_mols)
 
