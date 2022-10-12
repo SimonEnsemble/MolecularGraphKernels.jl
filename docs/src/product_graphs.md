@@ -12,7 +12,9 @@ The [`ProductGraph`](@ref) type is parameterized by subtypes of `AbstractProduct
 
 ```jldoctest
 subtypes(AbstractProductGraph)
+
 # output
+
 2-element Vector{Any}:
  Direct
  Modular

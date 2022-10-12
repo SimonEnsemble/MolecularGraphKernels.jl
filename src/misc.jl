@@ -8,7 +8,7 @@ function display(g::AbstractMetaGraph)
     end
 
     println("---NODES---")
-    for i = 1:nv(g)
+    for i in 1:nv(g)
         println("[$i]", get_props(i))
     end
 
@@ -21,6 +21,4 @@ end
 """
 Prints the stylized ASCII console banner for the package.
 """
-function banner()
-    FIGlet.render("MolecularGraphKernels", FIGlet.availablefonts()[449])
-end
+banner() = FIGlet.render("MolecularGraphKernels", FIGlet.availablefonts()[449])

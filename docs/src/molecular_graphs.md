@@ -12,6 +12,8 @@ A function to convert `GraphMol` objects to `MetaGraph` objects is exported; thi
 ```jldoctest; output=false
 graph_mol = smilestomol("c1ccccc1")
 g = MetaGraph(graph_mol)
+
 # output
+
 {6, 6} undirected Int64 metagraph with Float64 weights defined by :weight (default weight 1.0)
 ```

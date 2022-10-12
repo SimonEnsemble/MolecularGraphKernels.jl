@@ -30,14 +30,14 @@ using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
     @testset "ProductGraph to ProductGraph" begin
         @test is_isomorphic(
             ProductGraph{Direct}(A, B),
-            ProductGraph{Direct}(ProductGraph{Modular}(A, B)),
+            ProductGraph{Direct}(ProductGraph{Modular}(A, B))
         )
     end
 
     @testset "ProductGraph to adjacency matrix" begin
         @test is_isomorphic(
             adjacency_matrix(ProductGraph{Direct}(A, B)),
-            product_graph_adjacency_matrix(Direct, A, B),
+            product_graph_adjacency_matrix(Direct, A, B)
         )
     end
 end
