@@ -23,11 +23,11 @@ using Graphs, MetaGraphs, MolecularGraphKernels, Test
     l = 4
 
     @testset "random walk" begin
-        x = random_walk(product_graph_adjacency_matrix(Direct, A, B), l)
+        x = random_walk(product_graph_adjacency_matrix(Direct, A, B); l=l)
 
-        @test x == random_walk(ProductGraph{Direct}(A, B), l)
-        @test x == random_walk(A, B, l)
+        @test x == random_walk(ProductGraph{Direct}(A, B); l=l)
+        @test x == random_walk(A, B; l=l)
 
-        @test random_walk(ProductGraph{Direct}(mol, g), l) == random_walk(g, g, l)
+        @test random_walk(ProductGraph{Direct}(mol, g); l=l) == random_walk(g, g; l=l)
     end
 end
