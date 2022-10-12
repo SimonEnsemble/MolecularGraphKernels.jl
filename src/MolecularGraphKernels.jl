@@ -33,7 +33,8 @@ struct Direct <: AbstractProductGraph end
 function __init__()
     if !Sys.iswindows()
         # unpack the RDKit SMARTS
-        global maccs_queries = [(x[1] == "?" ? nothing : get_qmol(x[1])) for x in rdkit_maccs_smarts_patterns]
+        global maccs_queries =
+            [(x[1] == "?" ? nothing : get_qmol(x[1])) for x in rdkit_maccs_smarts_patterns]
         global maccs_counts = [x[2] for x in rdkit_maccs_smarts_patterns]
         global query_notnothing = (!(isnothing)).(maccs_queries)
         global query_notnothing_idx = findall(query_notnothing)

@@ -7,7 +7,7 @@ using IOCapture, MolecularGraphKernels, Test
         dpg = ProductGraph{Modular}(g₁, g₂)
 
         captured_text = IOCapture.capture() do
-            display(dpg)
+            return display(dpg)
         end.output
 
         @test contains(captured_text, "NODES") && contains(captured_text, "EDGES")

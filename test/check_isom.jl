@@ -31,7 +31,7 @@ using MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
         for type in [Modular, Direct]
             @test is_isomorphic(
                 product_graph_adjacency_matrix(type, g₁, g₂),
-                ProductGraph{type}(g₁, g₂),
+                ProductGraph{type}(g₁, g₂)
             )
         end
     end
