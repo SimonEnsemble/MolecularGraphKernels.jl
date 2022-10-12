@@ -48,7 +48,8 @@ weighttype(::ProductGraph) = Int
 
 set_props!(g::ProductGraph, e::SimpleEdge{Int}, d::Dict) = g.eprops[e] = d
 
-props(g::ProductGraph, e::SimpleEdge{Int}) = if haskey(g.eprops, e)
+props(g::ProductGraph, e::SimpleEdge{Int}) =
+    if haskey(g.eprops, e)
         return g.eprops[e]
     elseif haskey(g.eprops, reverse(e))
         return g.eprops[reverse(e)]
