@@ -26,7 +26,7 @@ begin
     import IOCapture, Pkg
     IOCapture.capture() do
         Pkg.activate(".")
-        return Pkg.add.(
+        Pkg.add.(
             [
                 "Documenter"
                 "Aqua"
@@ -38,6 +38,7 @@ begin
                 "PlutoUI"
             ]
         )
+        return
     end
     using Documenter
     using Aqua, BenchmarkTools, ProfileCanvas

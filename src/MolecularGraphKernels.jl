@@ -1,6 +1,7 @@
 module MolecularGraphKernels
 
-using Cairo,
+using Base.Threads,
+    Cairo,
     Colors,
     Compose,
     FIGlet,
@@ -52,6 +53,7 @@ include.(
         "misc.jl"
         "maccs_smarts.jl"
         "maccs.jl"
+        "gram_matrix.jl"
     ]
 )
 
@@ -74,6 +76,9 @@ export
 
     # check_isom.jl
     is_isomorphic,
+
+    # gram_matrix.jl
+    gram_matrix,
 
     # misc.jl
     display
