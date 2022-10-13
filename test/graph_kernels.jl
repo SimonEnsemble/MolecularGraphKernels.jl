@@ -34,6 +34,7 @@ using Graphs, MetaGraphs, MolecularGraphKernels, Test
         x = common_subgraph_isomorphism(g₁, g₂)
         @test x == 3
         @test x == common_subgraph_isomorphism(ProductGraph{Modular}(g₁, g₂))
-        @test x == common_subgraph_isomorphism(product_graph_adjacency_matrix(Modular, g₂, g₁))
+        @test x ==
+              common_subgraph_isomorphism(product_graph_adjacency_matrix(Modular, g₂, g₁))
     end
 end

@@ -12,6 +12,6 @@ function gram_matrix(
             matrix[i, j] = matrix[j, i]
         end
     end
-    
+
     return matrix
 end
