@@ -1,4 +1,15 @@
 """
+abstract type for product graphs
+"""
+abstract type AbstractProductGraph end
+
+"""
+concrete product graph types
+"""
+struct Modular <: AbstractProductGraph end
+struct Direct <: AbstractProductGraph end
+
+"""
 type-parameterized struct for product graphs
 """
 struct ProductGraph{T <: AbstractProductGraph, U <: Real} <: AbstractMetaGraph{Int}
