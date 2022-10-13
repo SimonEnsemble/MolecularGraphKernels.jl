@@ -4,12 +4,14 @@ using Base.Threads,
     Cairo,
     Colors,
     Compose,
+    Distributed,
     FIGlet,
     GraphPlot,
     Graphs,
     MetaGraphs,
     MolecularGraph,
     RDKitMinimalLib,
+    SharedArrays,
     SparseArrays,
     Xtals
 using Graphs.Experimental: vf2, IsomorphismProblem
@@ -19,17 +21,6 @@ import Base: display, size
 import Graphs: is_directed, SimpleEdge
 import MetaGraphs: weighttype, PropDict, MetaDict, set_props!, props
 import SparseArrays: AbstractSparseMatrixCSC, _checkbuffers, getcolptr, rowvals, nonzeros
-
-"""
-abstract type for product graphs
-"""
-abstract type AbstractProductGraph end
-
-"""
-concrete product graph types
-"""
-struct Modular <: AbstractProductGraph end
-struct Direct <: AbstractProductGraph end
 
 function __init__()
     if !Sys.iswindows()
@@ -65,8 +56,9 @@ export
     Modular,
     Direct,
 
-    # random_walks.jl
+    # graph_kernels.jl
     random_walk,
+    common_subgraph_isomorphism,
 
     # graph_conversion.jl
     MetaGraph,

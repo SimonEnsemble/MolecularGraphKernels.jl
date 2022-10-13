@@ -1,17 +1,14 @@
 function gram_matrix(
     kernel::Function,
-    molecules::Vector{T};
+    molecules::Vector{MetaGraph{Int, Float64}};
     kwargs...
-)::Matrix{Int} where {T <: AbstractMetaGraph}
+)::Matrix{Int}
     nb_mols = length(molecules)
-    matrix = zeros(Int, nb_mols, nb_mols)
+    matrix = SharedArray{Int}(nb_mols, nb_mols)
 
-    @threads for i in 1:nb_mols
-        mol = molecules[i]
-        matrix[i:nb_mols, i] .= [kernel(mol, molecules[j]; kwargs...) for j in i:nb_mols]
-    end
-    for i in 1:nb_mols
-        @threads for j in i:nb_mols
+    @sync @distributed for i in 1:nb_mols
+        for j in i:nb_mols
+            matrix[j, i] = kernel(molecules[i], molecules[j]; kwargs...)
             matrix[i, j] = matrix[j, i]
         end
     end
