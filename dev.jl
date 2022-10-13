@@ -82,9 +82,9 @@ g₂ = MetaGraph(smilestomol("CN(C=O)C=O"))
 
 # ╔═╡ 4892ce9c-bd45-41a2-a469-c881117fedd2
 function csi_kernel1(g₁::MetaGraph, g₂::MetaGraph)::Int
-	mpg = ProductGraph{Modular}(g₁, g₂)
-	cliques = maximal_cliques(mpg.graph)
-	return length(cliques)
+    mpg = ProductGraph{Modular}(g₁, g₂)
+    cliques = maximal_cliques(mpg.graph)
+    return length(cliques)
 end
 
 # ╔═╡ bee34c9a-739f-45f3-a521-fdca88e3351b
@@ -109,10 +109,10 @@ a clique is represented by a square matrix consisting of a subset of rows and co
 """
 
 # ╔═╡ 7df7dfa4-e779-4167-8756-1c07c797523a
-A[[1,2], [1,2]]
+A[[1, 2], [1, 2]]
 
 # ╔═╡ 65422c37-29cd-47e1-b98c-308af00e1bf2
-A[[2,3,4], [2,3,4]]
+A[[2, 3, 4], [2, 3, 4]]
 
 # ╔═╡ db767f8f-77d5-43a7-bbd7-8ccced63c6d7
 md"""
@@ -120,10 +120,10 @@ These subset matrices are node-order invariant:
 """
 
 # ╔═╡ 5a9aad9a-16f7-4131-9a64-0fab741912db
-A[[2,1],[2,1]]
+A[[2, 1], [2, 1]]
 
 # ╔═╡ 531bfd63-d0e7-46f0-8cf0-d9a2ab3f0ad5
-A[[3,4,2], [3,4,2]]
+A[[3, 4, 2], [3, 4, 2]]
 
 # ╔═╡ e45d1404-3a17-488d-91e2-f285be59a9a4
 md"""
@@ -131,13 +131,13 @@ A *maximal clique* is represented by such a matrix where the addition of any oth
 """
 
 # ╔═╡ 8009aed4-d85b-4802-ae64-3fee0619b3db
-A[[1,2,3],[1,2,3]]
+A[[1, 2, 3], [1, 2, 3]]
 
 # ╔═╡ c9ed2288-f389-4505-ba9c-646dbf54d8f9
-A[[1,2,4],[1,2,4]]
+A[[1, 2, 4], [1, 2, 4]]
 
 # ╔═╡ f2009f9e-da19-4cbd-a20d-7f8981afa917
-A[[1,2,5],[1,2,5]]
+A[[1, 2, 5], [1, 2, 5]]
 
 # ╔═╡ 843a4d5d-ab6a-4a8b-ab4a-792f45e2272e
 md"""
@@ -145,7 +145,7 @@ To find the maximal cliques of a graph, the maximal cliques containing each node
 """
 
 # ╔═╡ 90fa2e57-5dce-4873-ac9f-66d7cd93e9c6
-findall(A[:,1])
+findall(A[:, 1])
 
 # ╔═╡ b6bfa010-4bee-4880-9be9-4ec563e43f2a
 md"""
@@ -153,7 +153,7 @@ So, the set ``{1,2}`` is a possible maximal clique, and because it has size ``2`
 """
 
 # ╔═╡ 507b71a4-4eb6-4903-96f7-058e4570f643
-findall(A[:,2])
+findall(A[:, 2])
 
 # ╔═╡ 2d6079ff-4ef6-48a2-a43e-3fcea2295eae
 md"""
@@ -162,9 +162,9 @@ The index ``2`` may be a part of additional cliques.  We have already identified
 
 # ╔═╡ f44608e3-44fc-42a5-ab46-4136ac4fd336
 begin
-	local exhausted_indices = [1]
-	local subset = setdiff(vcat(2, findall(A[:,2])), exhausted_indices)
-	subset, A[subset, subset]
+    local exhausted_indices = [1]
+    local subset = setdiff(vcat(2, findall(A[:, 2])), exhausted_indices)
+    subset, A[subset, subset]
 end
 
 # ╔═╡ f05da4cc-aa3e-4d6c-a452-0ae48b6b4424
@@ -174,11 +174,11 @@ If index `3` is part of a clique with index `2`, then index `4` may also be in t
 
 # ╔═╡ 0baf15b8-84a8-41ee-b572-f736946c328b
 begin
-	local exhausted_indices = [1]
-	local subset = setdiff(vcat(2, findall(A[:,2])), exhausted_indices)
-	local subset1 = [2, 3, 4]
-	local subset2 = [2, 5, 6]
-	subset1, A[subset1, subset1], subset2, A[subset2, subset2]
+    local exhausted_indices = [1]
+    local subset = setdiff(vcat(2, findall(A[:, 2])), exhausted_indices)
+    local subset1 = [2, 3, 4]
+    local subset2 = [2, 5, 6]
+    subset1, A[subset1, subset1], subset2, A[subset2, subset2]
 end
 
 # ╔═╡ ac3d174a-4621-493b-89f5-a14b78c9677b
@@ -188,9 +188,9 @@ Each of the subsets ``{2,3,4}`` and ``{2,5,6}`` are (maximal) cliques, exhaustin
 
 # ╔═╡ 14dc85c0-d7ee-4aba-b7c4-03b21582e614
 begin
-	local exhausted_indices = [1, 2]
-	local subset = setdiff(vcat(3, findall(A[:,3])), exhausted_indices)
-	subset, A[subset, subset]
+    local exhausted_indices = [1, 2]
+    local subset = setdiff(vcat(3, findall(A[:, 3])), exhausted_indices)
+    subset, A[subset, subset]
 end
 
 # ╔═╡ d32b9c09-1973-4d31-9a3e-18ce73589749
@@ -200,9 +200,9 @@ Ah, crap.  That's a subset of an already-discovered maximal clique.
 
 # ╔═╡ 8310e7ec-2f37-4b20-a9ee-33ef74075193
 function csi_kernel2(g₁, g₂)::Int
-	g = SimpleGraph(product_graph_adjacency_matrix(Modular, g₁, g₂))
-	cliques = maximal_cliques(g)
-	return length(cliques)
+    g = SimpleGraph(product_graph_adjacency_matrix(Modular, g₁, g₂))
+    cliques = maximal_cliques(g)
+    return length(cliques)
 end
 
 # ╔═╡ d5dca5dd-9e59-4f63-9928-a3d953a4b5c4
@@ -218,7 +218,6 @@ k2 = @btime csi_kernel2(g₁, g₂)
 gram_matrix(common_subgraph_isomorphism, [g₁, g₂])
 
 # ╔═╡ d6b2f2de-b879-46fb-8379-adfb0fd4f73b
-
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b

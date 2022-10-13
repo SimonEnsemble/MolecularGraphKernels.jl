@@ -34,7 +34,10 @@ function common_subgraph_isomorphism(g₁::AbstractMetaGraph, g₂::AbstractMeta
     return common_subgraph_isomorphism(product_graph_adjacency_matrix(Modular, g₁, g₂))
 end
 
-function common_subgraph_isomorphism(g₁::GraphMol, g₂::Union{GraphMol, AbstractMetaGraph})::Int
+function common_subgraph_isomorphism(
+    g₁::GraphMol,
+    g₂::Union{GraphMol, AbstractMetaGraph}
+)::Int
     return common_subgraph_isomorphism(MetaGraph(g₁), g₂)
 end
 
