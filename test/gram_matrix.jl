@@ -21,8 +21,12 @@ using MolecularGraphKernels, Test
         csi_gm = gram_matrix(common_subgraph_isomorphism, graphs)
 
         @test size(csi_gm) == (3, 3)
-        @test csi_gm[1, 2] == csi_gm[2, 1] == common_subgraph_isomorphism(graphs[1], graphs[2])
-        @test csi_gm[3, 2] == csi_gm[3, 2] == common_subgraph_isomorphism(graphs[3], graphs[2])
+        @test csi_gm[1, 2] ==
+              csi_gm[2, 1] ==
+              common_subgraph_isomorphism(graphs[1], graphs[2])
+        @test csi_gm[3, 2] ==
+              csi_gm[3, 2] ==
+              common_subgraph_isomorphism(graphs[3], graphs[2])
         @test csi_gm[2, 2] == common_subgraph_isomorphism(graphs[2], graphs[2])
     end
 end
