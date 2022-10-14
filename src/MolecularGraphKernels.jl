@@ -23,14 +23,6 @@ import MetaGraphs: weighttype, PropDict, MetaDict, set_props!, props
 import SparseArrays: AbstractSparseMatrixCSC, _checkbuffers, getcolptr, rowvals, nonzeros
 
 function __init__()
-    if !Sys.iswindows()
-        # unpack the RDKit SMARTS
-        global maccs_queries =
-            [(x[1] == "?" ? nothing : get_qmol(x[1])) for x in rdkit_maccs_smarts_patterns]
-        global maccs_counts = [x[2] for x in rdkit_maccs_smarts_patterns]
-        global query_notnothing = (!(isnothing)).(maccs_queries)
-        global query_notnothing_idx = findall(query_notnothing)
-    end
 end
 
 include.(
@@ -42,7 +34,6 @@ include.(
         "graph_conversion.jl"
         "check_isom.jl"
         "misc.jl"
-        "maccs_smarts.jl"
         "maccs.jl"
         "gram_matrix.jl"
     ]
