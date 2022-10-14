@@ -23,6 +23,11 @@ import MetaGraphs: weighttype, PropDict, MetaDict, set_props!, props
 import SparseArrays: AbstractSparseMatrixCSC, _checkbuffers, getcolptr, rowvals, nonzeros
 
 function __init__()
+    if ! Sys.iswindows()
+        # pre-compute the MACCS queries. must ignore "?". replace with nothing.
+        global _maccs_queries = [(smarts_pattern == "?" ? nothing : get_qmol(smarts_pattern), nb_matches)
+                                  for (smarts_pattern, nb_matches) in maccs_queries]
+    end
 end
 
 include.(

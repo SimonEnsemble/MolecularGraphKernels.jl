@@ -187,11 +187,7 @@ maccs_queries = [
     (raw"?", 0)  # Fragments  FIX: this can"t be done in SMARTS
 ]
 
-# pre-compute the queries. must ignore "?". replace with nothing.
-if ! Sys.iswindows()
-    _maccs_queries = [(smarts_pattern != "?" ? get_qmol(smarts_pattern) : nothing, nb_matches) 
-                          for (smarts_pattern, nb_matches) in maccs_queries]
-end
+# the _maccs_queries is placed in main file so that it can precompile.
 
 """
 returns the MACCS fingerprint from a SMILES string
