@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  julia_version: '1.8.1'
+  julia_version: '1.8.2'
 
 
 jobs:
