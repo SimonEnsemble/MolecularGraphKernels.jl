@@ -200,7 +200,7 @@ function maccs_fp(smiles::String)::BitVector
     mol = get_mol(smiles)
     x = falses(length(maccs_queries))
     for (i, (pattern, nb_matches_needed)) in enumerate(_maccs_queries)
-        if ! isnothing(pattern)
+        if !isnothing(pattern)
             nb_matches = length(get_substruct_matches(mol, pattern))
             if nb_matches > nb_matches_needed
                 x[i] = true
