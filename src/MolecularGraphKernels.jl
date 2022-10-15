@@ -24,12 +24,11 @@ import SparseArrays: AbstractSparseMatrixCSC, _checkbuffers, getcolptr, rowvals,
 
 function __init__()
     if !Sys.iswindows()
-        # unpack the RDKit SMARTS
-        global maccs_queries =
-            [(x[1] == "?" ? nothing : get_qmol(x[1])) for x in rdkit_maccs_smarts_patterns]
-        global maccs_counts = [x[2] for x in rdkit_maccs_smarts_patterns]
-        global query_notnothing = (!(isnothing)).(maccs_queries)
-        global query_notnothing_idx = findall(query_notnothing)
+        # pre-compute the MACCS queries. must ignore "?". replace with nothing.
+        global _maccs_queries = [
+            (smarts_pattern == "?" ? nothing : get_qmol(smarts_pattern), nb_matches) for
+            (smarts_pattern, nb_matches) in maccs_queries
+        ]
     end
 end
 
@@ -42,7 +41,6 @@ include.(
         "graph_conversion.jl"
         "check_isom.jl"
         "misc.jl"
-        "maccs_smarts.jl"
         "maccs.jl"
         "gram_matrix.jl"
     ]
