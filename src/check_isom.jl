@@ -28,13 +28,17 @@ function is_isomorphic(
 
     return isomorphic
 end
+
 function is_isomorphic(A::SimpleGraph, B::SimpleGraph)
     return is_isomorphic(A, B; edge_labels=Symbol[], node_labels=Symbol[])
 end
+
 function is_isomorphic(A::AbstractMatrix, B::AbstractMatrix)
     return is_isomorphic(SimpleGraph(A), SimpleGraph(B))
 end
+
 is_isomorphic(A::AbstractMatrix, B::ProductGraph) = is_isomorphic(A, adjacency_matrix(B))
+
 function is_isomorphic(A::ProductGraph, B::Union{ProductGraph, AbstractMatrix})
     return is_isomorphic(adjacency_matrix(A), B)
 end

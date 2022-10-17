@@ -4,6 +4,7 @@ MolecularGraphKernels.banner()
 
 include.(
     [
+        "init.jl"
         "ProductGraph.jl"
         "check_isom.jl"
         "graph_conversion.jl"
