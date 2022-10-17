@@ -9,7 +9,7 @@ begin
     import IOCapture, Pkg
     IOCapture.capture() do
         Pkg.activate(".")
-		Pkg.resolve()
+        Pkg.resolve()
         Pkg.add.(
             [
                 "Documenter"
@@ -71,8 +71,8 @@ md"""
 
 # ╔═╡ d6b2f2de-b879-46fb-8379-adfb0fd4f73b
 begin
-	g₁ = MetaGraph(smilestomol("c1(c2)cscc1ccc2"))
-	g₂ = MetaGraph(smilestomol("c1(o2)cscc1occ2"))
+    g₁ = MetaGraph(smilestomol("c1(c2)cscc1ccc2"))
+    g₂ = MetaGraph(smilestomol("c1(o2)cscc1occ2"))
 end;
 
 # ╔═╡ f2c86d66-b801-4192-965c-b0b82a5c603a
@@ -92,15 +92,14 @@ cliques = filter(c -> length(c) == maximum(length.(max_cliques)), max_cliques)
 
 # ╔═╡ 923b6b0e-4067-45ad-92b2-ab9b63d5bab1
 begin
-	g, c = induced_subgraph(MetaGraph(mpg), cliques[1])
-	g = ProductGraph{Modular}(g)
+    g, c = induced_subgraph(MetaGraph(mpg), cliques[1])
+    g = ProductGraph{Modular}(g)
 end
 
 # ╔═╡ a9c0e399-397e-43a7-a4ad-19af2c650d71
 viz_graph(g; layout_style=:spring)
 
 # ╔═╡ ae99e3ce-df29-4894-9da2-8124d6eff89c
-
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
