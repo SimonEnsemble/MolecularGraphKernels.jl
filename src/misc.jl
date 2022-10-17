@@ -26,9 +26,13 @@ banner() = FIGlet.render("MolecularGraphKernels", FIGlet.availablefonts()[449])
 """
 extracts the isomorphic subgraphs of the modular product graph via clique detection
 """
-function isomorphic_subgraphs(mpg::ProductGraph{Modular}; min_size::Int=3)::Vector{ProductGraph{Modular}}
+function isomorphic_subgraphs(
+    mpg::ProductGraph{Modular};
+    min_size::Int=3
+)::Vector{ProductGraph{Modular}}
     max_cliques = maximal_cliques(mpg.graph)
     cliques = filter(c -> length(c) ≥ min_size, max_cliques)
-    tups = induced_subgraph.([MetaGraph(mpg)], cliques[sortperm(length.(cliques); rev=true)])
+    tups =
+        induced_subgraph.([MetaGraph(mpg)], cliques[sortperm(length.(cliques); rev=true)])
     return [ProductGraph{Modular}(tup[1]) for tup in tups]
 end
