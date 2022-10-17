@@ -46,6 +46,10 @@ function viz_graph(
         error("Invalid layout style: ", layout_style)
     end
 
+    edgelabel = viz_edge_labels(graph)
+    edgestrokec = repeat([colorant"#A09C9C"], length(edgelabel))
+    edgestrokec[edgelabel .== "d"] .= [colorant"#e7e3e2"]
+
     plot = gplot(
         graph;
         layout=layout,
@@ -62,11 +66,12 @@ function viz_graph(
             ) for atom in [props(graph, v)[:label] for v in vertices(graph)]
         ],
         nodelabel=viz_node_labels(graph),
-        edgelabel=viz_edge_labels(graph),
+        edgelabel=edgelabel,
         NODELABELSIZE=5.0,
         EDGELABELSIZE=6.0,
         NODESIZE=0.3 / sqrt(nv(graph)),
-        nodestrokelw=node_borders ? 1.0 : 0.0
+        nodestrokelw=node_borders ? 1.0 : 0.0,
+        edgestrokec=edgestrokec
     )
 
     if savename ≠ ""
