@@ -99,8 +99,6 @@ end
 # ╔═╡ a9c0e399-397e-43a7-a4ad-19af2c650d71
 viz_graph(g; layout_style=:spring)
 
-# ╔═╡ ae99e3ce-df29-4894-9da2-8124d6eff89c
-
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
 # ╟─9188ef1e-16fe-4a79-8ba6-2b0e907d743a
@@ -118,4 +116,3 @@ viz_graph(g; layout_style=:spring)
 # ╠═81c19258-a7de-4845-9665-3636d0256760
 # ╠═923b6b0e-4067-45ad-92b2-ab9b63d5bab1
 # ╠═a9c0e399-397e-43a7-a4ad-19af2c650d71
-# ╠═ae99e3ce-df29-4894-9da2-8124d6eff89c

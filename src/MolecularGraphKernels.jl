@@ -10,10 +10,10 @@ using Base.Threads,
     Graphs,
     MetaGraphs,
     MolecularGraph,
+    PeriodicTable,
     RDKitMinimalLib,
     SharedArrays,
-    SparseArrays,
-    Xtals
+    SparseArrays
 using Graphs.Experimental: vf2, IsomorphismProblem
 using PrecompileSignatures: @precompile_signatures
 
