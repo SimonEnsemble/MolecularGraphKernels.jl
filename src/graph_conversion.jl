@@ -46,7 +46,7 @@ SimpleGraph(g::T) where {T <: ProductGraph} = g.graph
 convert a product grpah into the corresponding metagraph
 """
 function MetaGraph(g::T) where {T <: ProductGraph}
-    return MetaGraph(
+    return MetaGraphs.MetaGraph(
         g.graph,
         g.vprops,
         g.eprops,

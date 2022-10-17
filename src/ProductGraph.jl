@@ -28,21 +28,32 @@ function ProductGraph{S}(
     weightfield::Symbol=:weight,
     defaultweight::U=1.0
 ) where {U <: Real, S <: AbstractProductGraph}
-    graph = SimpleGraph(x)
-    vprops = Dict{Int, PropDict}()
-    eprops = Dict{SimpleEdge{Int}, PropDict}()
-    gprops = PropDict()
-    metaindex = MetaDict()
-    indices = Set{Symbol}()
     return ProductGraph{S, U}(
-        graph,
-        vprops,
-        eprops,
-        gprops,
+        SimpleGraph(x),
+        Dict{Int, PropDict}(),
+        Dict{SimpleEdge{Int}, PropDict}(),
+        PropDict(),
         weightfield,
         defaultweight,
-        metaindex,
-        indices
+        MetaDict(),
+        Set{Symbol}()
+    )
+end
+
+function ProductGraph{S}(
+    x::MetaGraph,
+    weightfield::Symbol=:weight,
+    defaultweight::U=1.0
+) where {U <: Real, S <: AbstractProductGraph}
+    return ProductGraph{S, U}(
+        x.graph,
+        x.vprops,
+        x.eprops,
+        x.gprops,
+        weightfield,
+        defaultweight,
+        x.metaindex,
+        x.indices
     )
 end
 

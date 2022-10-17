@@ -90,21 +90,17 @@ max_cliques = maximal_cliques(mpg.graph)
 # ╔═╡ 81c19258-a7de-4845-9665-3636d0256760
 cliques = filter(c -> length(c) == maximum(length.(max_cliques)), max_cliques)
 
-# ╔═╡ 7d2efc6b-1b24-49a1-8957-4c7f19036e53
+# ╔═╡ 923b6b0e-4067-45ad-92b2-ab9b63d5bab1
 begin
-	c = cliques[1]
-	d = Dict(j => i for (i, j) in enumerate(c))
-	g = MetaGraph(length(c))
-	for (i, v) in enumerate(c)
-		set_prop!(g, i, :label, get_prop(mpg, v, :label))
-		for n in neighbors(mpg, v)
-			haskey(d, n) && add_edge!(g, v, d[n], Dict(:label => get_prop(mpg, v, n, :label)))
-		end
-	end
+	g, c = induced_subgraph(MetaGraph(mpg), cliques[1])
+	g = ProductGraph{Modular}(g)
 end
 
 # ╔═╡ a9c0e399-397e-43a7-a4ad-19af2c650d71
-viz_graph(g; layout_style=:circular)
+viz_graph(g; layout_style=:spring)
+
+# ╔═╡ ae99e3ce-df29-4894-9da2-8124d6eff89c
+
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -121,5 +117,6 @@ viz_graph(g; layout_style=:circular)
 # ╠═b96dee5e-6c6b-4a1e-938a-5a9b42a96c3b
 # ╠═39326496-e4dc-4b32-b538-feaa47066982
 # ╠═81c19258-a7de-4845-9665-3636d0256760
-# ╠═7d2efc6b-1b24-49a1-8957-4c7f19036e53
+# ╠═923b6b0e-4067-45ad-92b2-ab9b63d5bab1
 # ╠═a9c0e399-397e-43a7-a4ad-19af2c650d71
+# ╠═ae99e3ce-df29-4894-9da2-8124d6eff89c
