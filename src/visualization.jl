@@ -51,7 +51,7 @@ function viz_graph(
         layout=layout,
         nodestrokec=RGB(0, 0, 0),
         nodefillc=[
-            RGB((rc[:cpk_colors][atomsymbol(atom)] ./ 255)...) for
+            RGB((parse.(Int, [elements[atom].cpk_hex[x] for x in [[2,3], [4,5], [6,7]]], base=16) ./ 255)...) for
             atom in [props(graph, v)[:label] for v in vertices(graph)]
         ],
         nodelabel=viz_node_labels(graph),
