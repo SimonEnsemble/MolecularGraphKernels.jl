@@ -71,7 +71,8 @@ export
     gram_matrix,
 
     # misc.jl
-    display
+    display,
+    isomorphic_subgraphs
 
 @precompile_signatures(MolecularGraphKernels)
 

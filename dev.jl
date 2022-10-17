@@ -85,19 +85,10 @@ mpg = ProductGraph{Modular}(g₁, g₂)
 viz_graph(mpg; layout_style=:spectral)
 
 # ╔═╡ 39326496-e4dc-4b32-b538-feaa47066982
-max_cliques = maximal_cliques(mpg.graph)
-
-# ╔═╡ 81c19258-a7de-4845-9665-3636d0256760
-cliques = filter(c -> length(c) == maximum(length.(max_cliques)), max_cliques)
-
-# ╔═╡ 923b6b0e-4067-45ad-92b2-ab9b63d5bab1
-begin
-    g, c = induced_subgraph(MetaGraph(mpg), cliques[1])
-    g = ProductGraph{Modular}(g)
-end
+imsgs = isomorphic_subgraphs(mpg)
 
 # ╔═╡ a9c0e399-397e-43a7-a4ad-19af2c650d71
-viz_graph(g; layout_style=:spring)
+viz_graph(imsgs[2]; layout_style=:spring)
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -113,6 +104,4 @@ viz_graph(g; layout_style=:spring)
 # ╠═41c83665-9cff-43c1-912f-3d820d682e09
 # ╠═b96dee5e-6c6b-4a1e-938a-5a9b42a96c3b
 # ╠═39326496-e4dc-4b32-b538-feaa47066982
-# ╠═81c19258-a7de-4845-9665-3636d0256760
-# ╠═923b6b0e-4067-45ad-92b2-ab9b63d5bab1
 # ╠═a9c0e399-397e-43a7-a4ad-19af2c650d71
