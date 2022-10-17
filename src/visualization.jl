@@ -34,8 +34,10 @@ function viz_graph(
     savename::String="",
     C::Float64=0.1,
     layout_style::Symbol=:spring,
-    node_borders::Bool=true
-)
+    node_borders::Bool=true,
+    node_alpha_mask::Vector{T}=ones(nv(graph)),
+    edge_alpha_mask::Vector{T}=ones(ne(graph))
+) where {T <: Real}
     layout = (args...) -> if layout_style == :spring
         spring_layout(args...; C=C)
     elseif layout_style == :circular
@@ -47,23 +49,30 @@ function viz_graph(
     end
 
     edgelabel = viz_edge_labels(graph)
+    @assert length(edge_alpha_mask) == length(edgelabel)
     edgestrokec = repeat([colorant"#A09C9C"], length(edgelabel))
-    edgestrokec[edgelabel .== "d"] .= [colorant"#e7e3e2"]
+    lightgray = parse.(
+        Int,
+        ["#E7E3E2"[x] for x in [[2, 3], [4, 5], [6, 7]]],
+        base=16
+    ) ./ 255
+    edgestrokec[edgelabel .== "d"] .= [RGBA(lightgray..., α) for α in edge_alpha_mask]
 
     plot = gplot(
         graph;
         layout=layout,
         nodestrokec=RGB(0, 0, 0),
         nodefillc=[
-            RGB(
+            RGBA(
                 (
                     parse.(
                         Int,
                         [elements[atom].cpk_hex[x] for x in [[2, 3], [4, 5], [6, 7]]],
                         base=16
                     ) ./ 255
-                )...
-            ) for atom in [props(graph, v)[:label] for v in vertices(graph)]
+                )...,
+                node_alpha_mask[i]
+            ) for (i, atom) in enumerate(props(graph, v)[:label] for v in vertices(graph))
         ],
         nodelabel=viz_node_labels(graph),
         edgelabel=edgelabel,
