@@ -90,6 +90,49 @@ imsgs = isomorphic_subgraphs(mpg)
 # ╔═╡ a9c0e399-397e-43a7-a4ad-19af2c650d71
 viz_graph(imsgs[2]; layout_style=:spring)
 
+# ╔═╡ 87aa9631-ccef-4532-a06b-0aaee425d908
+begin
+    dg = deepcopy(imsgs[2])
+    for e in edges(imsgs[2])
+        if get_prop(imsgs[2], e, :label) == 0
+            rem_edge!(dg, e)
+        end
+    end
+    viz_graph(dg; layout_style=:circular)
+end
+
+# ╔═╡ 53a7b87c-e676-4f42-81dc-dc38450078d1
+md"""
+#### take above graph, extract node pair labels, alpha mask original graphs to only show c-connected subgraphs
+"""
+
+# ╔═╡ cf936eb7-020f-4e84-a284-8c7098d40cde
+g₁_nodes = [get_prop(dg, v, :v₁v₂_pair)[1] for v in vertices(dg)]
+
+# ╔═╡ a60742e4-cdbc-4cb2-a1fd-9fa03ce5cf64
+g₂_nodes = [get_prop(dg, v, :v₁v₂_pair)[2] for v in vertices(dg)]
+
+# ╔═╡ 9875f635-1528-4b55-a3a7-fce2e6bbd866
+g₁_edges = [Graphs.SimpleEdge(g₁_nodes[src(e)], g₁_nodes[dst(e)]) for e in edges(dg)]
+
+# ╔═╡ ff6ddb75-f9fd-4279-8c95-d7be0ce3e812
+g₂_edges = [Graphs.SimpleEdge(g₂_nodes[src(e)], g₂_nodes[dst(e)]) for e in edges(dg)]
+
+# ╔═╡ f8fd1d2c-c1e5-4173-b704-8c345096b059
+g₁_node_alpha_mask = [v ∈ g₁_nodes ? 1 : 0 for v in vertices(g₁)]
+
+# ╔═╡ f0bbbfe6-b799-4be7-8afb-61ef65f1a37e
+g₂_node_alpha_mask = [v ∈ g₂_nodes ? 1 : 0 for v in vertices(g₂)]
+
+# ╔═╡ 983b5c21-7618-483f-abe3-32efd6452130
+g₁_edge_alpha_mask = [e ∈ g₁_edges || reverse(e) ∈ g₁_edges ? 1 : 0 for e in edges(g₁)]
+
+# ╔═╡ d57a3747-dcc6-46b7-946f-1828cae62fa2
+g₂_edge_alpha_mask = [e ∈ g₂_edges || reverse(e) ∈ g₂_edges ? 1 : 0 for e in edges(g₂)]
+
+# ╔═╡ 7663b5a0-d0a9-4a72-9d75-745a91160737
+viz_graph(g₁; node_alpha_mask=g₁_node_alpha_mask, edge_alpha_mask=g₁_edge_alpha_mask)
+
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
 # ╟─9188ef1e-16fe-4a79-8ba6-2b0e907d743a
@@ -105,3 +148,14 @@ viz_graph(imsgs[2]; layout_style=:spring)
 # ╠═b96dee5e-6c6b-4a1e-938a-5a9b42a96c3b
 # ╠═39326496-e4dc-4b32-b538-feaa47066982
 # ╠═a9c0e399-397e-43a7-a4ad-19af2c650d71
+# ╠═87aa9631-ccef-4532-a06b-0aaee425d908
+# ╟─53a7b87c-e676-4f42-81dc-dc38450078d1
+# ╠═cf936eb7-020f-4e84-a284-8c7098d40cde
+# ╠═a60742e4-cdbc-4cb2-a1fd-9fa03ce5cf64
+# ╠═9875f635-1528-4b55-a3a7-fce2e6bbd866
+# ╠═ff6ddb75-f9fd-4279-8c95-d7be0ce3e812
+# ╠═f8fd1d2c-c1e5-4173-b704-8c345096b059
+# ╠═f0bbbfe6-b799-4be7-8afb-61ef65f1a37e
+# ╠═983b5c21-7618-483f-abe3-32efd6452130
+# ╠═d57a3747-dcc6-46b7-946f-1828cae62fa2
+# ╠═7663b5a0-d0a9-4a72-9d75-745a91160737
