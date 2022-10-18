@@ -1,9 +1,7 @@
 """
 returns the node labels for the indicated type of graph visualization
 """
-function viz_node_labels(graph::AbstractMetaGraph)
-    return ["$v" for v in vertices(graph)]
-end
+viz_node_labels(graph::AbstractMetaGraph) = ["$v" for v in vertices(graph)]
 
 function viz_node_labels(graph::ProductGraph)
     return ["$(get_prop(graph, v, :v₁v₂_pair))" for v in vertices(graph)]
@@ -57,18 +55,11 @@ function select_graph_layout(layout_style::Symbol, C::Float64)
     end
 end
 
-const DARKGRAY = parse.(
-    Int,
-    ["#A09C9C"[x] for x in [[2, 3], [4, 5], [6, 7]]],
-    base=16
-) ./ 255
+const DARKGRAY =
+    parse.(Int, ["#A09C9C"[x] for x in [[2, 3], [4, 5], [6, 7]]], base=16) ./ 255
 
-const LIGHTGRAY = parse.(
-        Int,
-        ["#E7E3E2"[x] for x in [[2, 3], [4, 5], [6, 7]]],
-        base=16
-    ) ./ 255
-
+const LIGHTGRAY =
+    parse.(Int, ["#E7E3E2"[x] for x in [[2, 3], [4, 5], [6, 7]]], base=16) ./ 255
 
 function viz_node_colors(graph::AbstractMetaGraph)::Vector{RGBA}
     return [
@@ -115,16 +106,16 @@ function viz_graph(
     layout_style::Symbol=:spring,
     node_alpha_mask::Vector{S}=ones(nv(graph)),
     edge_alpha_mask::Vector{T}=ones(ne(graph))
-) where {S,T <: Real}
+) where {S, T <: Real}
     layout = select_graph_layout(layout_style, C)
-    
+
     edgelabel = viz_edge_labels(graph)
     alpha_mask!(edgelabel, edge_alpha_mask)
-    
+
     edgestrokec = viz_edge_colors(graph, edgelabel)
     alpha_mask!(edgestrokec, edge_alpha_mask)
-    
-    nodefillc= viz_node_colors(graph)
+
+    nodefillc = viz_node_colors(graph)
     alpha_mask!(nodefillc, node_alpha_mask)
 
     nodelabel = viz_node_labels(graph)
