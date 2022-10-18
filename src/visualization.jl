@@ -1,29 +1,108 @@
 """
 returns the node labels for the indicated type of graph visualization
 """
-viz_node_labels(graph::AbstractGraph) = viz_node_labels(typeof(graph), graph)
-function viz_node_labels(::Type{T}, graph::MetaGraph) where {T <: MetaGraph}
+function viz_node_labels(graph::AbstractMetaGraph)
     return ["$v" for v in vertices(graph)]
 end
-function viz_node_labels(::Type{T}, graph::ProductGraph) where {T <: ProductGraph}
+
+function viz_node_labels(graph::ProductGraph)
     return ["$(get_prop(graph, v, :v₁v₂_pair))" for v in vertices(graph)]
 end
 
 """
 returns the edge labels for the indicated type of graph visualization
 """
-function viz_edge_labels(graph::T)::Vector{String} where {T <: AbstractMetaGraph}
-    # for general metagraphs
-    edgelabels = ["$(get_prop(graph, e, :label))" for e in edges(graph)]
-    replace!(edgelabels, "-1" => "a")
-    return edgelabels
+function viz_edge_labels(graph::AbstractMetaGraph)::Vector{String}
+    # general case
+    edgelabel = ["$(get_prop(graph, e, :label))" for e in edges(graph)]
+    replace!(edgelabel, "-1" => "a")
+    return edgelabel
 end
 
-# modular product graph specific
 function viz_edge_labels(graph::ProductGraph{Modular})::Vector{String}
-    edgelabels = viz_edge_labels(MetaGraph(graph))
-    replace!(edgelabels, "0" => "d")
-    return edgelabels
+    # modular product graph specific: relabel d-type edges
+    edgelabel = viz_edge_labels(MetaGraph(graph))
+    replace!(edgelabel, "0" => "d")
+    return edgelabel
+end
+
+"""
+sets the colors for edges based on graph type
+"""
+function viz_edge_colors(::AbstractMetaGraph, edgelabel::Vector{String})::Vector{RGBA}
+    # for general metagraphs
+    edgestrokec = [RGBA(DARKGRAY..., 1) for _ in eachindex(edgelabel)]
+    return edgestrokec
+end
+
+function viz_edge_colors(::ProductGraph{Modular}, edgelabel::Vector{String})::Vector{RGBA}
+    # specific to modular product graphs
+    edgestrokec = viz_edge_colors(MetaGraph(), edgelabel)
+    edgestrokec[edgelabel .== "d"] .= RGBA(LIGHTGRAY..., 1)
+    return edgestrokec
+end
+
+"""
+sets the gplot layout style
+"""
+function select_graph_layout(layout_style::Symbol, C::Float64)
+    return (args...) -> if layout_style == :spring
+        spring_layout(args...; C=C)
+    elseif layout_style == :circular
+        circular_layout(args...)
+    elseif layout_style == :spectral
+        spectral_layout(args...)
+    else
+        error("Invalid layout style: ", layout_style)
+    end
+end
+
+const DARKGRAY = parse.(
+    Int,
+    ["#A09C9C"[x] for x in [[2, 3], [4, 5], [6, 7]]],
+    base=16
+) ./ 255
+
+const LIGHTGRAY = parse.(
+        Int,
+        ["#E7E3E2"[x] for x in [[2, 3], [4, 5], [6, 7]]],
+        base=16
+    ) ./ 255
+
+
+function viz_node_colors(graph::AbstractMetaGraph)::Vector{RGBA}
+    return [
+        RGBA(
+            (
+                parse.(
+                    Int,
+                    [elements[atom].cpk_hex[x] for x in [[2, 3], [4, 5], [6, 7]]],
+                    base=16
+                ) ./ 255
+            )...,
+            1
+        ) for atom in [props(graph, v)[:label] for v in vertices(graph)]
+    ]
+end
+
+"""
+apply the alpha mask to edge/node colors
+"""
+function alpha_mask!(color::Vector{RGBA}, mask::Vector{T}) where {T <: Real}
+    for (i, α) in enumerate(mask)
+        color[i] = RGBA(color[i].r, color[i].g, color[i].b, α)
+    end
+end
+
+"""
+apply the alpha mask to edge/node labels
+"""
+function alpha_mask!(label::Vector{String}, mask::Vector{T}) where {T <: Real}
+    for (i, α) in enumerate(mask)
+        if α == 0
+            label[i] = ""
+        end
+    end
 end
 
 """
@@ -34,52 +113,32 @@ function viz_graph(
     savename::String="",
     C::Float64=0.1,
     layout_style::Symbol=:spring,
-    node_borders::Bool=true,
-    node_alpha_mask::Vector{T}=ones(nv(graph)),
+    node_alpha_mask::Vector{S}=ones(nv(graph)),
     edge_alpha_mask::Vector{T}=ones(ne(graph))
-) where {T <: Real}
-    layout = (args...) -> if layout_style == :spring
-        spring_layout(args...; C=C)
-    elseif layout_style == :circular
-        circular_layout(args...)
-    elseif layout_style == :spectral
-        spectral_layout(args...)
-    else
-        error("Invalid layout style: ", layout_style)
-    end
-
+) where {S,T <: Real}
+    layout = select_graph_layout(layout_style, C)
+    
     edgelabel = viz_edge_labels(graph)
-    @assert length(edge_alpha_mask) == length(edgelabel)
-    edgestrokec = repeat([colorant"#A09C9C"], length(edgelabel))
-    lightgray = parse.(
-        Int,
-        ["#E7E3E2"[x] for x in [[2, 3], [4, 5], [6, 7]]],
-        base=16
-    ) ./ 255
-    edgestrokec[edgelabel .== "d"] .= [RGBA(lightgray..., α) for α in edge_alpha_mask]
+    alpha_mask!(edgelabel, edge_alpha_mask)
+    
+    edgestrokec = viz_edge_colors(graph, edgelabel)
+    alpha_mask!(edgestrokec, edge_alpha_mask)
+    
+    nodefillc= viz_node_colors(graph)
+    alpha_mask!(nodefillc, node_alpha_mask)
+
+    nodelabel = viz_node_labels(graph)
+    alpha_mask!(nodelabel, node_alpha_mask)
 
     plot = gplot(
         graph;
         layout=layout,
-        nodestrokec=RGB(0, 0, 0),
-        nodefillc=[
-            RGBA(
-                (
-                    parse.(
-                        Int,
-                        [elements[atom].cpk_hex[x] for x in [[2, 3], [4, 5], [6, 7]]],
-                        base=16
-                    ) ./ 255
-                )...,
-                node_alpha_mask[i]
-            ) for (i, atom) in enumerate(props(graph, v)[:label] for v in vertices(graph))
-        ],
-        nodelabel=viz_node_labels(graph),
+        nodefillc=nodefillc,
+        nodelabel=nodelabel,
         edgelabel=edgelabel,
         NODELABELSIZE=5.0,
         EDGELABELSIZE=6.0,
         NODESIZE=0.3 / sqrt(nv(graph)),
-        nodestrokelw=node_borders ? 1.0 : 0.0,
         edgestrokec=edgestrokec
     )
 
