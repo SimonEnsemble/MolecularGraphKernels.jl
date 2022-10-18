@@ -6,9 +6,21 @@ Base.@kwdef struct VizGraphKwargs
     edge_alpha_mask::Vector{T} where {T <: Real}
 end
 
-VizGraphKwargs(mol::GraphMol; kwargs...) = VizGraphKwargs(; node_alpha_mask=ones(length(mol.nodeattrs)), edge_alpha_mask=ones(length(mol.edgeattrs)), kwargs...)
+function VizGraphKwargs(mol::GraphMol; kwargs...)
+    return VizGraphKwargs(;
+        node_alpha_mask=ones(length(mol.nodeattrs)),
+        edge_alpha_mask=ones(length(mol.edgeattrs)),
+        kwargs...
+    )
+end
 
-VizGraphKwargs(graph::AbstractMetaGraph; kwargs...) = VizGraphKwargs(; node_alpha_mask=ones(nv(graph)), edge_alpha_mask=ones(ne(graph)), kwargs...)
+function VizGraphKwargs(graph::AbstractMetaGraph; kwargs...)
+    return VizGraphKwargs(;
+        node_alpha_mask=ones(nv(graph)),
+        edge_alpha_mask=ones(ne(graph)),
+        kwargs...
+    )
+end
 
 """
 returns the node labels for the indicated type of graph visualization
@@ -111,7 +123,9 @@ end
 """
 Visualize a molecular or product graph
 """
-viz_graph(graph::T; kwargs...) where {T <: Union{AbstractMetaGraph, GraphMol}} = viz_graph(graph, VizGraphKwargs(graph; kwargs...))
+function viz_graph(graph::T; kwargs...) where {T <: Union{AbstractMetaGraph, GraphMol}}
+    return viz_graph(graph, VizGraphKwargs(graph; kwargs...))
+end
 
 viz_graph(mol::GraphMol, opt::VizGraphKwargs) = viz_graph(MetaGraph(mol), opt)
 
