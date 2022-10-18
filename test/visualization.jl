@@ -1,28 +1,19 @@
 using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 
 function test_vis(
-    graph::AbstractMetaGraph,
+    graph,
     graph_name,
     set_name;
-    style=:spring,
-    edge_mask=ones(ne(graph)),
-    node_mask=ones(nv(graph))
+    kwargs...
 )
+    opts=VizGraphKwargs(graph; kwargs...)
     @testset "$set_name" begin
-        if style == :bogus_style
-            @test_throws ErrorException viz_graph(graph, layout_style=style)
+        if opts.layout_style == :bogus_style
+            @test_throws ErrorException viz_graph(graph; kwargs...)
             return
         end
         rm("$graph_name.pdf"; force=true)
-        @test !isnothing(
-            viz_graph(
-                graph;
-                savename=graph_name,
-                layout_style=style,
-                edge_alpha_mask=edge_mask,
-                node_alpha_mask=node_mask
-            )
-        )
+        @test !isnothing(viz_graph(graph; savename=graph_name, kwargs...))
         vis = isfile("$graph_name.pdf")
         @test vis
         if vis
@@ -31,8 +22,11 @@ function test_vis(
     end
 end
 
-function test_vis(mol::GraphMol, graph_name, set_name; kwargs...)
-    return test_vis(MetaGraph(mol), graph_name, set_name; kwargs...)
+@testset verbose = true "VizGraphKwargs" begin
+    @test_throws Exception VizGraphKwargs()
+    @test !isnothing(VizGraphKwargs(smilestomol("C")))
+    @test !isnothing(VizGraphKwargs(smilestomol("C"); savename="foo"))
+    @test !isnothing(VizGraphKwargs(MetaGraph(1)))
 end
 
 @testset verbose = true "Graph Types" begin
@@ -52,7 +46,7 @@ end
 @testset verbose = true "Graph Plot Styles" begin
     mol = smilestomol("C(NC=O)NC=O")
     for style in [:spring, :circular, :spectral, :bogus_style]
-        test_vis(mol, "$style", "$style"; style=style)
+        test_vis(mol, "$style", "$style"; layout_style=style)
     end
 end
 
@@ -60,11 +54,11 @@ end
     mpg = ProductGraph{Modular}(smilestomol("C1C(C=O)C1"), smilestomol("C1C(=O)C1"))
     @testset "edges" begin
         edge_mask = [get_prop(mpg, e, :label) for e in edges(mpg)]
-        test_vis(mpg, "edge_mask", "edge mask"; edge_mask=edge_mask)
+        test_vis(mpg, "edge_mask", "edge mask"; edge_alpha_mask=edge_mask)
     end
     @testset "nodes" begin
         node_mask = ones(nv(mpg))
         node_mask[[1, 3, 5, 7]] .= [0]
-        test_vis(mpg, "node_mask", "node mask"; node_mask=node_mask)
+        test_vis(mpg, "node_mask", "node mask"; node_alpha_mask=node_mask)
     end
 end

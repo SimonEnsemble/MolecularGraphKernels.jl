@@ -1,3 +1,15 @@
+Base.@kwdef struct VizGraphKwargs
+    savename::String = ""
+    C::Float64 = 0.1
+    layout_style::Symbol = :spring
+    node_alpha_mask::Vector{S} where {S <: Real}
+    edge_alpha_mask::Vector{T} where {T <: Real}
+end
+
+VizGraphKwargs(mol::GraphMol; kwargs...) = VizGraphKwargs(; node_alpha_mask=ones(length(mol.nodeattrs)), edge_alpha_mask=ones(length(mol.edgeattrs)), kwargs...)
+
+VizGraphKwargs(graph::AbstractMetaGraph; kwargs...) = VizGraphKwargs(; node_alpha_mask=ones(nv(graph)), edge_alpha_mask=ones(ne(graph)), kwargs...)
+
 """
 returns the node labels for the indicated type of graph visualization
 """
@@ -99,27 +111,24 @@ end
 """
 Visualize a molecular or product graph
 """
-function viz_graph(
-    graph::AbstractMetaGraph;
-    savename::String="",
-    C::Float64=0.1,
-    layout_style::Symbol=:spring,
-    node_alpha_mask::Vector{S}=ones(nv(graph)),
-    edge_alpha_mask::Vector{T}=ones(ne(graph))
-) where {S, T <: Real}
-    layout = select_graph_layout(layout_style, C)
+viz_graph(graph::T; kwargs...) where {T <: Union{AbstractMetaGraph, GraphMol}} = viz_graph(graph, VizGraphKwargs(graph; kwargs...))
+
+viz_graph(mol::GraphMol, opt::VizGraphKwargs) = viz_graph(MetaGraph(mol), opt)
+
+function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs=VizGraphKwargs())
+    layout = select_graph_layout(opt.layout_style, opt.C)
 
     edgelabel = viz_edge_labels(graph)
-    alpha_mask!(edgelabel, edge_alpha_mask)
+    alpha_mask!(edgelabel, opt.edge_alpha_mask)
 
     edgestrokec = viz_edge_colors(graph, edgelabel)
-    alpha_mask!(edgestrokec, edge_alpha_mask)
+    alpha_mask!(edgestrokec, opt.edge_alpha_mask)
 
     nodefillc = viz_node_colors(graph)
-    alpha_mask!(nodefillc, node_alpha_mask)
+    alpha_mask!(nodefillc, opt.node_alpha_mask)
 
     nodelabel = viz_node_labels(graph)
-    alpha_mask!(nodelabel, node_alpha_mask)
+    alpha_mask!(nodelabel, opt.node_alpha_mask)
 
     plot = gplot(
         graph;
@@ -133,11 +142,9 @@ function viz_graph(
         edgestrokec=edgestrokec
     )
 
-    if savename ≠ ""
-        draw(PDF(savename * ".pdf", 13cm, 13cm), plot)
+    if opt.savename ≠ ""
+        draw(PDF(opt.savename * ".pdf", 13cm, 13cm), plot)
     end
 
     return plot
 end
-
-viz_graph(graph::GraphMol; kwargs...) = viz_graph(MetaGraph(graph); kwargs...)

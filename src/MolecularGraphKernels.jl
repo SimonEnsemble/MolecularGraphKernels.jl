@@ -63,6 +63,7 @@ export
 
     # visualization.jl
     viz_graph,
+    VizGraphKwargs,
 
     # check_isom.jl
     is_isomorphic,
