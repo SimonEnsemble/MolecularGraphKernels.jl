@@ -92,13 +92,13 @@ viz_graph(imsgs[2]; layout_style=:spring)
 
 # ╔═╡ 87aa9631-ccef-4532-a06b-0aaee425d908
 begin
-	dg = deepcopy(imsgs[2])
-	for e in edges(imsgs[2])
-		if get_prop(imsgs[2], e, :label) == 0
-			rem_edge!(dg, e)
-		end
-	end
-	viz_graph(dg; layout_style=:circular)
+    dg = deepcopy(imsgs[2])
+    for e in edges(imsgs[2])
+        if get_prop(imsgs[2], e, :label) == 0
+            rem_edge!(dg, e)
+        end
+    end
+    viz_graph(dg; layout_style=:circular)
 end
 
 # ╔═╡ 53a7b87c-e676-4f42-81dc-dc38450078d1
