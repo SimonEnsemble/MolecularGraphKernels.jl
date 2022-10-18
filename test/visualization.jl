@@ -1,12 +1,7 @@
 using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 
-function test_vis(
-    graph,
-    graph_name,
-    set_name;
-    kwargs...
-)
-    opts=VizGraphKwargs(graph; kwargs...)
+function test_vis(graph, graph_name, set_name; kwargs...)
+    opts = VizGraphKwargs(graph; kwargs...)
     @testset "$set_name" begin
         if opts.layout_style == :bogus_style
             @test_throws ErrorException viz_graph(graph; kwargs...)
