@@ -69,11 +69,20 @@ md"""
 # Development Code
 """
 
-# ╔═╡ d6b2f2de-b879-46fb-8379-adfb0fd4f73b
+# ╔═╡ 5699f8a5-11d6-453d-a867-8330134d080f
 begin
-    g₁ = MetaGraph(smilestomol("c1(c2)cscc1ccc2"))
-    g₂ = MetaGraph(smilestomol("c1(o2)cscc1occ2"))
-end;
+	import Base.Multimedia.display
+	Base.Multimedia.display(mol::GraphMol) = HTML(drawsvg(mol, 250, 250))
+end
+
+# ╔═╡ 1f2f45f6-57ba-4c29-845f-05685ceb299a
+begin
+	mol₁ = smilestomol("c1(c2)cscc1cc(c3)c2ccc3")
+	mol₂ = smilestomol("c1(o2)cscc1oc(c3)c2ccc3")
+	g₁ = MetaGraph(mol₁)
+    g₂ = MetaGraph(mol₂)
+	display.([mol₁, mol₂])
+end
 
 # ╔═╡ f2c86d66-b801-4192-965c-b0b82a5c603a
 viz_graph.([g₁, g₂])
@@ -92,9 +101,10 @@ viz_graph(imsgs[2]; layout_style=:spring)
 
 # ╔═╡ 87aa9631-ccef-4532-a06b-0aaee425d908
 begin
-    dg = deepcopy(imsgs[2])
-    for e in edges(imsgs[2])
-        if get_prop(imsgs[2], e, :label) == 0
+	local n = 1
+    dg = deepcopy(imsgs[n])
+    for e in edges(imsgs[n])
+        if get_prop(imsgs[n], e, :label) == 0
             rem_edge!(dg, e)
         end
     end
@@ -118,20 +128,29 @@ g₁_edges = [Graphs.SimpleEdge(g₁_nodes[src(e)], g₁_nodes[dst(e)]) for e in
 # ╔═╡ ff6ddb75-f9fd-4279-8c95-d7be0ce3e812
 g₂_edges = [Graphs.SimpleEdge(g₂_nodes[src(e)], g₂_nodes[dst(e)]) for e in edges(dg)]
 
+# ╔═╡ 0a97908e-bf4b-41a1-8cf6-e7905325393a
+α₀ = 0.075
+
 # ╔═╡ f8fd1d2c-c1e5-4173-b704-8c345096b059
-g₁_node_alpha_mask = [v ∈ g₁_nodes ? 1 : 0 for v in vertices(g₁)]
+g₁_node_alpha_mask = [v ∈ g₁_nodes ? 1 : α₀ for v in vertices(g₁)]
 
 # ╔═╡ f0bbbfe6-b799-4be7-8afb-61ef65f1a37e
-g₂_node_alpha_mask = [v ∈ g₂_nodes ? 1 : 0 for v in vertices(g₂)]
+g₂_node_alpha_mask = [v ∈ g₂_nodes ? 1 : α₀ for v in vertices(g₂)]
 
 # ╔═╡ 983b5c21-7618-483f-abe3-32efd6452130
-g₁_edge_alpha_mask = [e ∈ g₁_edges || reverse(e) ∈ g₁_edges ? 1 : 0 for e in edges(g₁)]
+g₁_edge_alpha_mask = [e ∈ g₁_edges || reverse(e) ∈ g₁_edges ? 1 : α₀ for e in edges(g₁)]
 
 # ╔═╡ d57a3747-dcc6-46b7-946f-1828cae62fa2
-g₂_edge_alpha_mask = [e ∈ g₂_edges || reverse(e) ∈ g₂_edges ? 1 : 0 for e in edges(g₂)]
+g₂_edge_alpha_mask = [e ∈ g₂_edges || reverse(e) ∈ g₂_edges ? 1 : α₀ for e in edges(g₂)]
 
 # ╔═╡ 7663b5a0-d0a9-4a72-9d75-745a91160737
 viz_graph(g₁; node_alpha_mask=g₁_node_alpha_mask, edge_alpha_mask=g₁_edge_alpha_mask)
+
+# ╔═╡ 575ccd4b-50f0-405d-9a39-48bc1265512e
+viz_graph(g₂; node_alpha_mask=g₂_node_alpha_mask, edge_alpha_mask=g₂_edge_alpha_mask)
+
+# ╔═╡ b5067fb9-3543-40ea-bbad-768136438c18
+length(imsgs)
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -142,7 +161,8 @@ viz_graph(g₁; node_alpha_mask=g₁_node_alpha_mask, edge_alpha_mask=g₁_edge_
 # ╟─971586d9-266b-4dfd-97d6-dc3aed449600
 # ╠═e9f5391d-4832-440e-b61c-357daf275332
 # ╟─f4f182e7-e8fe-4f1e-9867-0e01c8a850b1
-# ╠═d6b2f2de-b879-46fb-8379-adfb0fd4f73b
+# ╠═5699f8a5-11d6-453d-a867-8330134d080f
+# ╠═1f2f45f6-57ba-4c29-845f-05685ceb299a
 # ╠═f2c86d66-b801-4192-965c-b0b82a5c603a
 # ╠═41c83665-9cff-43c1-912f-3d820d682e09
 # ╠═b96dee5e-6c6b-4a1e-938a-5a9b42a96c3b
@@ -154,8 +174,11 @@ viz_graph(g₁; node_alpha_mask=g₁_node_alpha_mask, edge_alpha_mask=g₁_edge_
 # ╠═a60742e4-cdbc-4cb2-a1fd-9fa03ce5cf64
 # ╠═9875f635-1528-4b55-a3a7-fce2e6bbd866
 # ╠═ff6ddb75-f9fd-4279-8c95-d7be0ce3e812
+# ╠═0a97908e-bf4b-41a1-8cf6-e7905325393a
 # ╠═f8fd1d2c-c1e5-4173-b704-8c345096b059
 # ╠═f0bbbfe6-b799-4be7-8afb-61ef65f1a37e
 # ╠═983b5c21-7618-483f-abe3-32efd6452130
 # ╠═d57a3747-dcc6-46b7-946f-1828cae62fa2
 # ╠═7663b5a0-d0a9-4a72-9d75-745a91160737
+# ╠═575ccd4b-50f0-405d-9a39-48bc1265512e
+# ╠═b5067fb9-3543-40ea-bbad-768136438c18

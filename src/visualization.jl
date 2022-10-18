@@ -129,7 +129,7 @@ end
 
 viz_graph(mol::GraphMol, opt::VizGraphKwargs) = viz_graph(MetaGraph(mol), opt)
 
-function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs=VizGraphKwargs())
+function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
     layout = select_graph_layout(opt.layout_style, opt.C)
 
     edgelabel = viz_edge_labels(graph)
