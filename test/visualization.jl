@@ -1,4 +1,5 @@
 using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
+import MolecularGraphKernels: VizGraphKwargs
 
 function test_vis(graph, graph_name, set_name; kwargs...)
     opts = VizGraphKwargs(graph; kwargs...)

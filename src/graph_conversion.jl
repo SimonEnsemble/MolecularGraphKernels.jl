@@ -21,6 +21,11 @@ function MetaGraph(mol::GraphMol)::MetaGraph
     for e_idx in findall(isaromaticbond(mol))
         set_prop!(g, mol.edges[e_idx]..., :label, -1)
     end
+    # set atomic coordinates
+    coords, _ = coords2d(mol)
+    for v in vertices(g)
+        set_prop!(g, v, :coords, coords[v, :])
+    end
     return g
 end
 

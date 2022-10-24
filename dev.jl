@@ -85,7 +85,7 @@ begin
 end
 
 # ╔═╡ f2c86d66-b801-4192-965c-b0b82a5c603a
-viz_graph.([g₁, g₂])
+viz_graph.([g₁, g₂]; layout_style=:graphmol)
 
 # ╔═╡ 41c83665-9cff-43c1-912f-3d820d682e09
 mpg = ProductGraph{Modular}(g₁, g₂)
@@ -144,10 +144,10 @@ g₁_edge_alpha_mask = [e ∈ g₁_edges || reverse(e) ∈ g₁_edges ? 1 : α�
 g₂_edge_alpha_mask = [e ∈ g₂_edges || reverse(e) ∈ g₂_edges ? 1 : α₀ for e in edges(g₂)]
 
 # ╔═╡ 7663b5a0-d0a9-4a72-9d75-745a91160737
-viz_graph(g₁; node_alpha_mask=g₁_node_alpha_mask, edge_alpha_mask=g₁_edge_alpha_mask)
+viz_graph(g₁; node_alpha_mask=g₁_node_alpha_mask, edge_alpha_mask=g₁_edge_alpha_mask, layout_style=:graphmol)
 
 # ╔═╡ 575ccd4b-50f0-405d-9a39-48bc1265512e
-viz_graph(g₂; node_alpha_mask=g₂_node_alpha_mask, edge_alpha_mask=g₂_edge_alpha_mask)
+viz_graph(g₂; node_alpha_mask=g₂_node_alpha_mask, edge_alpha_mask=g₂_edge_alpha_mask, layout_style=:graphmol)
 
 # ╔═╡ b5067fb9-3543-40ea-bbad-768136438c18
 length(imsgs)
