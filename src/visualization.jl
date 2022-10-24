@@ -82,7 +82,9 @@ function select_graph_layout(layout_style::Symbol, C::Float64)
     end
 end
 
-function molecule_layout(g::MetaGraph{Int, Float64})::Tuple{Vector{Float64}, Vector{Float64}}
+function molecule_layout(
+    g::MetaGraph{Int, Float64}
+)::Tuple{Vector{Float64}, Vector{Float64}}
     coords = zeros(2, nv(g))
     for v in vertices(g)
         coords[:, v] .= get_prop(g, v, :coords)

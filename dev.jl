@@ -71,17 +71,17 @@ md"""
 
 # ╔═╡ 5699f8a5-11d6-453d-a867-8330134d080f
 begin
-	import Base.Multimedia.display
-	Base.Multimedia.display(mol::GraphMol) = HTML(drawsvg(mol, 250, 250))
+    import Base.Multimedia.display
+    Base.Multimedia.display(mol::GraphMol) = HTML(drawsvg(mol, 250, 250))
 end
 
 # ╔═╡ 1f2f45f6-57ba-4c29-845f-05685ceb299a
 begin
-	mol₁ = smilestomol("c1(c2)cscc1cc(c3)c2ccc3")
-	mol₂ = smilestomol("c1(o2)cscc1oc(c3)c2ccc3")
-	g₁ = MetaGraph(mol₁)
+    mol₁ = smilestomol("c1(c2)cscc1cc(c3)c2ccc3")
+    mol₂ = smilestomol("c1(o2)cscc1oc(c3)c2ccc3")
+    g₁ = MetaGraph(mol₁)
     g₂ = MetaGraph(mol₂)
-	display.([mol₁, mol₂])
+    display.([mol₁, mol₂])
 end
 
 # ╔═╡ f2c86d66-b801-4192-965c-b0b82a5c603a
@@ -101,7 +101,7 @@ viz_graph(imsgs[2]; layout_style=:spring)
 
 # ╔═╡ 87aa9631-ccef-4532-a06b-0aaee425d908
 begin
-	local n = 1
+    local n = 1
     dg = deepcopy(imsgs[n])
     for e in edges(imsgs[n])
         if get_prop(imsgs[n], e, :label) == 0
@@ -144,10 +144,20 @@ g₁_edge_alpha_mask = [e ∈ g₁_edges || reverse(e) ∈ g₁_edges ? 1 : α�
 g₂_edge_alpha_mask = [e ∈ g₂_edges || reverse(e) ∈ g₂_edges ? 1 : α₀ for e in edges(g₂)]
 
 # ╔═╡ 7663b5a0-d0a9-4a72-9d75-745a91160737
-viz_graph(g₁; node_alpha_mask=g₁_node_alpha_mask, edge_alpha_mask=g₁_edge_alpha_mask, layout_style=:graphmol)
+viz_graph(
+    g₁;
+    node_alpha_mask=g₁_node_alpha_mask,
+    edge_alpha_mask=g₁_edge_alpha_mask,
+    layout_style=:graphmol
+)
 
 # ╔═╡ 575ccd4b-50f0-405d-9a39-48bc1265512e
-viz_graph(g₂; node_alpha_mask=g₂_node_alpha_mask, edge_alpha_mask=g₂_edge_alpha_mask, layout_style=:graphmol)
+viz_graph(
+    g₂;
+    node_alpha_mask=g₂_node_alpha_mask,
+    edge_alpha_mask=g₂_edge_alpha_mask,
+    layout_style=:graphmol
+)
 
 # ╔═╡ b5067fb9-3543-40ea-bbad-768136438c18
 length(imsgs)
