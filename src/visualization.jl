@@ -10,6 +10,7 @@ function VizGraphKwargs(mol::GraphMol; kwargs...)
     return VizGraphKwargs(;
         node_alpha_mask=ones(length(mol.nodeattrs)),
         edge_alpha_mask=ones(length(mol.edgeattrs)),
+        layout_style=:graphmol,
         kwargs...
     )
 end
@@ -74,9 +75,21 @@ function select_graph_layout(layout_style::Symbol, C::Float64)
         circular_layout(args...)
     elseif layout_style == :spectral
         spectral_layout(args...)
+    elseif layout_style == :graphmol
+        molecule_layout(args...)
     else
         error("Invalid layout style: ", layout_style)
     end
+end
+
+function molecule_layout(
+    g::MetaGraph{Int, Float64}
+)::Tuple{Vector{Float64}, Vector{Float64}}
+    coords = zeros(2, nv(g))
+    for v in vertices(g)
+        coords[:, v] .= get_prop(g, v, :coords)
+    end
+    return (coords[1, :], coords[2, :])
 end
 
 const DARKGRAY =
@@ -131,6 +144,7 @@ viz_graph(mol::GraphMol, opt::VizGraphKwargs) = viz_graph(MetaGraph(mol), opt)
 
 function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
     layout = select_graph_layout(opt.layout_style, opt.C)
+    x_coords, y_coords = layout(graph)
 
     edgelabel = viz_edge_labels(graph)
     alpha_mask!(edgelabel, opt.edge_alpha_mask)
@@ -145,8 +159,9 @@ function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
     alpha_mask!(nodelabel, opt.node_alpha_mask)
 
     plot = gplot(
-        graph;
-        layout=layout,
+        graph,
+        x_coords,
+        y_coords;
         nodefillc=nodefillc,
         nodelabel=nodelabel,
         edgelabel=edgelabel,
