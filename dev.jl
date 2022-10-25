@@ -1,8 +1,18 @@
 ### A Pluto.jl notebook ###
-# v0.19.13
+# v0.19.14
 
 using Markdown
 using InteractiveUtils
+
+# This Pluto notebook uses @bind for interactivity. When running this notebook outside of Pluto, the following 'mock version' of @bind gives bound variables a default value (instead of an error).
+macro bind(def, element)
+    quote
+        local iv = try Base.loaded_modules[Base.PkgId(Base.UUID("6e696c72-6542-2067-7265-42206c756150"), "AbstractPlutoDingetjes")].Bonds.initial_value catch; b -> missing; end
+        local el = $(esc(element))
+        global $(esc(def)) = Core.applicable(Base.get, el) ? Base.get(el) : iv(el)
+        el
+    end
+end
 
 # ╔═╡ 6fe97eb4-c85d-4c2c-b892-e1c5ec91cc61
 begin
@@ -75,6 +85,11 @@ begin
     Base.Multimedia.display(mol::GraphMol) = HTML(drawsvg(mol, 250, 250))
 end
 
+# ╔═╡ 5fec82c3-99fe-4ff0-aacd-7af622f07291
+md"""
+## Input Structures
+"""
+
 # ╔═╡ 1f2f45f6-57ba-4c29-845f-05685ceb299a
 begin
     mol₁ = smilestomol("c1(c2)cscc1cc(c3)c2ccc3")
@@ -83,6 +98,17 @@ begin
     g₂ = MetaGraph(mol₂)
     display.([mol₁, mol₂])
 end
+
+# ╔═╡ d1f84ddb-2371-4553-be5d-e1685e46ac01
+md"""
+### *
+"""
+
+# ╔═╡ fcd65361-0fa2-4a1d-8099-1c0d2cd9da79
+md"""
+!!! note
+	Graphs can now be displayed using molecular coordinates (they seem to be squished, but at least it's not like before)
+"""
 
 # ╔═╡ f2c86d66-b801-4192-965c-b0b82a5c603a
 viz_graph.([g₁, g₂]; layout_style=:graphmol)
@@ -143,6 +169,11 @@ g₁_edge_alpha_mask = [e ∈ g₁_edges || reverse(e) ∈ g₁_edges ? 1 : α�
 # ╔═╡ d57a3747-dcc6-46b7-946f-1828cae62fa2
 g₂_edge_alpha_mask = [e ∈ g₂_edges || reverse(e) ∈ g₂_edges ? 1 : α₀ for e in edges(g₂)]
 
+# ╔═╡ 48662b54-fedb-4299-905d-5f7e8bcb4dc9
+md"""
+### *
+"""
+
 # ╔═╡ 7663b5a0-d0a9-4a72-9d75-745a91160737
 viz_graph(
     g₁;
@@ -159,8 +190,221 @@ viz_graph(
     layout_style=:graphmol
 )
 
-# ╔═╡ b5067fb9-3543-40ea-bbad-768136438c18
-length(imsgs)
+# ╔═╡ 024ed879-6da4-4770-81ca-9dc4cf9b4112
+md"""
+## Max Clique Tinkering
+"""
+
+# ╔═╡ 1ed125ef-6171-46dc-9d2f-3e7db1e19c16
+md"""
+### Algo Dev
+"""
+
+# ╔═╡ 6a323e50-ea97-41e1-8655-026ff5d73a00
+md"""
+Get the list of maximal cliques from the modular product graph (450 ms)
+"""
+
+# ╔═╡ 1806ea53-6738-4082-abd7-fc7e7ca5c463
+max_cliques = maximal_cliques(mpg.graph)
+
+# ╔═╡ 5d7efccd-9575-4145-bf7b-1c614539f733
+md"""
+ - Translate the MPG nodes to g₁ nodes
+ - Sort each list
+ - Find all unique sets
+(100 ms)
+"""
+
+# ╔═╡ 10184e95-d9a8-47b6-a2f3-8c25a29bca8a
+g₁_csis = unique([sort([get_prop(mpg, m, :v₁v₂_pair)[1] for m in mc]) for mc in max_cliques])
+
+# ╔═╡ 0990663a-0970-4468-9e42-15e77c209a79
+md"""
+Sort the g₁ vertex subsets by size (100 μs)
+"""
+
+# ╔═╡ 5c0a8f21-36b9-45f5-80b9-6726c69dd313
+sorted_g₁csis = g₁_csis[sortperm(length.(g₁_csis), rev=true)]
+
+# ╔═╡ 00b1d071-8c5c-40c9-99a5-ae5b380e3151
+md"""
+Allow a given node to be present only in its largest subgraph (400 μs)
+"""
+
+# ╔═╡ 2b52cdea-7af8-4b16-97bd-5ad32538e7e3
+begin
+	used_nodes = falses(nv(g₁))
+	maxmax_csis = falses(length(sorted_g₁csis))
+	for (i, csi_indices) in enumerate(sorted_g₁csis)
+		if any(used_nodes[csi_indices])
+			continue
+		else
+			used_nodes[csi_indices] .= true
+			maxmax_csis[i] = true
+		end
+	end
+	sorted_g₁csis[maxmax_csis]
+end
+
+# ╔═╡ 6d85fe2b-e9aa-4f91-af77-4f291399bc7d
+md"""
+The result is the maximum common subgraph isomorphism.
+"""
+
+# ╔═╡ 7e090139-72db-4658-b4f6-dac9bad7b848
+viz_graph(
+	induced_subgraph(g₁, sorted_g₁csis[maxmax_csis][1])[1]; 
+	layout_style=:graphmol
+)
+
+# ╔═╡ 3e18dc29-6a47-4b35-8c38-fe374484f0a0
+md"""
+## Efficiency
+
+Seems like there should be a faster way to do at least some of this
+"""
+
+# ╔═╡ 7ee29c76-ecd8-4eef-a69d-506f0d171d36
+md"""
+The CSI kernel as I implemented:
+"""
+
+# ╔═╡ e5dc6300-3445-4f59-8131-1694a09dbbbe
+@btime common_subgraph_isomorphism(g₁, g₂)
+
+# ╔═╡ 8193aea0-7cbc-4c1c-bd10-e6992e7eee02
+md"""
+`Graphs.jl` has functions for counting [induced] subgraphisomorphisms... but they don't work?  
+"""
+
+# ╔═╡ b85c081c-220c-4a20-83b5-2d1204d5a999
+import Graphs.Experimental: count_induced_subgraphisomorph, count_subgraphisomorph
+
+# ╔═╡ d124ca26-8de5-4ac7-838e-dc37524af5c3
+b = count_subgraphisomorph(
+	SimpleGraph(g₁),
+	SimpleGraph(g₂);
+	vertex_relation=(v₁, v₂) -> get_prop(g₁, v₁, :label) == get_prop(g₂, v₂, :label),
+	edge_relation=(e₁, e₂) -> get_prop(g₁, e₁, :label) == get_prop(g₂, e₂, :label)
+)
+
+# ╔═╡ 765c3a87-9bce-488f-afb3-7db637c0f6c2
+c = count_induced_subgraphisomorph(
+	SimpleGraph(g₁), 
+	SimpleGraph(g₂);
+	vertex_relation=(v₁, v₂) -> get_prop(g₁, v₁, :label) == get_prop(g₂, v₂, :label),
+	edge_relation=(e₁, e₂) -> get_prop(g₁, e₁, :label) == get_prop(g₂, e₂, :label)
+)
+
+# ╔═╡ d9afe6e0-86ce-49c4-a842-73862b369a99
+md"""
+Find maximum commmon subgraph isomorphism size (MCSS) as implemented above:
+"""
+
+# ╔═╡ bbf82170-e0ee-49d9-8aad-22329b4f6f6f
+function maximum_common_subgraph_size(g₁, g₂)
+	max_cliques = maximal_cliques(
+		SimpleGraph(product_graph_adjacency_matrix(Modular, g₁, g₂))
+	)
+	g₁_csis = unique([sort([get_prop(mpg, m, :v₁v₂_pair)[1] for m in mc]) for mc in max_cliques])
+	sorted_g₁csis = g₁_csis[sortperm(length.(g₁_csis), rev=true)]
+	used_nodes = falses(nv(g₁))
+	maxmax_csis = falses(length(sorted_g₁csis))
+	for (i, csi_indices) in enumerate(sorted_g₁csis)
+		if any(used_nodes[csi_indices])
+			continue
+		else
+			used_nodes[csi_indices] .= true
+			maxmax_csis[i] = true
+		end
+	end
+	return length(sorted_g₁csis[maxmax_csis][1])
+end
+
+# ╔═╡ e30b4937-361f-47e3-95c1-3200a1466c12
+@btime maximum_common_subgraph_size(g₁, g₂)
+
+# ╔═╡ 089eddca-c7b6-44f0-9133-681db448aa73
+md"""
+Optimized a bit:
+"""
+
+# ╔═╡ 465cc3ca-40ee-4b90-875c-a74c5e96f2d4
+function max_csi_len(g₁, g₂)
+	return maximum(
+		length.(
+			maximal_cliques(
+				SimpleGraph(product_graph_adjacency_matrix(Modular, g₁, g₂))
+			)
+		)
+	)
+end
+
+# ╔═╡ a476ff95-5a4f-457d-b3e7-bc9b2f22cd07
+@btime max_csi_len(g₁, g₂)
+
+# ╔═╡ e9736f26-ce94-4854-aecb-b2991be0e348
+md"""
+If this is what we want to use, `MolecularGraph` has something for this, too:
+"""
+
+# ╔═╡ 159e1fe2-eb50-42b8-b39f-c1d6ada69048
+@btime length(disconnectedmcis(mol₁, mol₂).mapping)
+
+# ╔═╡ 00e01fc4-7c8f-44ab-acf7-0e1593edd386
+md"""
+And the equivalent for the largest connected 
+"""
+
+# ╔═╡ d5a8b311-d276-42b1-bdb9-5a44981bf601
+@btime length(connectedmcis(mol₁, mol₂).mapping)
+
+# ╔═╡ 57d62a74-d13a-4333-8d90-cf0e69b0973c
+md"""
+And a "topological constraint" version that isn't explained very well at all:
+"""
+
+# ╔═╡ 4611beba-ab89-4d68-997d-9d84c166c90a
+@bind θ Slider(0:10)
+
+# ╔═╡ 1ab6df2d-502e-4aa8-a008-a24e25aef2d1
+@btime length(tcmces(mol₁, mol₂, tolerance=θ).mapping)
+
+# ╔═╡ b41f3383-2105-4a92-8b7e-edfb00addae0
+md"""
+# Kernel Comp Time
+"""
+
+# ╔═╡ f2f56957-1001-4bfa-962d-2210c4e8ce67
+md"""
+### Calculation
+"""
+
+# ╔═╡ 4a8d177e-fced-4c68-ab4d-3916f3ea3984
+md"""
+The maximum allowable computation time per Gram matrix element ``\tau_{ij}`` is estimated on the basis of the number ``N`` of calculations (one half of the square of the number of inputs, due to the symmetry of the matrix), the number ``P`` of parallel processes, and the overall time limit ``T``.
+
+``\tau_{ij} = \frac{2PT}{N^2}``
+
+Assuming the kernel computes in parallel on 48 processes with a time limit of 24 hours, for 5500 inputs, the maximum time per Gram matrix element is roughly 270 ms.
+"""
+
+# ╔═╡ 86452985-8025-414a-8663-672452fbd760
+2 * 48 * 24 * 3600 / 5500^2
+
+# ╔═╡ fa6a2b02-740d-4c24-9d08-f7879527503f
+md"""
+### Conclusions
+"""
+
+# ╔═╡ 946bef28-110e-4afd-bdeb-103d6743aea1
+md"""
+ - The CSI kernel computes in almost this exact amount of time!
+ - MCSS as we devised it computes more slowly, but not *that* bad...
+ - However, MCSS as computed by `MolecularGraph` is *much* faster;
+ - and, `MolecularGraph` also has MCCSS, which is *super* fast.
+"""
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -172,7 +416,10 @@ length(imsgs)
 # ╠═e9f5391d-4832-440e-b61c-357daf275332
 # ╟─f4f182e7-e8fe-4f1e-9867-0e01c8a850b1
 # ╠═5699f8a5-11d6-453d-a867-8330134d080f
+# ╟─5fec82c3-99fe-4ff0-aacd-7af622f07291
 # ╠═1f2f45f6-57ba-4c29-845f-05685ceb299a
+# ╟─d1f84ddb-2371-4553-be5d-e1685e46ac01
+# ╟─fcd65361-0fa2-4a1d-8099-1c0d2cd9da79
 # ╠═f2c86d66-b801-4192-965c-b0b82a5c603a
 # ╠═41c83665-9cff-43c1-912f-3d820d682e09
 # ╠═b96dee5e-6c6b-4a1e-938a-5a9b42a96c3b
@@ -189,6 +436,44 @@ length(imsgs)
 # ╠═f0bbbfe6-b799-4be7-8afb-61ef65f1a37e
 # ╠═983b5c21-7618-483f-abe3-32efd6452130
 # ╠═d57a3747-dcc6-46b7-946f-1828cae62fa2
+# ╟─48662b54-fedb-4299-905d-5f7e8bcb4dc9
 # ╠═7663b5a0-d0a9-4a72-9d75-745a91160737
 # ╠═575ccd4b-50f0-405d-9a39-48bc1265512e
-# ╠═b5067fb9-3543-40ea-bbad-768136438c18
+# ╟─024ed879-6da4-4770-81ca-9dc4cf9b4112
+# ╟─1ed125ef-6171-46dc-9d2f-3e7db1e19c16
+# ╟─6a323e50-ea97-41e1-8655-026ff5d73a00
+# ╠═1806ea53-6738-4082-abd7-fc7e7ca5c463
+# ╟─5d7efccd-9575-4145-bf7b-1c614539f733
+# ╠═10184e95-d9a8-47b6-a2f3-8c25a29bca8a
+# ╟─0990663a-0970-4468-9e42-15e77c209a79
+# ╠═5c0a8f21-36b9-45f5-80b9-6726c69dd313
+# ╟─00b1d071-8c5c-40c9-99a5-ae5b380e3151
+# ╠═2b52cdea-7af8-4b16-97bd-5ad32538e7e3
+# ╟─6d85fe2b-e9aa-4f91-af77-4f291399bc7d
+# ╠═7e090139-72db-4658-b4f6-dac9bad7b848
+# ╟─3e18dc29-6a47-4b35-8c38-fe374484f0a0
+# ╟─7ee29c76-ecd8-4eef-a69d-506f0d171d36
+# ╠═e5dc6300-3445-4f59-8131-1694a09dbbbe
+# ╟─8193aea0-7cbc-4c1c-bd10-e6992e7eee02
+# ╠═b85c081c-220c-4a20-83b5-2d1204d5a999
+# ╠═d124ca26-8de5-4ac7-838e-dc37524af5c3
+# ╠═765c3a87-9bce-488f-afb3-7db637c0f6c2
+# ╟─d9afe6e0-86ce-49c4-a842-73862b369a99
+# ╠═bbf82170-e0ee-49d9-8aad-22329b4f6f6f
+# ╠═e30b4937-361f-47e3-95c1-3200a1466c12
+# ╟─089eddca-c7b6-44f0-9133-681db448aa73
+# ╠═465cc3ca-40ee-4b90-875c-a74c5e96f2d4
+# ╠═a476ff95-5a4f-457d-b3e7-bc9b2f22cd07
+# ╟─e9736f26-ce94-4854-aecb-b2991be0e348
+# ╠═159e1fe2-eb50-42b8-b39f-c1d6ada69048
+# ╟─00e01fc4-7c8f-44ab-acf7-0e1593edd386
+# ╠═d5a8b311-d276-42b1-bdb9-5a44981bf601
+# ╟─57d62a74-d13a-4333-8d90-cf0e69b0973c
+# ╠═4611beba-ab89-4d68-997d-9d84c166c90a
+# ╠═1ab6df2d-502e-4aa8-a008-a24e25aef2d1
+# ╟─b41f3383-2105-4a92-8b7e-edfb00addae0
+# ╟─f2f56957-1001-4bfa-962d-2210c4e8ce67
+# ╟─4a8d177e-fced-4c68-ab4d-3916f3ea3984
+# ╠═86452985-8025-414a-8663-672452fbd760
+# ╟─fa6a2b02-740d-4c24-9d08-f7879527503f
+# ╟─946bef28-110e-4afd-bdeb-103d6743aea1
