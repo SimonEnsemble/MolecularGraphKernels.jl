@@ -48,8 +48,14 @@ include.(
 
 export
 
-    # graph_products.jl
+    # ProductGraph.jl
     ProductGraph,
+    is_directed,
+    weighttype,
+    props,
+    set_props!,
+
+    # graph_products.jl
     product_graph_adjacency_matrix,
     Modular,
     Direct,
