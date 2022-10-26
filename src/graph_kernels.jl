@@ -3,7 +3,7 @@
     kernel_score = random_walk(g₁xg₂; l=n)
     kernel_score = random_walk(g₁, g₂; l=n)
 
-Returns the similarity score for two graphs by applying the `l`-length random walk graph kernel on their direct product graph.
+Returns the similarity score for two graphs by applying the `l`-length random walk graph kernel (RWK) on their direct product graph.
 """
 function random_walk(adj_mat::AbstractMatrix; l::Int)::Int
     return sum(adj_mat^l)
@@ -18,34 +18,36 @@ function random_walk(A::AbstractMetaGraph, B::AbstractMetaGraph; kwargs...)::Int
 end
 
 """
-    kernel_score = common_subgraph_isomorphism(adj_mat)
-    kernel_score = common_subgraph_isomorphism(g₁xg₂)
-    kernel_score = common_subgraph_isomorphism(g₁, g₂)
+    kernel_score = subgraph_matching(adj_mat)
+    kernel_score = subgraph_matching(g₁xg₂)
+    kernel_score = subgraph_matching(g₁, g₂)
+
+Returns the similarity score for two graphs by applying the common subgraph isomorphism kernel (CSI) on their modular product graph.
 """
-function common_subgraph_isomorphism(adj_mat::AbstractMatrix)::Int
-    return _common_subgraph_isomorphism(SimpleGraph(adj_mat))
+function subgraph_matching(adj_mat::AbstractMatrix)::Int
+    return _subgraph_matching(SimpleGraph(adj_mat))
 end
 
-function common_subgraph_isomorphism(g₁xg₂::ProductGraph{Modular})::Int
-    return _common_subgraph_isomorphism(g₁xg₂.graph)
+function subgraph_matching(g₁xg₂::ProductGraph{Modular})::Int
+    return _subgraph_matching(g₁xg₂.graph)
 end
 
-function common_subgraph_isomorphism(g₁::AbstractMetaGraph, g₂::AbstractMetaGraph)::Int
-    return common_subgraph_isomorphism(product_graph_adjacency_matrix(Modular, g₁, g₂))
+function subgraph_matching(g₁::AbstractMetaGraph, g₂::AbstractMetaGraph)::Int
+    return subgraph_matching(product_graph_adjacency_matrix(Modular, g₁, g₂))
 end
 
-function common_subgraph_isomorphism(
+function subgraph_matching(
     g₁::GraphMol,
     g₂::Union{GraphMol, AbstractMetaGraph}
 )::Int
-    return common_subgraph_isomorphism(MetaGraph(g₁), g₂)
+    return subgraph_matching(MetaGraph(g₁), g₂)
 end
 
-function common_subgraph_isomorphism(g₁::AbstractMetaGraph, g₂::GraphMol)::Int
-    return common_subgraph_isomorphism(g₁, MetaGraph(g₂))
+function subgraph_matching(g₁::AbstractMetaGraph, g₂::GraphMol)::Int
+    return subgraph_matching(g₁, MetaGraph(g₂))
 end
 
 # internal function -- enforces requirement that graph passed to exported function be a modular product graph
-function _common_subgraph_isomorphism(g::SimpleGraph)::Int
+function _subgraph_matching(g::SimpleGraph)::Int
     return length(maximal_cliques(g))
 end

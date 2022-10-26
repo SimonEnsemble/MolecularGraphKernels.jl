@@ -62,7 +62,7 @@ export
 
     # graph_kernels.jl
     random_walk,
-    common_subgraph_isomorphism,
+    subgraph_matching,
 
     # graph_conversion.jl
     MetaGraph,

@@ -195,11 +195,6 @@ md"""
 ## Max Clique Tinkering
 """
 
-# ╔═╡ 1ed125ef-6171-46dc-9d2f-3e7db1e19c16
-md"""
-### Algo Dev
-"""
-
 # ╔═╡ 6a323e50-ea97-41e1-8655-026ff5d73a00
 md"""
 Get the list of maximal cliques from the modular product graph (450 ms)
@@ -260,7 +255,7 @@ viz_graph(
 
 # ╔═╡ 3e18dc29-6a47-4b35-8c38-fe374484f0a0
 md"""
-## Efficiency
+### Efficiency
 
 Seems like there should be a faster way to do at least some of this
 """
@@ -271,7 +266,7 @@ The CSI kernel as I implemented:
 """
 
 # ╔═╡ e5dc6300-3445-4f59-8131-1694a09dbbbe
-@btime common_subgraph_isomorphism(g₁, g₂)
+@btime subgraph_matching(g₁, g₂)
 
 # ╔═╡ 8193aea0-7cbc-4c1c-bd10-e6992e7eee02
 md"""
@@ -371,6 +366,77 @@ And a "topological constraint" version that isn't explained very well at all:
 # ╔═╡ 1ab6df2d-502e-4aa8-a008-a24e25aef2d1
 @btime length(tcmces(mol₁, mol₂, tolerance=θ).mapping)
 
+# ╔═╡ e6a6832f-4f76-4885-9258-b02c1d5a91e4
+md"""
+### Idea
+
+If ``C`` is a clique in ``\mathcal{G}`` and ``v`` is a node in ``\mathcal{V}(\mathcal{G})``, 
+
+$\text{deg}(v) < |C| \rightarrow v \notin C_{max}$
+
+where ``C_{max}`` is the maximum clique.
+
+Therefore, I propose to sort the node indices by decreasing degree of the nodes and perform a tree search by the following algorithm:
+"""
+
+# ╔═╡ 19fd937a-20b4-4e82-9c08-7edcb4161e1f
+md"""
+1. ``i := 1`` and ``S := 0``
+2. ``C := \{\}``
+3. ``C^\prime := \{ v_i \}``
+4. while ``C \ne C^\prime``:
+ * 5. ``C := C^\prime``
+ * 6. ``C^\prime := C\cup\bigcap_{v_j\in C}\mathcal{N}(v_j)``
+7. ``S:=|C|``
+8. ``i:=i+1``
+9. if ``v_i\in\mathcal{G}\wedge\text{deg}(v_i)>S`` goto 2
+"""
+
+# ╔═╡ 37e534f1-e03e-47c3-9a6f-ee9cc5f10de5
+function len_dmcis(g₁, g₂)
+	G = product_graph_adjacency_matrix(Modular, g₁, g₂)
+	deg = sum.(eachcol(G))
+	sorted_nodes = sortperm(deg)
+	S = 0
+	all_C = Set[]
+	for vᵢ in sorted_nodes
+		if deg[vᵢ] ≤ S
+			break
+		end
+		C = Set([])
+		C′ = Set([vᵢ])
+		while C ≠ C′
+			C = C′
+			C′ = union(
+				C, Set(findall(reduce((x, y) -> x .& y, [G[:, vⱼ] for vⱼ in C])))
+			)
+		end
+		S = length(C)
+		push!(all_C, C′)
+	end
+	return S, all_C
+end
+
+# ╔═╡ 9b21ce88-3ae4-45e1-b324-61ae3faf2ae4
+len_dmcis(g₁, g₂)
+
+# ╔═╡ 38e99f16-b499-4020-b51c-462b811bf135
+@btime length(unique([get_prop(mpg, v, :v₁v₂_pair)[1] for v in len_dmcis(g₁, g₂)[2][1]]))
+
+# ╔═╡ 92db43c3-ae2c-4518-9c39-1403c887a315
+@test max_csi_len(g₁, g₂) == length(unique([get_prop(mpg, v, :v₁v₂_pair)[1] for v in len_dmcis(g₁, g₂)[2][1]]))
+
+# ╔═╡ 8b0473ee-47ab-4ad1-863e-edd2883407d0
+viz_graph(
+	induced_subgraph(
+		g₁, 
+		unique(
+			[get_prop(mpg, v, :v₁v₂_pair)[1] for v in len_dmcis(g₁, g₂)[2][1]]
+		)
+	)[1], 
+	layout_style=:graphmol
+)
+
 # ╔═╡ b41f3383-2105-4a92-8b7e-edfb00addae0
 md"""
 # Kernel Comp Time
@@ -404,6 +470,7 @@ md"""
  - MCSS as we devised it computes more slowly, but not *that* bad...
  - However, MCSS as computed by `MolecularGraph` is *much* faster;
  - and, `MolecularGraph` also has MCCSS, which is *super* fast.
+ - My new MCCSS is even faster, but it's wrong, so 🤷
 """
 
 # ╔═╡ Cell order:
@@ -440,7 +507,6 @@ md"""
 # ╠═7663b5a0-d0a9-4a72-9d75-745a91160737
 # ╠═575ccd4b-50f0-405d-9a39-48bc1265512e
 # ╟─024ed879-6da4-4770-81ca-9dc4cf9b4112
-# ╟─1ed125ef-6171-46dc-9d2f-3e7db1e19c16
 # ╟─6a323e50-ea97-41e1-8655-026ff5d73a00
 # ╠═1806ea53-6738-4082-abd7-fc7e7ca5c463
 # ╟─5d7efccd-9575-4145-bf7b-1c614539f733
@@ -471,6 +537,13 @@ md"""
 # ╟─57d62a74-d13a-4333-8d90-cf0e69b0973c
 # ╠═4611beba-ab89-4d68-997d-9d84c166c90a
 # ╠═1ab6df2d-502e-4aa8-a008-a24e25aef2d1
+# ╟─e6a6832f-4f76-4885-9258-b02c1d5a91e4
+# ╟─19fd937a-20b4-4e82-9c08-7edcb4161e1f
+# ╠═37e534f1-e03e-47c3-9a6f-ee9cc5f10de5
+# ╠═9b21ce88-3ae4-45e1-b324-61ae3faf2ae4
+# ╠═38e99f16-b499-4020-b51c-462b811bf135
+# ╠═92db43c3-ae2c-4518-9c39-1403c887a315
+# ╠═8b0473ee-47ab-4ad1-863e-edd2883407d0
 # ╟─b41f3383-2105-4a92-8b7e-edfb00addae0
 # ╟─f2f56957-1001-4bfa-962d-2210c4e8ce67
 # ╟─4a8d177e-fced-4c68-ab4d-3916f3ea3984
