@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.14
+# v0.19.13
 
 using Markdown
 using InteractiveUtils
@@ -99,11 +99,6 @@ begin
     display.([mol₁, mol₂])
 end
 
-# ╔═╡ d1f84ddb-2371-4553-be5d-e1685e46ac01
-md"""
-### *
-"""
-
 # ╔═╡ fcd65361-0fa2-4a1d-8099-1c0d2cd9da79
 md"""
 !!! note
@@ -168,11 +163,6 @@ g₁_edge_alpha_mask = [e ∈ g₁_edges || reverse(e) ∈ g₁_edges ? 1 : α�
 
 # ╔═╡ d57a3747-dcc6-46b7-946f-1828cae62fa2
 g₂_edge_alpha_mask = [e ∈ g₂_edges || reverse(e) ∈ g₂_edges ? 1 : α₀ for e in edges(g₂)]
-
-# ╔═╡ 48662b54-fedb-4299-905d-5f7e8bcb4dc9
-md"""
-### *
-"""
 
 # ╔═╡ 7663b5a0-d0a9-4a72-9d75-745a91160737
 viz_graph(
@@ -262,7 +252,7 @@ Seems like there should be a faster way to do at least some of this
 
 # ╔═╡ 7ee29c76-ecd8-4eef-a69d-506f0d171d36
 md"""
-The CSI kernel as I implemented:
+The SM kernel as I implemented, w/ weight function ``\lambda(C)=1``:
 """
 
 # ╔═╡ e5dc6300-3445-4f59-8131-1694a09dbbbe
@@ -485,8 +475,7 @@ md"""
 # ╠═5699f8a5-11d6-453d-a867-8330134d080f
 # ╟─5fec82c3-99fe-4ff0-aacd-7af622f07291
 # ╠═1f2f45f6-57ba-4c29-845f-05685ceb299a
-# ╟─d1f84ddb-2371-4553-be5d-e1685e46ac01
-# ╟─fcd65361-0fa2-4a1d-8099-1c0d2cd9da79
+# ╠═fcd65361-0fa2-4a1d-8099-1c0d2cd9da79
 # ╠═f2c86d66-b801-4192-965c-b0b82a5c603a
 # ╠═41c83665-9cff-43c1-912f-3d820d682e09
 # ╠═b96dee5e-6c6b-4a1e-938a-5a9b42a96c3b
@@ -503,7 +492,6 @@ md"""
 # ╠═f0bbbfe6-b799-4be7-8afb-61ef65f1a37e
 # ╠═983b5c21-7618-483f-abe3-32efd6452130
 # ╠═d57a3747-dcc6-46b7-946f-1828cae62fa2
-# ╟─48662b54-fedb-4299-905d-5f7e8bcb4dc9
 # ╠═7663b5a0-d0a9-4a72-9d75-745a91160737
 # ╠═575ccd4b-50f0-405d-9a39-48bc1265512e
 # ╟─024ed879-6da4-4770-81ca-9dc4cf9b4112
