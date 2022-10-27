@@ -99,12 +99,6 @@ begin
     display.([mol₁, mol₂])
 end
 
-# ╔═╡ fcd65361-0fa2-4a1d-8099-1c0d2cd9da79
-md"""
-!!! note
-	Graphs can now be displayed using molecular coordinates (they seem to be squished, but at least it's not like before)
-"""
-
 # ╔═╡ f2c86d66-b801-4192-965c-b0b82a5c603a
 viz_graph.([g₁, g₂]; layout_style=:graphmol)
 
@@ -179,6 +173,19 @@ viz_graph(
     edge_alpha_mask=g₂_edge_alpha_mask,
     layout_style=:graphmol
 )
+
+# ╔═╡ 7dcc01ec-f087-467f-be59-e5404d44946f
+md"""
+## Subgraph Matching Kernel λ
+"""
+
+# ╔═╡ d55eaec7-0e62-44c5-a139-986b12e731fe
+md"""
+### *
+"""
+
+# ╔═╡ cd3a297a-d05f-48d0-81a6-c37e1dfa3777
+@btime subgraph_matching(g₁, g₂; λ=length)
 
 # ╔═╡ 024ed879-6da4-4770-81ca-9dc4cf9b4112
 md"""
@@ -449,20 +456,6 @@ Assuming the kernel computes in parallel on 48 processes with a time limit of 24
 # ╔═╡ 86452985-8025-414a-8663-672452fbd760
 2 * 48 * 24 * 3600 / 5500^2
 
-# ╔═╡ fa6a2b02-740d-4c24-9d08-f7879527503f
-md"""
-### Conclusions
-"""
-
-# ╔═╡ 946bef28-110e-4afd-bdeb-103d6743aea1
-md"""
- - The CSI kernel computes in almost this exact amount of time!
- - MCSS as we devised it computes more slowly, but not *that* bad...
- - However, MCSS as computed by `MolecularGraph` is *much* faster;
- - and, `MolecularGraph` also has MCCSS, which is *super* fast.
- - My new MCCSS is even faster, but it's wrong, so 🤷
-"""
-
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
 # ╟─9188ef1e-16fe-4a79-8ba6-2b0e907d743a
@@ -475,7 +468,6 @@ md"""
 # ╠═5699f8a5-11d6-453d-a867-8330134d080f
 # ╟─5fec82c3-99fe-4ff0-aacd-7af622f07291
 # ╠═1f2f45f6-57ba-4c29-845f-05685ceb299a
-# ╠═fcd65361-0fa2-4a1d-8099-1c0d2cd9da79
 # ╠═f2c86d66-b801-4192-965c-b0b82a5c603a
 # ╠═41c83665-9cff-43c1-912f-3d820d682e09
 # ╠═b96dee5e-6c6b-4a1e-938a-5a9b42a96c3b
@@ -494,6 +486,9 @@ md"""
 # ╠═d57a3747-dcc6-46b7-946f-1828cae62fa2
 # ╠═7663b5a0-d0a9-4a72-9d75-745a91160737
 # ╠═575ccd4b-50f0-405d-9a39-48bc1265512e
+# ╟─7dcc01ec-f087-467f-be59-e5404d44946f
+# ╠═d55eaec7-0e62-44c5-a139-986b12e731fe
+# ╠═cd3a297a-d05f-48d0-81a6-c37e1dfa3777
 # ╟─024ed879-6da4-4770-81ca-9dc4cf9b4112
 # ╟─6a323e50-ea97-41e1-8655-026ff5d73a00
 # ╠═1806ea53-6738-4082-abd7-fc7e7ca5c463
@@ -536,5 +531,3 @@ md"""
 # ╟─f2f56957-1001-4bfa-962d-2210c4e8ce67
 # ╟─4a8d177e-fced-4c68-ab4d-3916f3ea3984
 # ╠═86452985-8025-414a-8663-672452fbd760
-# ╟─fa6a2b02-740d-4c24-9d08-f7879527503f
-# ╟─946bef28-110e-4afd-bdeb-103d6743aea1
