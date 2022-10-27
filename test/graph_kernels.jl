@@ -31,10 +31,10 @@ using Graphs, MetaGraphs, MolecularGraphKernels, Test
 
     @testset "Common Subgraph Isomorphism" begin
         g₁, g₂ = smilestomol.(["NC=O", "CN(C=O)C=O"])
-        x = subgraph_matching(g₁, g₂)
+        x = common_subgraph_isomorphism(g₁, g₂)
         @test x == 3
-        @test x == subgraph_matching(ProductGraph{Modular}(g₁, g₂))
+        @test x == common_subgraph_isomorphism(ProductGraph{Modular}(g₁, g₂))
         @test x ==
-              subgraph_matching(product_graph_adjacency_matrix(Modular, g₂, g₁))
+              common_subgraph_isomorphism(product_graph_adjacency_matrix(Modular, g₂, g₁))
     end
 end

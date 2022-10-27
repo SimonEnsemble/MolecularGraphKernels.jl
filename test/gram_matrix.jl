@@ -18,15 +18,15 @@ using MolecularGraphKernels, Test
     end
 
     @testset "Common Subgraph Isomorphism Kernel" begin
-        csi_gm = gram_matrix(subgraph_matching, graphs)
+        csi_gm = gram_matrix(common_subgraph_isomorphism, graphs)
 
         @test size(csi_gm) == (3, 3)
         @test csi_gm[1, 2] ==
               csi_gm[2, 1] ==
-              subgraph_matching(graphs[1], graphs[2])
+              common_subgraph_isomorphism(graphs[1], graphs[2])
         @test csi_gm[3, 2] ==
               csi_gm[3, 2] ==
-              subgraph_matching(graphs[3], graphs[2])
-        @test csi_gm[2, 2] == subgraph_matching(graphs[2], graphs[2])
+              common_subgraph_isomorphism(graphs[3], graphs[2])
+        @test csi_gm[2, 2] == common_subgraph_isomorphism(graphs[2], graphs[2])
     end
 end

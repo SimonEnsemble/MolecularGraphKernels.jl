@@ -256,7 +256,7 @@ The SM kernel as I implemented, w/ weight function ``\lambda(C)=1``:
 """
 
 # ╔═╡ e5dc6300-3445-4f59-8131-1694a09dbbbe
-@btime subgraph_matching(g₁, g₂)
+@btime common_subgraph_isomorphism(g₁, g₂)
 
 # ╔═╡ 8193aea0-7cbc-4c1c-bd10-e6992e7eee02
 md"""
