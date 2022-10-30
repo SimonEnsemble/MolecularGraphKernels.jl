@@ -1,5 +1,5 @@
 ### A Pluto.jl notebook ###
-# v0.19.13
+# v0.19.14
 
 using Markdown
 using InteractiveUtils
@@ -69,6 +69,11 @@ md"""
 # Development Code
 """
 
+# ╔═╡ 3b6fe89d-7727-4098-b958-e52baefe250d
+md"""
+## Display Function
+"""
+
 # ╔═╡ 5699f8a5-11d6-453d-a867-8330134d080f
 begin
     import Base.Multimedia.display
@@ -82,15 +87,12 @@ md"""
 
 # ╔═╡ 1f2f45f6-57ba-4c29-845f-05685ceb299a
 begin
-    mol₁ = smilestomol("c1(c2)cscc1cc(c3)c2ccc3")
-    mol₂ = smilestomol("c1(o2)cscc1oc(c3)c2ccc3")
+    mol₁ = smilestomol("NC=O")
+    mol₂ = smilestomol("CN(C=O)C=O")
     g₁ = MetaGraph(mol₁)
     g₂ = MetaGraph(mol₂)
     display.([mol₁, mol₂])
 end
-
-# ╔═╡ 41c83665-9cff-43c1-912f-3d820d682e09
-mpg = ProductGraph{Modular}(g₁, g₂)
 
 # ╔═╡ 53a7b87c-e676-4f42-81dc-dc38450078d1
 md"""
@@ -98,7 +100,7 @@ md"""
 """
 
 # ╔═╡ 39326496-e4dc-4b32-b538-feaa47066982
-imsgs = isomorphic_subgraphs(mpg)
+imsgs = isomorphic_subgraphs(ProductGraph{Modular}(g₁, g₂))
 
 # ╔═╡ 87aa9631-ccef-4532-a06b-0aaee425d908
 begin
@@ -129,9 +131,8 @@ viz_graph(
     node_alpha_mask=g₁_node_alpha_mask,
     edge_alpha_mask=g₁_edge_alpha_mask,
     layout_style=:graphmol
-)
+),
 
-# ╔═╡ 575ccd4b-50f0-405d-9a39-48bc1265512e
 viz_graph(
     g₂;
     node_alpha_mask=g₂_node_alpha_mask,
@@ -141,108 +142,73 @@ viz_graph(
 
 # ╔═╡ 7dcc01ec-f087-467f-be59-e5404d44946f
 md"""
-## Correct CSI
+## Subgraph Matching Kernel 🚩
 """
 
-# ╔═╡ d55eaec7-0e62-44c5-a139-986b12e731fe
+# ╔═╡ 758e4ade-e697-4ca1-badc-03f90c0b9ec8
 md"""
-### *
+### w/o constraints
 """
 
-# ╔═╡ 34228393-b352-4fa2-9bef-5bdb7ee317bd
-
-
-# ╔═╡ 8edd056e-f975-40b4-8201-277bdcf253de
+# ╔═╡ 7954e762-afff-412a-8a72-d08f7b2c01dc
 @btime common_subgraph_isomorphism(g₁, g₂)
 
-# ╔═╡ cd3a297a-d05f-48d0-81a6-c37e1dfa3777
+# ╔═╡ 89974cca-2057-46bd-a7d2-e6adea92579e
 @btime common_subgraph_isomorphism(g₁, g₂; λ=length)
 
-# ╔═╡ 3e18dc29-6a47-4b35-8c38-fe374484f0a0
+# ╔═╡ a5d88fcb-ae3a-4119-97ae-26585d34a967
 md"""
-## Max-Clique Stuff
+### constrained
 """
 
-# ╔═╡ 465cc3ca-40ee-4b90-875c-a74c5e96f2d4
-function max_csi_len(g₁, g₂)
-	return maximum(
-		length.(
-			maximal_cliques(
-				SimpleGraph(product_graph_adjacency_matrix(Modular, g₁, g₂))
-			)
-		)
-	)
-end
+# ╔═╡ 09097b03-fff4-40f6-9af9-559799b66248
+import MolecularGraphKernels.smkernel_c
 
-# ╔═╡ e6a6832f-4f76-4885-9258-b02c1d5a91e4
-md"""
-### Idea
+# ╔═╡ 34228393-b352-4fa2-9bef-5bdb7ee317bd
+function constrained_subgraph_matching(Gₚ::ProductGraph{T}, λ::Function)::Int where 
+	T <: Union{Modular, Weighted}
+	# Algorithm: SMKernel(w, C, P)
+	# Input: Product graph Gₚ, weight function λ
+	# Initial: value ← 0; SMKernel(1, ∅, Vₚ)
+	# Param.: Weight w of the clique C, candidate set P
+	# Output: Result of the kernel function value
+	
+	# initialize
+	value = 0
+	∅ = Int[]
+	Vₚ = collect(vertices(Gₚ))
 
-If ``C`` is a clique in ``\mathcal{G}`` and ``v`` is a node in ``\mathcal{V}(\mathcal{G})``, 
-
-$\text{deg}(v) < |C| \rightarrow v \notin C_{max}$
-
-where ``C_{max}`` is the maximum clique.
-
-Therefore, I propose to sort the node indices by decreasing degree of the nodes and perform a tree search by the following algorithm:
-"""
-
-# ╔═╡ 19fd937a-20b4-4e82-9c08-7edcb4161e1f
-md"""
-1. ``i := 1`` and ``S := 0``
-2. ``C := \{\}``
-3. ``C^\prime := \{ v_i \}``
-4. while ``C \ne C^\prime``:
- * 5. ``C := C^\prime``
- * 6. ``C^\prime := C\cup\bigcap_{v_j\in C}\mathcal{N}(v_j)``
-7. ``S:=|C|``
-8. ``i:=i+1``
-9. if ``v_i\in\mathcal{G}\wedge\text{deg}(v_i)>S`` goto 2
-"""
-
-# ╔═╡ 37e534f1-e03e-47c3-9a6f-ee9cc5f10de5
-function len_dmcis(g₁, g₂)
-	G = product_graph_adjacency_matrix(Modular, g₁, g₂)
-	deg = sum.(eachcol(G))
-	sorted_nodes = sortperm(deg)
-	S = 0
-	all_C = Set[]
-	for vᵢ in sorted_nodes
-		if deg[vᵢ] ≤ S
-			break
+	# define recursive algorithm
+	function smkernel(w::Int, C::Vector{Int}, P::Vector{Int})
+		while length(P) > 0 # while |P| > 0 do
+			v = first(P) # v ← arbitrary element of P
+			C′ = union(C, v)
+			w′ = w * smkernel_c(Gₚ, v) # multiply by vertex weight
+			for u in C
+				w′ *= smkernel_c(Gₚ, u, v)# multiply by edge weights
+			end
+			value += w′ * λ(C′)
+			smkernel(w′, C′, intersect(P, [u for u in neighbors(Gₚ, v) if get_prop(Gₚ, u, v, :label) ≠ 0])) # extend c-clique 🚀
+			P = setdiff(P, [v]) # P ← P \ {v}
 		end
-		C = Set([])
-		C′ = Set([vᵢ])
-		while C ≠ C′
-			C = C′
-			C′ = union(
-				C, Set(findall(reduce((x, y) -> x .&& y, [G[:, vⱼ] for vⱼ in C])))
-			)
-		end
-		S = length(C)
-		push!(all_C, C′)
+		return
 	end
-	return S, all_C
+
+	# run algorithm
+	smkernel(1, ∅, Vₚ)
+	return value
 end
 
-# ╔═╡ 9b21ce88-3ae4-45e1-b324-61ae3faf2ae4
-len_dmcis(g₁, g₂)
+# ╔═╡ bb4acf8d-89e3-47bb-ab40-4afa545e4c57
+@btime constrained_subgraph_matching(
+	ProductGraph{Modular}(g₁, g₂),
+	_->1
+)
 
-# ╔═╡ 38e99f16-b499-4020-b51c-462b811bf135
-@btime length(unique([get_prop(mpg, v, :v₁v₂_pair)[2] for v in len_dmcis(g₁, g₂)[2][1]]))
-
-# ╔═╡ 92db43c3-ae2c-4518-9c39-1403c887a315
-@test max_csi_len(g₁, g₂) == length(unique([get_prop(mpg, v, :v₁v₂_pair)[2] for v in len_dmcis(g₁, g₂)[2][1]]))
-
-# ╔═╡ 8b0473ee-47ab-4ad1-863e-edd2883407d0
-viz_graph(
-	induced_subgraph(
-		g₁, 
-		unique(
-			[get_prop(mpg, v, :v₁v₂_pair)[2] for v in len_dmcis(g₁, g₂)[2][1]]
-		)
-	)[1], 
-	layout_style=:graphmol
+# ╔═╡ b5e9f732-b966-4030-a6a5-a953a8ceedf2
+@btime constrained_subgraph_matching(
+	ProductGraph{Modular}(g₁, g₂),
+	length
 )
 
 # ╔═╡ b41f3383-2105-4a92-8b7e-edfb00addae0
@@ -261,11 +227,11 @@ The maximum allowable computation time per Gram matrix element ``\tau_{ij}`` is 
 
 ``\tau_{ij} = \frac{2PT}{N^2}``
 
-Assuming the kernel computes in parallel on 48 processes with a time limit of 24 hours, for 5500 inputs, the maximum time per Gram matrix element is roughly 270 ms.
+Assuming the kernel computes in parallel on 48 processes with a time limit of 24 hours, for 5500 inputs, the maximum time per Gram matrix element is under 300 ms.
 """
 
 # ╔═╡ 86452985-8025-414a-8663-672452fbd760
-2 * 48 * 24 * 3600 / 5500^2
+round(Int, 1000 * 2 * 48 * 24 * 3600 / 5500^2)
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -276,29 +242,23 @@ Assuming the kernel computes in parallel on 48 processes with a time limit of 24
 # ╟─971586d9-266b-4dfd-97d6-dc3aed449600
 # ╠═e9f5391d-4832-440e-b61c-357daf275332
 # ╟─f4f182e7-e8fe-4f1e-9867-0e01c8a850b1
+# ╟─3b6fe89d-7727-4098-b958-e52baefe250d
 # ╠═5699f8a5-11d6-453d-a867-8330134d080f
 # ╟─5fec82c3-99fe-4ff0-aacd-7af622f07291
 # ╠═1f2f45f6-57ba-4c29-845f-05685ceb299a
-# ╠═41c83665-9cff-43c1-912f-3d820d682e09
-# ╠═53a7b87c-e676-4f42-81dc-dc38450078d1
+# ╟─53a7b87c-e676-4f42-81dc-dc38450078d1
 # ╠═39326496-e4dc-4b32-b538-feaa47066982
 # ╠═87aa9631-ccef-4532-a06b-0aaee425d908
 # ╠═7663b5a0-d0a9-4a72-9d75-745a91160737
-# ╠═575ccd4b-50f0-405d-9a39-48bc1265512e
 # ╟─7dcc01ec-f087-467f-be59-e5404d44946f
-# ╠═d55eaec7-0e62-44c5-a139-986b12e731fe
+# ╟─758e4ade-e697-4ca1-badc-03f90c0b9ec8
+# ╠═7954e762-afff-412a-8a72-d08f7b2c01dc
+# ╠═89974cca-2057-46bd-a7d2-e6adea92579e
+# ╟─a5d88fcb-ae3a-4119-97ae-26585d34a967
+# ╠═09097b03-fff4-40f6-9af9-559799b66248
 # ╠═34228393-b352-4fa2-9bef-5bdb7ee317bd
-# ╠═8edd056e-f975-40b4-8201-277bdcf253de
-# ╠═cd3a297a-d05f-48d0-81a6-c37e1dfa3777
-# ╟─3e18dc29-6a47-4b35-8c38-fe374484f0a0
-# ╠═465cc3ca-40ee-4b90-875c-a74c5e96f2d4
-# ╟─e6a6832f-4f76-4885-9258-b02c1d5a91e4
-# ╟─19fd937a-20b4-4e82-9c08-7edcb4161e1f
-# ╠═37e534f1-e03e-47c3-9a6f-ee9cc5f10de5
-# ╠═9b21ce88-3ae4-45e1-b324-61ae3faf2ae4
-# ╠═38e99f16-b499-4020-b51c-462b811bf135
-# ╠═92db43c3-ae2c-4518-9c39-1403c887a315
-# ╠═8b0473ee-47ab-4ad1-863e-edd2883407d0
+# ╠═bb4acf8d-89e3-47bb-ab40-4afa545e4c57
+# ╠═b5e9f732-b966-4030-a6a5-a953a8ceedf2
 # ╟─b41f3383-2105-4a92-8b7e-edfb00addae0
 # ╟─f2f56957-1001-4bfa-962d-2210c4e8ce67
 # ╟─4a8d177e-fced-4c68-ab4d-3916f3ea3984
