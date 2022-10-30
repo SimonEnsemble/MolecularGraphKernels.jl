@@ -6,16 +6,12 @@ using InteractiveUtils
 
 # ╔═╡ 9aa20e3a-559a-11ed-1cd0-358ee55a4bb0
 begin
-	import IOCapture, Pkg
-	IOCapture.capture() do
-		Pkg.activate(".")
-	end
-	using 
-		BenchmarkTools, 
-		MolecularGraph, 
-		MolecularGraphKernels, 
-		PlutoUI
-	TableOfContents(title="To-Do: 10/25")
+    import IOCapture, Pkg
+    IOCapture.capture() do
+        return Pkg.activate(".")
+    end
+    using BenchmarkTools, MolecularGraph, MolecularGraphKernels, PlutoUI
+    TableOfContents(; title="To-Do: 10/25")
 end
 
 # ╔═╡ 8e2aa3d6-9605-4525-9c9f-7cfcfa009c8f
@@ -54,8 +50,8 @@ md"""
 
 # ╔═╡ dbf109fc-30cf-41a7-b5f7-f98dc1434d8f
 begin
-	g₁ = MetaGraph(smilestomol("NC=O"))
-	g₂ = MetaGraph(smilestomol("CN(C=O)C=O"))
+    g₁ = MetaGraph(smilestomol("NC=O"))
+    g₂ = MetaGraph(smilestomol("CN(C=O)C=O"))
 end;
 
 # ╔═╡ 66a808cf-e28e-4e47-aef0-c460988f788e

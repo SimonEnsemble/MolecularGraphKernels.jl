@@ -18,52 +18,55 @@ function random_walk(A::AbstractMetaGraph, B::AbstractMetaGraph; kwargs...)::Int
 end
 
 function random_walk(A::GraphMol, B::AbstractMetaGraph; kwargs...)::Int
-	return random_walk(MetaGraph(A), B; kwargs...)
+    return random_walk(MetaGraph(A), B; kwargs...)
 end
 
 function random_walk(A::Union{AbstractMetaGraph, GraphMol}, B::GraphMol; kwargs...)::Int
-	return random_walk(A, MetaGraph(B); kwargs...)
+    return random_walk(A, MetaGraph(B); kwargs...)
 end
 
 """
 computes the Subgraph Matching kernel on product graph Gₚ with weight function λ
 """
-function subgraph_matching(Gₚ::ProductGraph{T}, λ::Function)::Int where T <: Union{Modular, Weighted}
-	# Algorithm: SMKernel(w, C, P)
-	# Input: Product graph Gₚ, weight function λ
-	# Initial: value ← 0; SMKernel(1, ∅, Vₚ)
-	# Param.: Weight w of the clique C, candidate set P
-	# Output: Result of the kernel function value
-	
-	# initialize
-	value = 0
-	∅ = Int[]
-	Vₚ = collect(vertices(Gₚ))
+function subgraph_matching(
+    Gₚ::ProductGraph{T},
+    λ::Function
+)::Int where {T <: Union{Modular, Weighted}}
+    # Algorithm: SMKernel(w, C, P)
+    # Input: Product graph Gₚ, weight function λ
+    # Initial: value ← 0; SMKernel(1, ∅, Vₚ)
+    # Param.: Weight w of the clique C, candidate set P
+    # Output: Result of the kernel function value
 
-	# define recursive algorithm
-	function smkernel(w::Int, C::Vector{Int}, P::Vector{Int})
-		while length(P) > 0 # while |P| > 0 do
-			v = first(P) # v ← arbitrary element of P
-			C′ = union(C, v)
-			w′ = w * smkernel_c(Gₚ, v) # multiply by vertex weight
-			for u in C
-				w′ *= smkernel_c(Gₚ, u, v)# multiply by edge weights
-			end
-			value += w′ * λ(C′)
-			smkernel(w′, C′, intersect(P, neighbors(Gₚ, v))) # extend clique
-			P = setdiff(P, [v]) # P ← P \ {v}
-		end
-		return
-	end
+    # initialize
+    value = 0
+    ∅ = Int[]
+    Vₚ = collect(vertices(Gₚ))
 
-	# run algorithm
-	smkernel(1, ∅, Vₚ)
-	return value
+    # define recursive algorithm
+    function smkernel(w::Int, C::Vector{Int}, P::Vector{Int})
+        while length(P) > 0 # while |P| > 0 do
+            v = first(P) # v ← arbitrary element of P
+            C′ = union(C, v)
+            w′ = w * smkernel_c(Gₚ, v) # multiply by vertex weight
+            for u in C
+                w′ *= smkernel_c(Gₚ, u, v)# multiply by edge weights
+            end
+            value += w′ * λ(C′)
+            smkernel(w′, C′, intersect(P, neighbors(Gₚ, v))) # extend clique
+            P = setdiff(P, [v]) # P ← P \ {v}
+        end
+        return
+    end
+
+    # run algorithm
+    smkernel(1, ∅, Vₚ)
+    return value
 end
 
 # node weight function for SM kernel on modular product graph (i.e. CSI kernel)
 smkernel_c(::ProductGraph{Modular}, ::Int) = 1
-	
+
 # edge weight function for SM kernel on modular product graph (i.e. CSI kernel)
 smkernel_c(::ProductGraph{Modular}, ::Int, ::Int) = 1
 
@@ -75,11 +78,15 @@ Returns the similarity score for two graphs by applying the common subgraph isom
 Currently, the node-pair and edge-pair kernel functions are set as Dirac δ on the node/edge labels.
 The default λ assigns a weight of 1 to every isomorphism.
 """
-function common_subgraph_isomorphism(g₁xg₂::ProductGraph{Modular}; λ::Function=_->1)::Int
+function common_subgraph_isomorphism(g₁xg₂::ProductGraph{Modular}; λ::Function=_ -> 1)::Int
     return subgraph_matching(g₁xg₂, λ)
 end
 
-function common_subgraph_isomorphism(g₁::AbstractMetaGraph, g₂::AbstractMetaGraph; kwargs...)::Int
+function common_subgraph_isomorphism(
+    g₁::AbstractMetaGraph,
+    g₂::AbstractMetaGraph;
+    kwargs...
+)::Int
     return common_subgraph_isomorphism(ProductGraph{Modular}(g₁, g₂); kwargs...)
 end
 
