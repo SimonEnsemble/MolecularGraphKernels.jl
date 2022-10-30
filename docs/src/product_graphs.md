@@ -15,9 +15,10 @@ subtypes(AbstractProductGraph)
 
 # output
 
-2-element Vector{Any}:
+3-element Vector{Any}:
  Direct
  Modular
+ Weighted
 ```
 
 While a [`ProductGraph`](@ref) contains the full representation of the product graph between two molecules, the adjacency matrix may be all that is required.

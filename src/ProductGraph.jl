@@ -8,6 +8,7 @@ concrete product graph types
 """
 struct Modular <: AbstractProductGraph end
 struct Direct <: AbstractProductGraph end
+struct Weighted <: AbstractProductGraph end
 
 """
 type-parameterized struct for product graphs

@@ -1,4 +1,6 @@
-using Graphs, MetaGraphs, MolecularGraphKernels, Test
+module Test_graph_kernels
+
+using MolecularGraph, MolecularGraphKernels, Test
 
 @testset verbose = true "Graph Kernels" begin
     g₁, g₂ = smilestomol.(["NC=O", "CN(C=O)C=O"])
@@ -13,10 +15,10 @@ using Graphs, MetaGraphs, MolecularGraphKernels, Test
 
     @testset "Common Subgraph Isomorphism" begin
         x = common_subgraph_isomorphism(g₁, g₂)
-        @test x == 3
+        @test x == 15
         @test x == common_subgraph_isomorphism(ProductGraph{Modular}(g₁, g₂))
-        @test x ==
-              common_subgraph_isomorphism(product_graph_adjacency_matrix(Modular, g₂, g₁))
-        @test common_subgraph_isomorphism(g₁, g₂; λ=length) == 8
+        @test common_subgraph_isomorphism(g₁, g₂; λ=length) == 26
     end
+end
+
 end
