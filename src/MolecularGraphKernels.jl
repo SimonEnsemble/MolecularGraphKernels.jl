@@ -59,10 +59,12 @@ export
     product_graph_adjacency_matrix,
     Modular,
     Direct,
+    Weighted,
 
     # graph_kernels.jl
     random_walk,
     common_subgraph_isomorphism,
+    subgraph_matching,
 
     # graph_conversion.jl
     MetaGraph,

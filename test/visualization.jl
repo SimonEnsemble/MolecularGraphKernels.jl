@@ -1,3 +1,5 @@
+module Test_visualization
+
 using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 import MolecularGraphKernels: VizGraphKwargs
 
@@ -57,4 +59,6 @@ end
         node_mask[[1, 3, 5, 7]] .= [0]
         test_vis(mpg, "node_mask", "node mask"; node_alpha_mask=node_mask)
     end
+end
+
 end

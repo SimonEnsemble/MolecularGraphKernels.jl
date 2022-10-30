@@ -1,3 +1,5 @@
+module Test_maccs
+
 using MolecularGraphKernels, Test
 import MolecularGraphKernels: maccs_fp
 
@@ -63,4 +65,6 @@ import MolecularGraphKernels: maccs_fp
     else
         @warn "MACCS fingerprinting not supported on Windows! Skipping test."
     end
+end
+
 end
