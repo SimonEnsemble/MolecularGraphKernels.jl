@@ -4,7 +4,7 @@ using MolecularGraph, MolecularGraphKernels, Test
 
 @testset verbose = true "Graph Kernels" begin
     g₁, g₂ = smilestomol.(["NC=O", "CN(C=O)C=O"])
-    
+
     @testset "Random Walk" begin
         l = 4
         x = random_walk(product_graph_adjacency_matrix(Direct, g₁, g₂); l=l)

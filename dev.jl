@@ -105,24 +105,24 @@ imsgs = isomorphic_subgraphs(ProductGraph{Modular}(g₁, g₂))
 # ╔═╡ 87aa9631-ccef-4532-a06b-0aaee425d908
 begin
     local g = imsgs[1]
-	local α₀ = 0.075
-	
+    local α₀ = 0.075
+
     dg = deepcopy(g)
     for e in edges(g)
         if get_prop(g, e, :label) == 0
             rem_edge!(dg, e)
         end
     end
-	
-    g₁_nodes = [get_prop(dg, v, :v₁v₂_pair)[1] for v in vertices(dg)]
-	g₁_edges = [Graphs.SimpleEdge(g₁_nodes[src(e)], g₁_nodes[dst(e)]) for e in edges(dg)]
-	g₁_node_alpha_mask = [v ∈ g₁_nodes ? 1 : α₀ for v in vertices(g₁)]
-	g₁_edge_alpha_mask = [e ∈ g₁_edges || reverse(e) ∈ g₁_edges ? 1 : α₀ for e in edges(g₁)]
 
-	g₂_nodes = [get_prop(dg, v, :v₁v₂_pair)[2] for v in vertices(dg)]
-	g₂_edges = [Graphs.SimpleEdge(g₂_nodes[src(e)], g₂_nodes[dst(e)]) for e in edges(dg)]
-	g₂_node_alpha_mask = [v ∈ g₂_nodes ? 1 : α₀ for v in vertices(g₂)]
-	g₂_edge_alpha_mask = [e ∈ g₂_edges || reverse(e) ∈ g₂_edges ? 1 : α₀ for e in edges(g₂)]
+    g₁_nodes = [get_prop(dg, v, :v₁v₂_pair)[1] for v in vertices(dg)]
+    g₁_edges = [Graphs.SimpleEdge(g₁_nodes[src(e)], g₁_nodes[dst(e)]) for e in edges(dg)]
+    g₁_node_alpha_mask = [v ∈ g₁_nodes ? 1 : α₀ for v in vertices(g₁)]
+    g₁_edge_alpha_mask = [e ∈ g₁_edges || reverse(e) ∈ g₁_edges ? 1 : α₀ for e in edges(g₁)]
+
+    g₂_nodes = [get_prop(dg, v, :v₁v₂_pair)[2] for v in vertices(dg)]
+    g₂_edges = [Graphs.SimpleEdge(g₂_nodes[src(e)], g₂_nodes[dst(e)]) for e in edges(dg)]
+    g₂_node_alpha_mask = [v ∈ g₂_nodes ? 1 : α₀ for v in vertices(g₂)]
+    g₂_edge_alpha_mask = [e ∈ g₂_edges || reverse(e) ∈ g₂_edges ? 1 : α₀ for e in edges(g₂)]
 end
 
 # ╔═╡ 7663b5a0-d0a9-4a72-9d75-745a91160737
@@ -132,7 +132,6 @@ viz_graph(
     edge_alpha_mask=g₁_edge_alpha_mask,
     layout_style=:graphmol
 ),
-
 viz_graph(
     g₂;
     node_alpha_mask=g₂_node_alpha_mask,
@@ -165,51 +164,54 @@ md"""
 import MolecularGraphKernels.smkernel_c
 
 # ╔═╡ 34228393-b352-4fa2-9bef-5bdb7ee317bd
-function constrained_subgraph_matching(Gₚ::ProductGraph{T}, λ::Function)::Int where 
-	T <: Union{Modular, Weighted}
-	# Algorithm: SMKernel(w, C, P)
-	# Input: Product graph Gₚ, weight function λ
-	# Initial: value ← 0; SMKernel(1, ∅, Vₚ)
-	# Param.: Weight w of the clique C, candidate set P
-	# Output: Result of the kernel function value
-	
-	# initialize
-	value = 0
-	∅ = Int[]
-	Vₚ = collect(vertices(Gₚ))
+function constrained_subgraph_matching(
+    Gₚ::ProductGraph{T},
+    λ::Function
+)::Int where {T <: Union{Modular, Weighted}}
+    # Algorithm: SMKernel(w, C, P)
+    # Input: Product graph Gₚ, weight function λ
+    # Initial: value ← 0; SMKernel(1, ∅, Vₚ)
+    # Param.: Weight w of the clique C, candidate set P
+    # Output: Result of the kernel function value
 
-	# define recursive algorithm
-	function smkernel(w::Int, C::Vector{Int}, P::Vector{Int})
-		while length(P) > 0 # while |P| > 0 do
-			v = first(P) # v ← arbitrary element of P
-			C′ = union(C, v)
-			w′ = w * smkernel_c(Gₚ, v) # multiply by vertex weight
-			for u in C
-				w′ *= smkernel_c(Gₚ, u, v)# multiply by edge weights
-			end
-			value += w′ * λ(C′)
-			smkernel(w′, C′, intersect(P, [u for u in neighbors(Gₚ, v) if get_prop(Gₚ, u, v, :label) ≠ 0])) # extend c-clique 🚀
-			P = setdiff(P, [v]) # P ← P \ {v}
-		end
-		return
-	end
+    # initialize
+    value = 0
+    ∅ = Int[]
+    Vₚ = collect(vertices(Gₚ))
 
-	# run algorithm
-	smkernel(1, ∅, Vₚ)
-	return value
+    # define recursive algorithm
+    function smkernel(w::Int, C::Vector{Int}, P::Vector{Int})
+        while length(P) > 0 # while |P| > 0 do
+            v = first(P) # v ← arbitrary element of P
+            C′ = union(C, v)
+            w′ = w * smkernel_c(Gₚ, v) # multiply by vertex weight
+            for u in C
+                w′ *= smkernel_c(Gₚ, u, v)# multiply by edge weights
+            end
+            value += w′ * λ(C′)
+            smkernel(
+                w′,
+                C′,
+                intersect(
+                    P,
+                    [u for u in neighbors(Gₚ, v) if get_prop(Gₚ, u, v, :label) ≠ 0]
+                )
+            ) # extend c-clique 🚀
+            P = setdiff(P, [v]) # P ← P \ {v}
+        end
+        return
+    end
+
+    # run algorithm
+    smkernel(1, ∅, Vₚ)
+    return value
 end
 
 # ╔═╡ bb4acf8d-89e3-47bb-ab40-4afa545e4c57
-@btime constrained_subgraph_matching(
-	ProductGraph{Modular}(g₁, g₂),
-	_->1
-)
+@btime constrained_subgraph_matching(ProductGraph{Modular}(g₁, g₂), _ -> 1)
 
 # ╔═╡ b5e9f732-b966-4030-a6a5-a953a8ceedf2
-@btime constrained_subgraph_matching(
-	ProductGraph{Modular}(g₁, g₂),
-	length
-)
+@btime constrained_subgraph_matching(ProductGraph{Modular}(g₁, g₂), length)
 
 # ╔═╡ b41f3383-2105-4a92-8b7e-edfb00addae0
 md"""
