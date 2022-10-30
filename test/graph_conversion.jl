@@ -1,3 +1,5 @@
+module Test_graph_conversion
+
 using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 
 @testset verbose = true "graph conversion" begin
@@ -40,4 +42,6 @@ using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
             product_graph_adjacency_matrix(Direct, A, B)
         )
     end
+end
+
 end

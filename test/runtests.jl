@@ -1,6 +1,6 @@
-using MolecularGraphKernels
+import MolecularGraphKernels: banner
 
-MolecularGraphKernels.banner()
+banner()
 
 include.(
     [

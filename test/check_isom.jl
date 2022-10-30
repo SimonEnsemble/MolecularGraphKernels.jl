@@ -1,3 +1,5 @@
+module Test_check_isom
+
 using MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 
 @testset verbose = true "isomorphism detection" begin
@@ -35,4 +37,6 @@ using MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
             )
         end
     end
+end
+
 end

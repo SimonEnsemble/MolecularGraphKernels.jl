@@ -1,4 +1,6 @@
-using MolecularGraphKernels, Test
+module Test_gram_matrix
+
+using MolecularGraph, MolecularGraphKernels, Test
 
 @testset verbose = true "Gram matrix" begin
     graphs = MetaGraph.(smilestomol.([
@@ -29,4 +31,6 @@ using MolecularGraphKernels, Test
               common_subgraph_isomorphism(graphs[3], graphs[2])
         @test csi_gm[2, 2] == common_subgraph_isomorphism(graphs[2], graphs[2])
     end
+end
+
 end

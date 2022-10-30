@@ -1,4 +1,6 @@
-using Combinatorics, Graphs, MetaGraphs, MolecularGraphKernels, SparseArrays, Test
+module Test_graph_products
+
+using Combinatorics, Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 
 @testset "direct product graph" begin
     # Fig. 4 of "Classifying the toxicity of pesticides to honey bees viasupport vector machines with random walk graph kernels"
@@ -106,4 +108,6 @@ end
             end
         end
     end
+end
+
 end

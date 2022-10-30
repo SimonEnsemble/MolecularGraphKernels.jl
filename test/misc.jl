@@ -1,4 +1,6 @@
-using IOCapture, MolecularGraphKernels, Test
+module Test_misc
+
+using Graphs, IOCapture, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 
 @testset verbose = true "misc" begin
     @testset "display" begin
@@ -40,4 +42,6 @@ using IOCapture, MolecularGraphKernels, Test
         @test is_isomorphic(imsgs[2], manual_isom1)
         @test is_isomorphic(imsgs[3], manual_isom3)
     end
+end
+
 end

@@ -1,5 +1,7 @@
-using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
-import Graphs: SimpleGraphs.SimpleEdgeIter
+module Test_ProductGraph
+
+using Graphs, MolecularGraph, MolecularGraphKernels, Test
+import Graphs.SimpleGraphs.SimpleEdgeIter
 
 @testset "ProductGraph Interface" begin
     g1 = MetaGraph(smilestomol("c1ccccc1"))
@@ -14,4 +16,6 @@ import Graphs: SimpleGraphs.SimpleEdgeIter
         @test_throws ErrorException props(empty, 1, 2)
         @test weighttype(empty) == Int
     end
+end
+
 end
