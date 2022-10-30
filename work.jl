@@ -168,7 +168,7 @@ md"""
 
 # ╔═╡ 1c61675b-01c1-4040-861b-e797c62c4bb7
 md"""
-# Bullet Point 5 🚧
+# Bullet Point 5 ✔
 
 	Sec. 3.3.1 of subgraph matching kernel paper here, "Restriction to Subgraph Classes", paragraph 2. the algorithm can be made faster and perhaps make for a more reasonable kernel (similarity description) by only looking at cliques spanned by c-edges. this is done on-the-fly when enumerating the cliques, not after the cliques are detected with post-filtering. "only enumerate c-cliques by making sure that only vertices are added that are adjacent to a vertex in the current clique via at least one c-edge". so when u try to extend a current clique into a maximal clique, you check if the new potential vertex is connected via a c-edge to one of the vertices in the current (possibly, non-maximum) clique. so Xiaoli was right. this is a simple modification of the clique enumeration algorithm and worth implementing. instead of inventing your own clique detection algorithm, I think you should use an algorithm that is already out there, e.g the Bron–Kerbosch algorithm.³
 
@@ -177,11 +177,21 @@ md"""
 
 # ╔═╡ 0ba39ae0-3ed7-41c0-ba89-89815bcc2118
 md"""
-!!! note
-	Modification in `dev.jl` is very easy!  Also, it runs faster as a result of considering fewer candidates.
-
-	How best to incorporate as option in package..?
+!!! ok "Conclusion"
+	Implemented c-clique constraint argument.
 """
+
+# ╔═╡ c92168d0-b73b-42d5-8f3c-ae441ab88cde
+@btime common_subgraph_isomorphism(g₁, g₂)
+
+# ╔═╡ ed71787d-9f54-44ef-bd3c-64d638051ab9
+@btime common_subgraph_isomorphism(g₁, g₂; λ=length)
+
+# ╔═╡ 118f6317-f6b6-49da-8a76-830ee3e50b04
+@btime subgraph_matching(ProductGraph{Modular}(g₁, g₂), _ -> 1; c_cliques=true)
+
+# ╔═╡ dffadbb4-b887-41e1-8726-0340fb97a9b8
+@btime subgraph_matching(ProductGraph{Modular}(g₁, g₂), length; c_cliques=true)
 
 # ╔═╡ 614434f8-8ddc-49ae-adaf-bf69aa939944
 md"""
@@ -301,6 +311,10 @@ md"""
 # ╟─10923005-d271-451f-8136-2a8b2cc3b9cc
 # ╟─1c61675b-01c1-4040-861b-e797c62c4bb7
 # ╟─0ba39ae0-3ed7-41c0-ba89-89815bcc2118
+# ╠═c92168d0-b73b-42d5-8f3c-ae441ab88cde
+# ╠═ed71787d-9f54-44ef-bd3c-64d638051ab9
+# ╠═118f6317-f6b6-49da-8a76-830ee3e50b04
+# ╠═dffadbb4-b887-41e1-8726-0340fb97a9b8
 # ╟─614434f8-8ddc-49ae-adaf-bf69aa939944
 # ╟─8d805709-d844-48c3-b72c-f5b45a009a09
 # ╟─854788d6-877e-4677-972d-722f5210799e
