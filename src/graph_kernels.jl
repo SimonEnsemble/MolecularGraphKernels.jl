@@ -67,10 +67,12 @@ function subgraph_matching(
 end
 
 # extend clique w/ candidates P ∩ N(v)
-smkernel_newP(::Nothing, P::Vector{Int}, Gₚ::ProductGraph, v::Int)::Vector{Int} = intersect(P, neighbors(Gₚ, v))
+smkernel_newP(::Nothing, P::Vector{Int}, Gₚ::ProductGraph, v::Int)::Vector{Int} =
+    intersect(P, neighbors(Gₚ, v))
 
 # extend clique w/ candidates P ∩ {u ∈ N(v) : l(u, v) = 'c'}
-smkernel_newP(::Bool, P::Vector{Int}, Gₚ::ProductGraph{Modular}, v::Int)::Vector{Int} = intersect(P, [u for u in neighbors(Gₚ, v) if get_prop(Gₚ, u, v, :label) ≠ 0])
+smkernel_newP(::Bool, P::Vector{Int}, Gₚ::ProductGraph{Modular}, v::Int)::Vector{Int} =
+    intersect(P, [u for u in neighbors(Gₚ, v) if get_prop(Gₚ, u, v, :label) ≠ 0])
 
 # node weight function for SM kernel on modular product graph (i.e. CSI kernel)
 smkernel_c(::ProductGraph{Modular}, ::Int)::Int = 1
