@@ -1,7 +1,7 @@
 name = "MolecularGraphKernels"
 uuid = "bf3818bd-b6bb-4954-8baa-32c32282e633"
 authors = ["Cory Simon <cory.simon@oregonstate.edu>", "Adrian Henle <eahenle@gmail.com>"]
-version = "0.6.0"
+version = "0.6.1"
 
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
