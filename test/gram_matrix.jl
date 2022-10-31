@@ -31,6 +31,11 @@ using MolecularGraph, MolecularGraphKernels, Test
               common_subgraph_isomorphism(graphs[3], graphs[2])
         @test csi_gm[2, 2] == common_subgraph_isomorphism(graphs[2], graphs[2])
     end
+
+    @testset "Normalization" begin
+        K = gram_matrix(random_walk, graphs; l=3)
+        @test gram_matrix(random_walk, graphs; l=3, normalize=true) == gm_norm(K)
+    end
 end
 
 end
