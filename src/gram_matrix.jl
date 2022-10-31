@@ -24,17 +24,17 @@ function gram_matrix(
 end
 
 function gm_norm!(mat::Matrix{Float64})
-	n = size(mat)[1]
-	for j in 1:n
-		for i in j:n
-			mat[i, j] /= √(mat[i, i] * mat[j, j])
-			mat[j, i] = mat[i, j]
-		end
-	end
+    n = size(mat)[1]
+    for j in 1:n
+        for i in j:n
+            mat[i, j] /= √(mat[i, i] * mat[j, j])
+            mat[j, i] = mat[i, j]
+        end
+    end
 end
 
-function gm_norm(mat::Matrix{<: Real})::Matrix{Float64}
-	m = deepcopy(mat)
-	gm_norm!(m)
-	return m
+function gm_norm(mat::Matrix{<:Real})::Matrix{Float64}
+    m = deepcopy(mat)
+    gm_norm!(m)
+    return m
 end
