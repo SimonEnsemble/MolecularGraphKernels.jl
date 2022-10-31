@@ -142,12 +142,25 @@ md"""
 
 # ╔═╡ 79994dc7-6138-4e3b-b50e-1b2769f80eb2
 md"""
-# Bullet Point 3 ✖
+# Bullet Point 3 🚧
 
 	employ CSI kernel to create Gram matrix for cannabanoids. use diffusion map with custom kernel matrix (see here² for package) to embed into 2D space. create function that will color the points according to a given label (what proteins they bind to) to see if the clustering can pick up on this. (even if nothing comes of this, great way to quickly get your workflow running/figure out how diffusion maps work/ what they are doing/benchmark your Gram matrix. how much time does it take to compute the Gram matrix?)
 
 ²[ManifoldLearning.jl diffmap](https://wildart.github.io/ManifoldLearning.jl/dev/diffmap/#StatsAPI.fit-Union%7BTuple%7BT%7D,%20Tuple%7BType%7BDiffMap%7D,AbstractArray%7BT,2%7D%7D%7D%20where%20T%3C:Real)
 """
+
+# ╔═╡ ce79c1aa-1d19-4751-9199-35535e094c67
+md"""
+!!! note
+	CSI kernel is **too slow**.
+	It takes > 30 s to compute the kernel between just 2 cannabinoids (possibly much longer--did not let it run to completion).
+
+	Used SM kernel w/ c-clique constraint (both `λ(C) = 1` and `λ(C) = length(C)`).
+	This takes ca. 10 min on a single core @ 4.3 GHz.
+"""
+
+# ╔═╡ b4ad3fa6-660b-44ec-831f-b27a794a9ed1
+
 
 # ╔═╡ 7adc7b44-ee3e-41c5-9977-0a64a3fb88bb
 md"""
@@ -307,6 +320,8 @@ md"""
 # ╠═4fc6a508-4702-4f8a-a623-b3f5e002c8dc
 # ╟─9827d564-7965-493d-ba41-28d62ac0be90
 # ╟─79994dc7-6138-4e3b-b50e-1b2769f80eb2
+# ╟─ce79c1aa-1d19-4751-9199-35535e094c67
+# ╠═b4ad3fa6-660b-44ec-831f-b27a794a9ed1
 # ╟─7adc7b44-ee3e-41c5-9977-0a64a3fb88bb
 # ╟─10923005-d271-451f-8136-2a8b2cc3b9cc
 # ╟─1c61675b-01c1-4040-861b-e797c62c4bb7
