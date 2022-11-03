@@ -54,6 +54,12 @@ begin
     g₂ = MetaGraph(smilestomol("CN(C=O)C=O"))
 end;
 
+# ╔═╡ 5152e8d7-8811-4c89-9006-cfe4f17c18aa
+viz_graph(g₁)
+
+# ╔═╡ d538523a-194c-4de9-b067-3d3ff0e0b4af
+viz_graph(ProductGraph{Modular}(g₁, g₁))
+
 # ╔═╡ 66a808cf-e28e-4e47-aef0-c460988f788e
 @btime random_walk(g₁, g₂; l=4)
 
@@ -160,11 +166,14 @@ md"""
 """
 
 # ╔═╡ b4ad3fa6-660b-44ec-831f-b27a794a9ed1
-
+md"""
+!!! warning "In Progress"
+	See diffmap.jl in private repo
+"""
 
 # ╔═╡ 7adc7b44-ee3e-41c5-9977-0a64a3fb88bb
 md"""
-# Bullet Point 4 ✖
+# Bullet Point 4 🚧
 
 	search the literature to answer:
 		
@@ -177,6 +186,52 @@ md"""
 md"""
 !!! note
 	Largest common subgraph is not a kernel
+"""
+
+# ╔═╡ 527c224d-fa2d-4b01-b17e-501ab62f6167
+md"""
+### Tasks (CSI Kernels)
+
+**Nothing!**
+
+Closest is `CSI_GED`, which gives no application, only runtime comparison on ``k(G_1,G_1)`` for 100k molecules of average atom count 24, and 10k molecules of average atom count 45.  The time limit set was ca. 2 hours; that's 1.5 seconds per computation.  We can afford ca. 300 ms per computation.
+"""
+
+# ╔═╡ e3eb5365-4c29-4eda-b0b4-7b92d17430e8
+md"""
+### Tasks (MCS Algorithms)
+
+- small molecule classification
+- compound activity prediction / QSAR
+- reaction mapping
+- database searching
+- small molecule-μRNA binding
+- metabolite prediction
+"""
+
+# ╔═╡ 9eb41dc9-dfb0-489a-89d1-e9dc47f0327b
+md"""
+### Tasks (Graph Kernels, Generally)
+
+- atomization energy
+- pure-substance phase diagrams
+- reaction yield
+- RNA structure
+- protein-protein docking
+- solvation energy
+- gene function
+- metal surface adsorption energy
+- QSAR
+- pKa
+- biomolecule receptor agonism
+"""
+
+# ╔═╡ 036bed20-ad56-4913-b9d2-473d4f6773a2
+md"""
+### Cool Stuff
+
+- quantum computing
+- stereochemistry
 """
 
 # ╔═╡ 1c61675b-01c1-4040-861b-e797c62c4bb7
@@ -282,7 +337,7 @@ md"""
 
 # ╔═╡ ecd3bce7-7ec3-431c-ba10-bf3869ef85f9
 md"""
-# Bullet Point 10 ✖
+# Bullet Point 10 ✔
 
 	(regarding kernel score normalization⁵) does it remain positive semi-definite? I guess that should be an option in the Gram matrix function, since then you can do that after u compute the whole matrix (with its diagonal).
 
@@ -295,6 +350,12 @@ md"""
 	PSD ✔
 """
 
+# ╔═╡ b3244dd1-c05b-4c8c-ae44-38a686a6c180
+md"""
+!!! ok "Conclusion"
+	Implemented.
+"""
+
 # ╔═╡ Cell order:
 # ╠═9aa20e3a-559a-11ed-1cd0-358ee55a4bb0
 # ╟─8e2aa3d6-9605-4525-9c9f-7cfcfa009c8f
@@ -303,6 +364,8 @@ md"""
 # ╟─1d875c4b-2b05-46d7-8710-8918d95231c3
 # ╟─f2c67185-eb8a-4a53-bc9f-ce639038cd9f
 # ╠═dbf109fc-30cf-41a7-b5f7-f98dc1434d8f
+# ╠═5152e8d7-8811-4c89-9006-cfe4f17c18aa
+# ╠═d538523a-194c-4de9-b067-3d3ff0e0b4af
 # ╠═66a808cf-e28e-4e47-aef0-c460988f788e
 # ╠═d2f7982d-1d7a-4e29-ad04-c4d6dec5906b
 # ╠═a5494cac-b8b8-4985-9606-8d3b6999f2f1
@@ -321,9 +384,13 @@ md"""
 # ╟─9827d564-7965-493d-ba41-28d62ac0be90
 # ╟─79994dc7-6138-4e3b-b50e-1b2769f80eb2
 # ╟─ce79c1aa-1d19-4751-9199-35535e094c67
-# ╠═b4ad3fa6-660b-44ec-831f-b27a794a9ed1
+# ╟─b4ad3fa6-660b-44ec-831f-b27a794a9ed1
 # ╟─7adc7b44-ee3e-41c5-9977-0a64a3fb88bb
 # ╟─10923005-d271-451f-8136-2a8b2cc3b9cc
+# ╟─527c224d-fa2d-4b01-b17e-501ab62f6167
+# ╠═e3eb5365-4c29-4eda-b0b4-7b92d17430e8
+# ╟─9eb41dc9-dfb0-489a-89d1-e9dc47f0327b
+# ╟─036bed20-ad56-4913-b9d2-473d4f6773a2
 # ╟─1c61675b-01c1-4040-861b-e797c62c4bb7
 # ╟─0ba39ae0-3ed7-41c0-ba89-89815bcc2118
 # ╠═c92168d0-b73b-42d5-8f3c-ae441ab88cde
@@ -343,3 +410,4 @@ md"""
 # ╟─85f17dfb-40a8-46e0-8113-7f00307be7a6
 # ╟─ecd3bce7-7ec3-431c-ba10-bf3869ef85f9
 # ╟─ecfeb362-1954-46db-87ff-608b7490fae0
+# ╟─b3244dd1-c05b-4c8c-ae44-38a686a6c180
