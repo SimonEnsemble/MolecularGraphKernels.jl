@@ -127,39 +127,84 @@ end
 
 # ╔═╡ 7663b5a0-d0a9-4a72-9d75-745a91160737
 viz_graph(
-    g₁;
-    node_alpha_mask=g₁_node_alpha_mask,
-    edge_alpha_mask=g₁_edge_alpha_mask,
-    layout_style=:graphmol
-),
-viz_graph(
     g₂;
     node_alpha_mask=g₂_node_alpha_mask,
     edge_alpha_mask=g₂_edge_alpha_mask,
     layout_style=:graphmol
 )
 
-# ╔═╡ b41f3383-2105-4a92-8b7e-edfb00addae0
+# ╔═╡ 5bd29f0b-cc2a-49f2-809f-6901a1bba0a4
 md"""
-# Kernel Comp Time
+## SM/CSI kernel algo
 """
 
-# ╔═╡ f2f56957-1001-4bfa-962d-2210c4e8ce67
-md"""
-### Calculation
-"""
+# ╔═╡ b11405d1-92ed-4654-afcf-edda66b8869c
+a = common_subgraph_isomorphism(g₁, g₁)
 
-# ╔═╡ 4a8d177e-fced-4c68-ab4d-3916f3ea3984
-md"""
-The maximum allowable computation time per Gram matrix element ``\tau_{ij}`` is estimated on the basis of the number ``N`` of calculations (one half of the square of the number of inputs, due to the symmetry of the matrix), the number ``P`` of parallel processes, and the overall time limit ``T``.
+# ╔═╡ e1bbd601-7f99-4182-95f3-4cfc654f3674
+b = common_subgraph_isomorphism(g₁, g₁; c_cliques=true)
 
-``\tau_{ij} = \frac{2PT}{N^2}``
+# ╔═╡ a0bca13e-66b3-4c9c-bc2f-7e57f802a355
+c = common_subgraph_isomorphism(g₁, g₁; λ=length)
 
-Assuming the kernel computes in parallel on 48 processes with a time limit of 24 hours, for 5500 inputs, the maximum time per Gram matrix element is under 300 ms.
-"""
+# ╔═╡ a4668741-2287-4b98-aaff-c0cc8b692962
+d = common_subgraph_isomorphism(g₁, g₁; c_cliques=true, λ=length)
 
-# ╔═╡ 86452985-8025-414a-8663-672452fbd760
-round(Int, 1000 * 2 * 48 * 24 * 3600 / 5500^2)
+# ╔═╡ a932193c-d455-40c9-b705-578ec9fc1b19
+@test a == 7
+
+# ╔═╡ e1f672fc-9371-4f84-ad6e-c2f19c96291e
+@test b == 6
+
+# ╔═╡ 4fc11462-ec49-4210-899f-05d70057fc4c
+@test c == 12
+
+# ╔═╡ b14a5f00-b1c2-4c82-9d83-128ea9bdc36c
+@test d == 10
+
+# ╔═╡ 1bb00438-1e69-4f57-8adf-4765fbfb3825
+function extends_clique(Gₚ, C, v)
+	if C == []
+		return true
+	end
+	for u in C
+		if has_edge(Gₚ, u, v) && get_prop(Gₚ, u, v, :label) ≠ 0
+			return true
+		end
+	end
+	return false
+end
+
+# ╔═╡ 7d4bbe58-76ca-42ac-9b29-04ed4b1037f6
+function test_algo(g₁, g₂)
+	value = 0
+	Gₚ = ProductGraph{Modular}(g₁, g₂)
+	Vₚ = collect(vertices(Gₚ))
+
+	function kernel(C, P)
+		while length(P) > 0
+			v = first(P)
+			if extends_clique(Gₚ, C, v)
+				C′ = union(C, v)
+				value += 1
+				@info "" C′
+			else
+				C′ = C
+			end
+			kernel(C′, intersect(P, neighbors(Gₚ, v)))
+			P = setdiff(P, [v])
+		end
+	end
+
+	kernel([], Vₚ)
+	return value
+end
+
+# ╔═╡ cd5831b7-9530-4f19-ac2f-1b9303624fe0
+@test test_algo(g₁, g₁) == 6
+
+# ╔═╡ e15f74c2-c4f7-4100-b404-be6afe484677
+
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -178,7 +223,16 @@ round(Int, 1000 * 2 * 48 * 24 * 3600 / 5500^2)
 # ╠═39326496-e4dc-4b32-b538-feaa47066982
 # ╠═87aa9631-ccef-4532-a06b-0aaee425d908
 # ╠═7663b5a0-d0a9-4a72-9d75-745a91160737
-# ╟─b41f3383-2105-4a92-8b7e-edfb00addae0
-# ╟─f2f56957-1001-4bfa-962d-2210c4e8ce67
-# ╟─4a8d177e-fced-4c68-ab4d-3916f3ea3984
-# ╠═86452985-8025-414a-8663-672452fbd760
+# ╟─5bd29f0b-cc2a-49f2-809f-6901a1bba0a4
+# ╠═b11405d1-92ed-4654-afcf-edda66b8869c
+# ╠═e1bbd601-7f99-4182-95f3-4cfc654f3674
+# ╠═a0bca13e-66b3-4c9c-bc2f-7e57f802a355
+# ╠═a4668741-2287-4b98-aaff-c0cc8b692962
+# ╠═a932193c-d455-40c9-b705-578ec9fc1b19
+# ╠═e1f672fc-9371-4f84-ad6e-c2f19c96291e
+# ╠═4fc11462-ec49-4210-899f-05d70057fc4c
+# ╠═b14a5f00-b1c2-4c82-9d83-128ea9bdc36c
+# ╠═1bb00438-1e69-4f57-8adf-4765fbfb3825
+# ╠═7d4bbe58-76ca-42ac-9b29-04ed4b1037f6
+# ╠═cd5831b7-9530-4f19-ac2f-1b9303624fe0
+# ╠═e15f74c2-c4f7-4100-b404-be6afe484677

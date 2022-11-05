@@ -72,7 +72,7 @@ smkernel_newP(::Nothing, P::Vector{Int}, Gₚ::ProductGraph, v::Int, C::Vector{I
 
 # extend clique w/ candidates P ∩ {u ∈ N(v) : l(u, v) = 'c'}
 smkernel_newP(::Bool, P::Vector{Int}, Gₚ::ProductGraph{Modular}, v::Int, C::Vector{Int})::Vector{Int} =
-    intersect(P, [u for u in neighbors(Gₚ, v) if any(get_prop(Gₚ, u, k, :label) ≠ 0 for k in C)])
+    intersect(P, [u for u in neighbors(Gₚ, v) if any(has_edge(Gₚ, u, k) && get_prop(Gₚ, u, k, :label) ≠ 0 for k in intersect(C, P))])
 
 # node weight function for SM kernel on modular product graph (i.e. CSI kernel)
 smkernel_c(::ProductGraph{Modular}, ::Int)::Int = 1
@@ -88,8 +88,8 @@ Returns the similarity score for two graphs by applying the common subgraph isom
 Currently, the node-pair and edge-pair kernel functions are set as Dirac δ on the node/edge labels.
 The default λ assigns a weight of 1 to every isomorphism.
 """
-function common_subgraph_isomorphism(g₁xg₂::ProductGraph{Modular}; λ::Function=_ -> 1)::Int
-    return subgraph_matching(g₁xg₂, λ)
+function common_subgraph_isomorphism(g₁xg₂::ProductGraph{Modular}; λ::Function=_ -> 1, kwargs...)::Int
+    return subgraph_matching(g₁xg₂, λ; kwargs...)
 end
 
 function common_subgraph_isomorphism(
