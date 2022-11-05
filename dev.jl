@@ -187,7 +187,6 @@ function test_algo(g₁, g₂)
 			if extends_clique(Gₚ, C, v)
 				C′ = union(C, v)
 				value += 1
-				@info "" C′
 			else
 				C′ = C
 			end
@@ -202,9 +201,6 @@ end
 
 # ╔═╡ cd5831b7-9530-4f19-ac2f-1b9303624fe0
 @test test_algo(g₁, g₁) == 6
-
-# ╔═╡ e15f74c2-c4f7-4100-b404-be6afe484677
-
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -235,4 +231,3 @@ end
 # ╠═1bb00438-1e69-4f57-8adf-4765fbfb3825
 # ╠═7d4bbe58-76ca-42ac-9b29-04ed4b1037f6
 # ╠═cd5831b7-9530-4f19-ac2f-1b9303624fe0
-# ╠═e15f74c2-c4f7-4100-b404-be6afe484677

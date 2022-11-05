@@ -10,13 +10,15 @@ begin
     IOCapture.capture() do
         return Pkg.activate(".")
     end
-    using BenchmarkTools, MolecularGraph, MolecularGraphKernels, PlutoUI
+    using BenchmarkTools, PlutoUI
+	using Graphs, MetaGraphs, MolecularGraph
+	using MolecularGraphKernels
     TableOfContents(; title="To-Do: 10/25")
 end
 
 # ╔═╡ 1d875c4b-2b05-46d7-8710-8918d95231c3
 md"""
-# Bullet Point 1 🚧
+# Algorithm Correctness 1 🚧
 
 	to make sure your algo is correct, construct toy example as a test, compute the kernel in grakel in Python. should match. how does the speed of grakel compare with yours? compare output of random walk kernel too.
 """
@@ -67,7 +69,7 @@ md"""
 
 # ╔═╡ 79994dc7-6138-4e3b-b50e-1b2769f80eb2
 md"""
-# Bullet Point 2 🚧
+# Cannabinoid Clustering 🚧
 
 	1. employ CSI kernel to create Gram matrix for cannabanoids. 
 
@@ -95,7 +97,7 @@ md"""
 
 # ╔═╡ 7adc7b44-ee3e-41c5-9977-0a64a3fb88bb
 md"""
-# Bullet Point 3 🚧
+# Lit Search 🚧
 
 	search the literature to answer:
 		
@@ -158,7 +160,7 @@ md"""
 
 # ╔═╡ b346bcd0-9039-4175-a70d-59a2856ccb23
 md"""
-# new stuff
+# more stuff 🚩
 """
 
 # ╔═╡ aeae9d17-cb45-4619-870c-a2b8ce23ee3f
@@ -198,6 +200,129 @@ What is the original paper for the CSI kernel?
 SM kernel is for soft matches, which your code does not support. Change name of functions to CSI kernel to reflect this? in my view, SM kernel is pretty distinctive in that it implies soft matching via non-Dirac node/edge kernel. I think this is why they gave their kernel a new name, instead of something like 'extended CSI kernel'. kind of like calling a linear regression model a neural network. technically true, but misleading. 
 """
 
+# ╔═╡ d15a77f2-6d34-498e-8e4e-8d9f92a477c5
+md"""
+Algorithm ``SMK`` in the paper for calculating ``k_{CSI}`` with ``\lambda(C)=1``:
+
+1. ``\text{while } |P| > 0 \text{ do }``
+
+2. ``\text{ }\text{ }\text{ }\text{ }v\leftarrow\text{arbitrary element of }P``
+
+3. ``\text{ }\text{ }\text{ }\text{ }C^\prime\leftarrow C\cup {v}``
+
+4. ``\text{ }\text{ }\text{ }\text{ }value\leftarrow value+1``
+
+5. ``\text{ }\text{ }\text{ }\text{ }P^\prime=P\cap N(v)``
+
+6. ``\text{ }\text{ }\text{ }\text{ }SMK(C^\prime,P^\prime)``
+
+7. ``\text{ }\text{ }\text{ }\text{ }P\leftarrow P \setminus {v}``
+"""
+
+# ╔═╡ 742ff2e7-84ba-48a0-8ffb-6c72273ee427
+md"""
+We thought we could change line 5 to be:
+
+``P^\prime= \{u\in P\cap N(v):\exists k\in C^\prime\rightarrow l(u,k)\ne d\}``
+
+but that leads to under-counting by eliminating too many candidate nodes.
+"""
+
+# ╔═╡ bcf5f6aa-96b6-4b6c-bc14-e99bd1647280
+md"""
+I also tried, among other ideas,
+
+``P^\prime= \{u\in P\cap N(v):\exists k\in C^\prime\cup P\rightarrow l(u,k)\ne d\}`` (overcounts)
+
+Then it occurred to me that when Kriege wrote:
+
+	only enumerate c-cliques by making sure that only vertices are added that are adjacent to a vertex in the current clique via at least one cedge
+
+he *didn't* mean:
+
+	only consider as candidate nodes those which extend the current clique while maintaining *c*-edge spanning
+
+but rather:
+
+	only add a node from the candidate nodes to the growing clique if it maintains  *c*-edge spanning
+
+which means that the real focus of the change is at line 3!
+"""
+
+# ╔═╡ 3a3ad8f4-fd72-4b0a-9ba3-400c5136eec5
+md"""
+Algorithm ``SMK`` as I have it now for calculating ``k_{CCSI}`` with ``\lambda(C)=1``:
+
+1. ``\text{while } |P| > 0 \text{ do }``
+
+2. ``\text{ }\text{ }\text{ }\text{ }v\leftarrow\text{arbitrary element of }P``
+
+3. ``\text{ }\text{ }\text{ }\text{ }\text{if }C\cup {v}\in\mathcal{C}(G_p)\text{ do}``
+
+4. ``\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }C^\prime\leftarrow C\cup {v}``
+
+5. ``\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }value\leftarrow value+1``
+
+6. ``\text{ }\text{ }\text{ }\text{ }\text{else}``
+
+7. ``\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }C^\prime\leftarrow C``
+
+6. ``\text{ }\text{ }\text{ }\text{ }SMK(C^\prime,P\cap N(v))``
+
+7. ``\text{ }\text{ }\text{ }\text{ }P\leftarrow P \setminus {v}``
+"""
+
+# ╔═╡ 0f0fbb49-a724-4804-ba8a-cc31734c17dd
+function extends_clique(Gₚ, C, v)
+	if C == []
+		return true
+	end
+	for u in C
+		if has_edge(Gₚ, u, v) && get_prop(Gₚ, u, v, :label) ≠ 0
+			return true
+		end
+	end
+	return false
+end
+
+# ╔═╡ a76c2d1f-faf2-453a-ab90-2b2bb72ecc13
+function test_algo(g₁, g₂)
+	value = 0
+	Gₚ = ProductGraph{Modular}(g₁, g₂)
+	Vₚ = collect(vertices(Gₚ))
+	cliques = []
+	
+	function kernel(C, P)
+		while length(P) > 0
+			v = first(P)
+			if extends_clique(Gₚ, C, v)
+				C′ = union(C, v)
+				push!(cliques, C′)
+				value += 1
+			else
+				C′ = C
+			end
+			kernel(C′, intersect(P, neighbors(Gₚ, v)))
+			P = setdiff(P, [v])
+		end
+	end
+
+	kernel([], Vₚ)
+	return value, cliques
+end
+
+# ╔═╡ b1373bbd-9b4b-40ee-b0d2-cec3d5c0dcdf
+@btime test_algo(g₁, g₁)
+
+# ╔═╡ 395b37e7-b0ea-4c20-8a9a-33dd2cf195de
+@btime test_algo(g₁, g₂)
+
+# ╔═╡ 0e9d12f1-92f4-4b88-b593-d6afcca8708a
+begin
+	mpg = ProductGraph{Modular}(g₁, g₂)
+	viz_graph(MetaGraph(mpg))
+end
+
 # ╔═╡ Cell order:
 # ╠═9aa20e3a-559a-11ed-1cd0-358ee55a4bb0
 # ╟─1d875c4b-2b05-46d7-8710-8918d95231c3
@@ -224,3 +349,12 @@ SM kernel is for soft matches, which your code does not support. Change name of 
 # ╟─036bed20-ad56-4913-b9d2-473d4f6773a2
 # ╠═b346bcd0-9039-4175-a70d-59a2856ccb23
 # ╠═aeae9d17-cb45-4619-870c-a2b8ce23ee3f
+# ╟─d15a77f2-6d34-498e-8e4e-8d9f92a477c5
+# ╟─742ff2e7-84ba-48a0-8ffb-6c72273ee427
+# ╟─bcf5f6aa-96b6-4b6c-bc14-e99bd1647280
+# ╟─3a3ad8f4-fd72-4b0a-9ba3-400c5136eec5
+# ╠═0f0fbb49-a724-4804-ba8a-cc31734c17dd
+# ╠═a76c2d1f-faf2-453a-ab90-2b2bb72ecc13
+# ╠═b1373bbd-9b4b-40ee-b0d2-cec3d5c0dcdf
+# ╠═395b37e7-b0ea-4c20-8a9a-33dd2cf195de
+# ╠═0e9d12f1-92f4-4b88-b593-d6afcca8708a
