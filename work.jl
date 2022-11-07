@@ -13,15 +13,8 @@ begin
     using BenchmarkTools, PlutoUI
 	using Graphs, MetaGraphs, MolecularGraph
 	using MolecularGraphKernels
-    TableOfContents(; title="To-Do: 10/25")
+    TableOfContents(; title="Update: 2022.11.08")
 end
-
-# ╔═╡ 1d875c4b-2b05-46d7-8710-8918d95231c3
-md"""
-# Algorithm Correctness 1 🚧
-
-	to make sure your algo is correct, construct toy example as a test, compute the kernel in grakel in Python. should match. how does the speed of grakel compare with yours? compare output of random walk kernel too.
-"""
 
 # ╔═╡ dbf109fc-30cf-41a7-b5f7-f98dc1434d8f
 begin
@@ -29,29 +22,356 @@ begin
     g₂ = MetaGraph(smilestomol("CN(C=O)C=O"))
 end;
 
-# ╔═╡ e07f33f1-25b2-4a1f-908f-b9942b1f652c
-println.(readlines("using_grakel.py"));
+# ╔═╡ 8c0d01a2-e7e8-4c74-b766-1d8d4b900b78
+md"""
+# Connected CSI/SM Kernels 🚩
+"""
 
-# ╔═╡ 4417ccab-5da4-4163-a36e-090e1fb2d9f9
-run(`python3 using_grakel.py g1 g1`);
+# ╔═╡ 1051e362-7e28-44b4-9b64-7ff3a42c570e
+md"""
+## Algorithm
+"""
+
+# ╔═╡ d15a77f2-6d34-498e-8e4e-8d9f92a477c5
+md"""
+Algorithm ``SMK`` in the paper for calculating ``k_{CSI}`` with ``\lambda(C)=1``:
+
+1. ``\text{while } |P| > 0 \text{ do }``
+
+2. ``\text{ }\text{ }\text{ }\text{ }v\leftarrow\text{arbitrary element of }P``
+
+3. ``\text{ }\text{ }\text{ }\text{ }C^\prime\leftarrow C\cup {v}``
+
+4. ``\text{ }\text{ }\text{ }\text{ }value\leftarrow value+1``
+
+5. ``\text{ }\text{ }\text{ }\text{ }P^\prime=P\cap N(v)``
+
+6. ``\text{ }\text{ }\text{ }\text{ }SMK(C^\prime,P^\prime)``
+
+7. ``\text{ }\text{ }\text{ }\text{ }P\leftarrow P \setminus {v}``
+
+To constrain the kernel to connected graphs, we thought we could change line 5 to be:
+
+``P^\prime= \{u\in P\cap N(v):\exists k\in C^\prime\rightarrow l(u,k)\ne d\}``
+
+but that leads to under-counting by eliminating too many candidate nodes.
+
+I also tried, among other ideas,
+
+``P^\prime= \{u\in P\cap N(v):\exists k\in C^\prime\cup P\rightarrow l(u,k)\ne d\}`` (overcounts)
+
+Then it occurred to me that when Kriege wrote:
+
+	only enumerate c-cliques by making sure that only vertices are added that are adjacent to a vertex in the current clique via at least one cedge
+
+he *didn't* mean:
+
+	only consider as candidate nodes those which extend the current clique while maintaining *c*-edge spanning
+
+but rather:
+
+	only add a node from the candidate nodes to the growing clique if it maintains  *c*-edge spanning
+
+which means that the real focus of the change is at line 3!
+
+Algorithm ``SMK`` as I have it now for calculating ``k_{CCSI}`` with ``\lambda(C)=1``:
+
+1. ``\text{while } |P| > 0 \text{ do }``
+
+2. ``\text{ }\text{ }\text{ }\text{ }v\leftarrow\text{arbitrary element of }P``
+
+3. ``\text{ }\text{ }\text{ }\text{ }\text{if }C\cup {v}\in\mathcal{C}(G_p)\text{ do}``
+
+4. ``\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }C^\prime\leftarrow C\cup {v}``
+
+5. ``\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }value\leftarrow value+1``
+
+6. ``\text{ }\text{ }\text{ }\text{ }\text{else}``
+
+7. ``\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }C^\prime\leftarrow C``
+
+6. ``\text{ }\text{ }\text{ }\text{ }SMK(C^\prime,P\cap N(v))``
+
+7. ``\text{ }\text{ }\text{ }\text{ }P\leftarrow P \setminus {v}``
+"""
+
+# ╔═╡ 15faa4c4-4253-454d-9e6a-e319dc5ddf38
+md"""
+### Implementation
+"""
+
+# ╔═╡ 0f0fbb49-a724-4804-ba8a-cc31734c17dd
+function extends_clique(Gₚ, C, v)
+	if C == []
+		return true
+	end
+	for u in C
+		if has_edge(Gₚ, u, v) && get_prop(Gₚ, u, v, :label) ≠ 0
+			return true
+		end
+	end
+	return false
+end
+
+# ╔═╡ a76c2d1f-faf2-453a-ab90-2b2bb72ecc13
+function test_algo(g₁, g₂)
+	value = 0
+	Gₚ = ProductGraph{Modular}(g₁, g₂)
+	Vₚ = collect(vertices(Gₚ))
+	cliques = []
+	
+	function kernel(C, P)
+		while length(P) > 0
+			v = first(P)
+			if extends_clique(Gₚ, C, v)
+				C′ = union(C, v)
+				push!(cliques, C′)
+				value += 1
+			else
+				C′ = C
+			end
+			kernel(C′, intersect(P, neighbors(Gₚ, v)))
+			P = setdiff(P, [v])
+		end
+	end
+
+	kernel([], Vₚ)
+	return value, cliques
+end
+
+# ╔═╡ 941c8f5b-5ada-4aa5-97a3-8dd0cf8b02e6
+md"""
+### Verification
+"""
+
+# ╔═╡ 89b4dfbd-d00e-4fc6-b66b-7a7fd007f3b8
+viz_graph(MetaGraph(ProductGraph{Modular}(g₁, g₂)))
+
+# ╔═╡ 9b411ba3-9368-4ad1-96bc-0af3ad389b07
+test_algo(g₁, g₂)
+
+# ╔═╡ f15440b5-6933-4dfe-8068-7bdee34ebf2b
+md"""
+!!! ok "This Is Correct... Right?"
+	Are we all in agreement that each of these subgraphs is a valid and correct one, and that there are no others?
+	I.e., that this algorithm definitely returns the correct result in this case?
+"""
+
+# ╔═╡ 177de406-366a-4356-941b-b8505f208eb9
+md"""
+# Benchmarking 🚧
+"""
+
+# ╔═╡ dd17bcee-c71b-4141-8620-1ab5f3c91df1
+md"""
+## Grakel Graph-Writer
+
+Actually, wrote a function to build and execute an entire Grakel pairwise comparison with a specified kernel and return the output and average execution time.
+"""
+
+# ╔═╡ f47322d1-9347-4b34-b60d-efda4b9cbfa8
+md"""
+### Adjacency Matrix
+"""
+
+# ╔═╡ 72ba5ed1-d182-4968-89be-ce5a3a3138f5
+function grakel_adj_mat(g::AbstractGraph)::String
+	adj_mat_str = ""
+	adj_mat = adjacency_matrix(g)
+	for row in eachrow(adj_mat)
+		row_str = ""
+		for el in row
+			row_str *= "$el,"
+		end
+		adj_mat_str *= "[" * row_str * "],"
+	end
+	adj_mat_str = "[" * adj_mat_str * "]"
+	return adj_mat_str
+end;
+
+# ╔═╡ 81a684ab-ccbc-4cf7-b88e-e2ad3c3f914d
+md"""
+### Node Labels
+"""
+
+# ╔═╡ a43b9345-42a8-4bf3-b1d1-cbfc84295897
+function grakel_node_labels(g::MetaGraph)::String
+	node_attr_str = ""
+	for v in vertices(g)
+		node_attr_str *= "$(v-1):$(get_prop(g, v, :label)),"
+	end
+	node_attr_str = "{" * node_attr_str * "}"
+	return node_attr_str
+end;
+
+# ╔═╡ 16fd2f0d-6b5d-4049-9708-9523f1cca4b1
+md"""
+### Edge Labels
+"""
+
+# ╔═╡ 708ff0fe-0c6e-41d4-98ec-ab801a220bca
+function grakel_edge_labels(g::MetaGraph)::String
+	edge_label_str = ""
+	for e in edges(g)
+		i = src(e)
+		j = dst(e)
+		edge_label_str *= "($(i-1),$(j-1)):$(get_prop(g, i, j, :label)),"
+		edge_label_str *= "($(j-1),$(i-1)):$(get_prop(g, i, j, :label)),"
+	end
+	edge_label_str = "{" * edge_label_str * "}"
+	return edge_label_str
+end;
+
+# ╔═╡ 121ae0ca-978f-4043-92b1-a7252dc07c28
+md"""
+### Graph
+"""
+
+# ╔═╡ 2f36aab7-7697-44f6-b8f2-7a37d2209c37
+function grakel_graph(g::MetaGraph)::String
+	graph_str = "grakel.Graph("
+	graph_str *= grakel_adj_mat(g)
+	graph_str *= ","
+	graph_str *= "node_labels=" 
+	graph_str *= grakel_node_labels(g) 
+	graph_str *= ","
+	graph_str *= "edge_labels="
+	graph_str *= grakel_edge_labels(g)
+	graph_str *= ")"
+	return graph_str
+end;
+
+# ╔═╡ 0af46daf-165e-4275-a0a2-b05ae34522a0
+md"""
+### Script
+"""
+
+# ╔═╡ bfff619e-632f-4a42-abfb-e12cce82aab9
+function grakel_script(g₁::MetaGraph, g₂::MetaGraph, kernel::String, n::Int)::Vector{String}
+	script_str = String[]
+	push!(script_str, "import time")
+	push!(script_str, "import grakel")
+	push!(script_str, "g1=$(grakel_graph(g₁))")
+	push!(script_str, "g2=$(grakel_graph(g₂))")
+	push!(script_str, "kernel=grakel.$kernel")
+	push!(script_str, "n=$n")
+	push!(script_str, "tic = time.time()")
+	push!(script_str, "for i in range(n):")
+	push!(script_str, "\tkernel.fit([g1])")
+	push!(script_str, "\tkernel.transform([g2])")
+	push!(script_str, "btime=(time.time()-tic)/n")
+	push!(script_str, "print(btime, kernel.transform([g2])[0][0])")
+	return script_str
+end;
+
+# ╔═╡ 1cdf885f-3c9b-4ef3-ab27-80e50f29aef2
+md"""
+An example script (4-length RWK on g₁ and g₂, average time over 1000 runs):
+"""
+
+# ╔═╡ c59742b0-5bcf-4b5b-9c94-354f2f90b284
+println.(grakel_script(g₁, g₂, "RandomWalk(p=4)", 1000));
+
+# ╔═╡ f083d2e3-5c6f-40a2-8fe0-e1a2604a24e6
+md"""
+### Computation
+"""
+
+# ╔═╡ 716b38b3-80f2-4ed0-9140-f446740642b0
+function grakel_compute(g₁, g₂, kernel; n::Int=1000)::Tuple{Float64,Float64}
+	script = grakel_script(g₁, g₂, kernel, n)
+	file = tempname()
+	open(file, "w") do f
+		write.(f, script .* ["\n"])
+	end
+	printed = IOCapture.capture() do
+		run(Cmd([
+			"python3"
+			file
+		]))
+	end.output
+	t, v = parse.(Float64, split(printed))
+	return t, v
+		end;
+
+# ╔═╡ 4a4f168a-c277-4292-88bc-85b5b7d4205c
+md"""
+Running the example shown above:
+"""
+
+# ╔═╡ af9f0e95-22d5-4af1-a086-63717f76f69b
+grakel_compute(g₁, g₂, "RandomWalk(p=4)")
+
+# ╔═╡ 62a6f895-77f9-4f88-a936-1a25563de6b4
+md"""
+## Comparison
+"""
+
+# ╔═╡ 203208ae-169b-4f80-8ec4-3fe742bea001
+md"""
+### Random Walk
+"""
+
+# ╔═╡ cc3552ac-6327-47f4-ab23-42e010e8c34c
+md"""
+``A\times A``
+"""
 
 # ╔═╡ 25e5176a-5716-4cd3-bba3-4f27af205421
 @btime random_walk(g₁, g₁; l=4)
 
+# ╔═╡ 62902c49-3ba2-4cff-8f57-01bd032ce7c2
+grakel_compute(g₁, g₁, "RandomWalk(p=4)")
+
+# ╔═╡ ce542c4f-9b98-4c4e-b113-57ee8b91cb58
+grakel_compute(g₁, g₁, "RandomWalkLabeled(p=4)")
+
+# ╔═╡ 388656e8-7ff2-4929-bbc4-43cba431603b
+md"""
+!!! note
+	The grakel code is much slower, returns an incorrect value, and does not respect node labels.
+"""
+
+# ╔═╡ 58958382-7d8d-48d4-84f3-ea68f44604b4
+md"""
+``A\times B``
+"""
+
+# ╔═╡ 66a808cf-e28e-4e47-aef0-c460988f788e
+@btime random_walk(g₁, g₂; l=4)
+
+# ╔═╡ bb18ae2f-2aaf-43f5-8632-10cf0f5f0f12
+grakel_compute(g₁, g₂, "RandomWalk(p=4)")
+
+# ╔═╡ 00eae4d8-88f9-4191-b156-1a2362272ea7
+grakel_compute(g₁, g₂, "RandomWalkLabeled(p=4)")
+
+# ╔═╡ 39ec203d-75d6-4947-8af8-2cc09fe1a92c
+md"""
+!!! note
+	The grakel code is much slower, returns an incorrect value, and does not respect node labels.
+"""
+
+# ╔═╡ ff85644a-b58f-40b1-8624-0888451c0bb4
+md"""
+### Common Subgraph Isom.
+"""
+
+# ╔═╡ 68beef00-9ff8-480c-8867-0fc1085adde9
+md"""
+``A\times A``
+"""
+
 # ╔═╡ f9e900aa-3143-4f34-a559-ad7b40a5909a
 @btime common_subgraph_isomorphism(g₁, g₁)
-
-# ╔═╡ 185a82b7-6b4d-43e4-b428-88c2b0876399
-@btime common_subgraph_isomorphism(g₁, g₁; c_cliques=true)
 
 # ╔═╡ a78a1080-e1e6-4912-ac3b-4911f9e15564
 @btime common_subgraph_isomorphism(g₁, g₁; λ=length)
 
-# ╔═╡ 4fc6a508-4702-4f8a-a623-b3f5e002c8dc
-run(`python3 using_grakel.py g1 g2`);
-
-# ╔═╡ 66a808cf-e28e-4e47-aef0-c460988f788e
-@btime random_walk(g₁, g₂; l=4)
+# ╔═╡ fadbec05-4964-4dc4-8837-c563c81c24bf
+md"""
+``A\times B``
+"""
 
 # ╔═╡ d2f7982d-1d7a-4e29-ad04-c4d6dec5906b
 @btime common_subgraph_isomorphism(g₁, g₂) # default: weight = 1 for all cliques
@@ -59,13 +379,98 @@ run(`python3 using_grakel.py g1 g2`);
 # ╔═╡ a5494cac-b8b8-4985-9606-8d3b6999f2f1
 @btime common_subgraph_isomorphism(g₁, g₂; λ=length) # weight = clique size
 
+# ╔═╡ 2362ad7b-e271-49d6-8535-f1b767dbef0a
+md"""
+!!! note "Not Implemented In Grakel"
+	Grakel doesn't have the CSI kernel, only the connected variant.
+"""
+
+# ╔═╡ 86578480-67da-4bde-b08e-774f50704333
+md"""
+### Connected CSI
+"""
+
+# ╔═╡ e9315881-5c88-4651-a468-352cd5c64de8
+md"""
+``A\times A``
+"""
+
+# ╔═╡ 185a82b7-6b4d-43e4-b428-88c2b0876399
+@btime common_subgraph_isomorphism(g₁, g₁; c_cliques=true)
+
+# ╔═╡ cfb0a592-2064-4f10-8745-84caa6301f93
+grakel_compute(g₁, g₁, "SubgraphMatching(k=999, lw='uniform')")
+
+# ╔═╡ f7c02678-0fa7-41de-9813-4745af529213
+md"""
+``A\times B``
+"""
+
+# ╔═╡ 5401eeb6-8895-4d46-864c-cca78476caca
+@btime common_subgraph_isomorphism(g₁, g₂; c_cliques=true)
+
+# ╔═╡ 722bbc80-1f7a-4bbf-8a5d-817cd722044d
+grakel_compute(g₁, g₂, "SubgraphMatching(k=999, lw='uniform')")
+
+# ╔═╡ 5a71610a-0d28-4cda-ba4d-ff6099cdb8be
+md"""
+!!! note 
+"""
+
+# ╔═╡ 62cae695-8d6e-4eb7-b4f1-55beef266db8
+md"""
+### Subgraph Matching
+"""
+
+# ╔═╡ af59b147-1200-4aa4-bb9f-abe88e58187b
+md"""
+!!! warning "In Progress"
+	Need to implement weighted product graph computation.
+"""
+
+# ╔═╡ 7c3765cb-ba0f-475a-a675-6c26eb681f85
+md"""
+!!! note "Not Implemented In Grakel"
+	Grakel doesn't have the regular SM kernel (only the connected variation).
+"""
+
+# ╔═╡ a41af8f2-2817-4419-897b-f203a95300ed
+md"""
+### Connected SM
+"""
+
+# ╔═╡ fc49c8e4-2ec1-4756-a572-4bb55c7cdf3c
+md"""
+!!! warning "In Progress"
+	Need to implement weighted product graph computation.
+"""
+
+# ╔═╡ 50cbce84-8bc6-4ab9-9380-7d77bc2221f6
+md"""
+!!! warning "In Progress"
+	Need to figure out how Grakel takes ``k_v`` and ``k_e``.
+"""
+
+# ╔═╡ 59dad7a1-65f6-433b-ba09-31dd1fc5a0da
+md"""
+## Conclusions
+"""
+
 # ╔═╡ 2ce8da75-2cdc-4d4c-80ee-8a2ac055e74c
 md"""
-!!! danger "Grakel Problems"
-	- Results from `RandomWalk` are astronomically huge. 
-	- Results from `RandomWalkLabeled` are on the same order as, but still not equal to ours.
-	- Grakel seems to ignore node labels in `RandomWalk` and `RandomWalkLabeled`.
+!!! ok "Example Comparisons"
+	- Results from `RandomWalk`/`RandomWalkLabeled` are wrong. 
+	- Labels ignored in `RandomWalk`/`RandomWalkLabeled`.
+	- Working on SM kernel results.
 """
+
+# ╔═╡ b8a45a85-f208-49cd-80ec-9dc70e36fae9
+md"""
+## Scaling vs. Nodes
+"""
+
+# ╔═╡ e110a84a-ae84-4145-af12-24cfe74d41e7
+
 
 # ╔═╡ 79994dc7-6138-4e3b-b50e-1b2769f80eb2
 md"""
@@ -95,21 +500,14 @@ md"""
 	See diffmap.jl in private repo
 """
 
-# ╔═╡ 7adc7b44-ee3e-41c5-9977-0a64a3fb88bb
+# ╔═╡ cbf219a0-184e-4c32-b1d0-9203e2392a1b
 md"""
-# Lit Search 🚧
+### Original CSI Paper
 
-	search the literature to answer:
-		
-	1. is finding the largest common subgraph still a proper kernel? i.e positive semi-definite? not clear to me that it is. look in reviews of graph kernels, to see if they discuss anything like this. or on grakel page? [answer = no, below. so we shouldn't use that.]
-		
-	2. what prediction tasks have used the common subgraph isomorphism kernel? what are the size of the graphs/number of graphs? keep these papers handy so that you can cite them in your paper. good way to find out = look at the citations to the subgraph matching kernel paper. but also Google Scholar search for common subgraph isomorphism kernel (been around longer).
-"""
+Levi (1973), via combination of:
 
-# ╔═╡ 10923005-d271-451f-8136-2a8b2cc3b9cc
-md"""
-!!! note
-	Largest common subgraph is not a kernel
+- Corneil & Gotlieb (1970)
+- Sirovich (1971)
 """
 
 # ╔═╡ 527c224d-fa2d-4b01-b17e-501ab62f6167
@@ -158,203 +556,80 @@ md"""
 - stereochemistry
 """
 
-# ╔═╡ b346bcd0-9039-4175-a70d-59a2856ccb23
-md"""
-# more stuff 🚩
-"""
-
-# ╔═╡ aeae9d17-cb45-4619-870c-a2b8ce23ee3f
-md"""
-Function to convert Julia graphs into python graphs for grakel automatically. Will need to do scaling studies and compare performance if you wish to publish the package eventually, anyway, and will need to test on more complicated example, as the simple graphs may not capture facets/areas where bugs could be.
-	
-	
-	
-what is the performance comparison on a realistically sized graph? I think scaling vs # of nodes is important in benchmarking in general but esp here b/c the code is actually in C for grakel, so don't want to be looking at Python to C translation necessarily. 
-	
-	
-	
- 
-
-	
-It seems the labels are not being taken to consideration in grakel for the random walk kernel. Why? is something wrong with the input? is it flat-out wrong? I'd post an issue if so.
-	
-	
-	
- 
-
-	
-Your implementation of CSI is not counting only connected subgraphs. (see photo below for example we discussed)
-	
-	
-	
- 
-
-	
-What is the original paper for the CSI kernel?
-	
-	
-	
- 
-
-	
-SM kernel is for soft matches, which your code does not support. Change name of functions to CSI kernel to reflect this? in my view, SM kernel is pretty distinctive in that it implies soft matching via non-Dirac node/edge kernel. I think this is why they gave their kernel a new name, instead of something like 'extended CSI kernel'. kind of like calling a linear regression model a neural network. technically true, but misleading. 
-"""
-
-# ╔═╡ d15a77f2-6d34-498e-8e4e-8d9f92a477c5
-md"""
-Algorithm ``SMK`` in the paper for calculating ``k_{CSI}`` with ``\lambda(C)=1``:
-
-1. ``\text{while } |P| > 0 \text{ do }``
-
-2. ``\text{ }\text{ }\text{ }\text{ }v\leftarrow\text{arbitrary element of }P``
-
-3. ``\text{ }\text{ }\text{ }\text{ }C^\prime\leftarrow C\cup {v}``
-
-4. ``\text{ }\text{ }\text{ }\text{ }value\leftarrow value+1``
-
-5. ``\text{ }\text{ }\text{ }\text{ }P^\prime=P\cap N(v)``
-
-6. ``\text{ }\text{ }\text{ }\text{ }SMK(C^\prime,P^\prime)``
-
-7. ``\text{ }\text{ }\text{ }\text{ }P\leftarrow P \setminus {v}``
-"""
-
-# ╔═╡ 742ff2e7-84ba-48a0-8ffb-6c72273ee427
-md"""
-We thought we could change line 5 to be:
-
-``P^\prime= \{u\in P\cap N(v):\exists k\in C^\prime\rightarrow l(u,k)\ne d\}``
-
-but that leads to under-counting by eliminating too many candidate nodes.
-"""
-
-# ╔═╡ bcf5f6aa-96b6-4b6c-bc14-e99bd1647280
-md"""
-I also tried, among other ideas,
-
-``P^\prime= \{u\in P\cap N(v):\exists k\in C^\prime\cup P\rightarrow l(u,k)\ne d\}`` (overcounts)
-
-Then it occurred to me that when Kriege wrote:
-
-	only enumerate c-cliques by making sure that only vertices are added that are adjacent to a vertex in the current clique via at least one cedge
-
-he *didn't* mean:
-
-	only consider as candidate nodes those which extend the current clique while maintaining *c*-edge spanning
-
-but rather:
-
-	only add a node from the candidate nodes to the growing clique if it maintains  *c*-edge spanning
-
-which means that the real focus of the change is at line 3!
-"""
-
-# ╔═╡ 3a3ad8f4-fd72-4b0a-9ba3-400c5136eec5
-md"""
-Algorithm ``SMK`` as I have it now for calculating ``k_{CCSI}`` with ``\lambda(C)=1``:
-
-1. ``\text{while } |P| > 0 \text{ do }``
-
-2. ``\text{ }\text{ }\text{ }\text{ }v\leftarrow\text{arbitrary element of }P``
-
-3. ``\text{ }\text{ }\text{ }\text{ }\text{if }C\cup {v}\in\mathcal{C}(G_p)\text{ do}``
-
-4. ``\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }C^\prime\leftarrow C\cup {v}``
-
-5. ``\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }value\leftarrow value+1``
-
-6. ``\text{ }\text{ }\text{ }\text{ }\text{else}``
-
-7. ``\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }\text{ }C^\prime\leftarrow C``
-
-6. ``\text{ }\text{ }\text{ }\text{ }SMK(C^\prime,P\cap N(v))``
-
-7. ``\text{ }\text{ }\text{ }\text{ }P\leftarrow P \setminus {v}``
-"""
-
-# ╔═╡ 0f0fbb49-a724-4804-ba8a-cc31734c17dd
-function extends_clique(Gₚ, C, v)
-	if C == []
-		return true
-	end
-	for u in C
-		if has_edge(Gₚ, u, v) && get_prop(Gₚ, u, v, :label) ≠ 0
-			return true
-		end
-	end
-	return false
-end
-
-# ╔═╡ a76c2d1f-faf2-453a-ab90-2b2bb72ecc13
-function test_algo(g₁, g₂)
-	value = 0
-	Gₚ = ProductGraph{Modular}(g₁, g₂)
-	Vₚ = collect(vertices(Gₚ))
-	cliques = []
-	
-	function kernel(C, P)
-		while length(P) > 0
-			v = first(P)
-			if extends_clique(Gₚ, C, v)
-				C′ = union(C, v)
-				push!(cliques, C′)
-				value += 1
-			else
-				C′ = C
-			end
-			kernel(C′, intersect(P, neighbors(Gₚ, v)))
-			P = setdiff(P, [v])
-		end
-	end
-
-	kernel([], Vₚ)
-	return value, cliques
-end
-
-# ╔═╡ b1373bbd-9b4b-40ee-b0d2-cec3d5c0dcdf
-@btime test_algo(g₁, g₁)
-
-# ╔═╡ 395b37e7-b0ea-4c20-8a9a-33dd2cf195de
-@btime test_algo(g₁, g₂)
-
-# ╔═╡ 0e9d12f1-92f4-4b88-b593-d6afcca8708a
-begin
-	mpg = ProductGraph{Modular}(g₁, g₂)
-	viz_graph(MetaGraph(mpg))
-end
-
 # ╔═╡ Cell order:
 # ╠═9aa20e3a-559a-11ed-1cd0-358ee55a4bb0
-# ╟─1d875c4b-2b05-46d7-8710-8918d95231c3
 # ╠═dbf109fc-30cf-41a7-b5f7-f98dc1434d8f
-# ╟─e07f33f1-25b2-4a1f-908f-b9942b1f652c
-# ╠═4417ccab-5da4-4163-a36e-090e1fb2d9f9
+# ╟─8c0d01a2-e7e8-4c74-b766-1d8d4b900b78
+# ╟─1051e362-7e28-44b4-9b64-7ff3a42c570e
+# ╟─d15a77f2-6d34-498e-8e4e-8d9f92a477c5
+# ╟─15faa4c4-4253-454d-9e6a-e319dc5ddf38
+# ╠═0f0fbb49-a724-4804-ba8a-cc31734c17dd
+# ╠═a76c2d1f-faf2-453a-ab90-2b2bb72ecc13
+# ╟─941c8f5b-5ada-4aa5-97a3-8dd0cf8b02e6
+# ╠═89b4dfbd-d00e-4fc6-b66b-7a7fd007f3b8
+# ╠═9b411ba3-9368-4ad1-96bc-0af3ad389b07
+# ╟─f15440b5-6933-4dfe-8068-7bdee34ebf2b
+# ╠═177de406-366a-4356-941b-b8505f208eb9
+# ╟─dd17bcee-c71b-4141-8620-1ab5f3c91df1
+# ╟─f47322d1-9347-4b34-b60d-efda4b9cbfa8
+# ╠═72ba5ed1-d182-4968-89be-ce5a3a3138f5
+# ╟─81a684ab-ccbc-4cf7-b88e-e2ad3c3f914d
+# ╠═a43b9345-42a8-4bf3-b1d1-cbfc84295897
+# ╟─16fd2f0d-6b5d-4049-9708-9523f1cca4b1
+# ╠═708ff0fe-0c6e-41d4-98ec-ab801a220bca
+# ╟─121ae0ca-978f-4043-92b1-a7252dc07c28
+# ╠═2f36aab7-7697-44f6-b8f2-7a37d2209c37
+# ╟─0af46daf-165e-4275-a0a2-b05ae34522a0
+# ╠═bfff619e-632f-4a42-abfb-e12cce82aab9
+# ╟─1cdf885f-3c9b-4ef3-ab27-80e50f29aef2
+# ╠═c59742b0-5bcf-4b5b-9c94-354f2f90b284
+# ╟─f083d2e3-5c6f-40a2-8fe0-e1a2604a24e6
+# ╠═716b38b3-80f2-4ed0-9140-f446740642b0
+# ╟─4a4f168a-c277-4292-88bc-85b5b7d4205c
+# ╠═af9f0e95-22d5-4af1-a086-63717f76f69b
+# ╟─62a6f895-77f9-4f88-a936-1a25563de6b4
+# ╟─203208ae-169b-4f80-8ec4-3fe742bea001
+# ╟─cc3552ac-6327-47f4-ab23-42e010e8c34c
 # ╠═25e5176a-5716-4cd3-bba3-4f27af205421
-# ╠═f9e900aa-3143-4f34-a559-ad7b40a5909a
-# ╠═185a82b7-6b4d-43e4-b428-88c2b0876399
-# ╠═a78a1080-e1e6-4912-ac3b-4911f9e15564
-# ╠═4fc6a508-4702-4f8a-a623-b3f5e002c8dc
+# ╠═62902c49-3ba2-4cff-8f57-01bd032ce7c2
+# ╠═ce542c4f-9b98-4c4e-b113-57ee8b91cb58
+# ╟─388656e8-7ff2-4929-bbc4-43cba431603b
+# ╟─58958382-7d8d-48d4-84f3-ea68f44604b4
 # ╠═66a808cf-e28e-4e47-aef0-c460988f788e
+# ╠═bb18ae2f-2aaf-43f5-8632-10cf0f5f0f12
+# ╠═00eae4d8-88f9-4191-b156-1a2362272ea7
+# ╟─39ec203d-75d6-4947-8af8-2cc09fe1a92c
+# ╟─ff85644a-b58f-40b1-8624-0888451c0bb4
+# ╟─68beef00-9ff8-480c-8867-0fc1085adde9
+# ╠═f9e900aa-3143-4f34-a559-ad7b40a5909a
+# ╠═a78a1080-e1e6-4912-ac3b-4911f9e15564
+# ╟─fadbec05-4964-4dc4-8837-c563c81c24bf
 # ╠═d2f7982d-1d7a-4e29-ad04-c4d6dec5906b
 # ╠═a5494cac-b8b8-4985-9606-8d3b6999f2f1
-# ╟─2ce8da75-2cdc-4d4c-80ee-8a2ac055e74c
+# ╟─2362ad7b-e271-49d6-8535-f1b767dbef0a
+# ╟─86578480-67da-4bde-b08e-774f50704333
+# ╟─e9315881-5c88-4651-a468-352cd5c64de8
+# ╠═185a82b7-6b4d-43e4-b428-88c2b0876399
+# ╠═cfb0a592-2064-4f10-8745-84caa6301f93
+# ╟─f7c02678-0fa7-41de-9813-4745af529213
+# ╠═5401eeb6-8895-4d46-864c-cca78476caca
+# ╠═722bbc80-1f7a-4bbf-8a5d-817cd722044d
+# ╠═5a71610a-0d28-4cda-ba4d-ff6099cdb8be
+# ╟─62cae695-8d6e-4eb7-b4f1-55beef266db8
+# ╟─af59b147-1200-4aa4-bb9f-abe88e58187b
+# ╟─7c3765cb-ba0f-475a-a675-6c26eb681f85
+# ╟─a41af8f2-2817-4419-897b-f203a95300ed
+# ╟─fc49c8e4-2ec1-4756-a572-4bb55c7cdf3c
+# ╟─50cbce84-8bc6-4ab9-9380-7d77bc2221f6
+# ╟─59dad7a1-65f6-433b-ba09-31dd1fc5a0da
+# ╠═2ce8da75-2cdc-4d4c-80ee-8a2ac055e74c
+# ╟─b8a45a85-f208-49cd-80ec-9dc70e36fae9
+# ╠═e110a84a-ae84-4145-af12-24cfe74d41e7
 # ╟─79994dc7-6138-4e3b-b50e-1b2769f80eb2
 # ╟─ce79c1aa-1d19-4751-9199-35535e094c67
 # ╟─b4ad3fa6-660b-44ec-831f-b27a794a9ed1
-# ╟─7adc7b44-ee3e-41c5-9977-0a64a3fb88bb
-# ╟─10923005-d271-451f-8136-2a8b2cc3b9cc
+# ╟─cbf219a0-184e-4c32-b1d0-9203e2392a1b
 # ╟─527c224d-fa2d-4b01-b17e-501ab62f6167
 # ╟─e3eb5365-4c29-4eda-b0b4-7b92d17430e8
 # ╟─9eb41dc9-dfb0-489a-89d1-e9dc47f0327b
 # ╟─036bed20-ad56-4913-b9d2-473d4f6773a2
-# ╠═b346bcd0-9039-4175-a70d-59a2856ccb23
-# ╠═aeae9d17-cb45-4619-870c-a2b8ce23ee3f
-# ╟─d15a77f2-6d34-498e-8e4e-8d9f92a477c5
-# ╟─742ff2e7-84ba-48a0-8ffb-6c72273ee427
-# ╟─bcf5f6aa-96b6-4b6c-bc14-e99bd1647280
-# ╟─3a3ad8f4-fd72-4b0a-9ba3-400c5136eec5
-# ╠═0f0fbb49-a724-4804-ba8a-cc31734c17dd
-# ╠═a76c2d1f-faf2-453a-ab90-2b2bb72ecc13
-# ╠═b1373bbd-9b4b-40ee-b0d2-cec3d5c0dcdf
-# ╠═395b37e7-b0ea-4c20-8a9a-33dd2cf195de
-# ╠═0e9d12f1-92f4-4b88-b593-d6afcca8708a
