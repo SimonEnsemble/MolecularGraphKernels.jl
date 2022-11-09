@@ -26,9 +26,8 @@ using MolecularGraph, MolecularGraphKernels, Test
         @test x == 15
         @test x == common_subgraph_isomorphism(mpg)
         @test subgraph_matching(mpg, length) == 26
-        @test subgraph_matching(mpg, _ -> 1; c_cliques=true) == 11
-        @test subgraph_matching(mpg, length; c_cliques=true) == 16
-        @test_throws AssertionError subgraph_matching(mpg, length; c_cliques=false)
+        @test subgraph_matching(mpg, _ -> 1; c_cliques=true) == 13
+        @test subgraph_matching(mpg, length; c_cliques=true) == 22
     end
 end
 

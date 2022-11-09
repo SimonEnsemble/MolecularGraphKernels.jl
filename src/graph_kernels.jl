@@ -31,9 +31,8 @@ computes the Subgraph Matching kernel on product graph Gₚ with weight function
 function subgraph_matching(
     Gₚ::ProductGraph{T},
     λ::Function;
-    c_cliques::Union{Bool, Nothing}=nothing
+    c_cliques::Bool=false
 )::Int where {T <: Union{Modular, Weighted}}
-    @assert c_cliques ≠ false "Invalid constraint argument."
     # Algorithm: SMKernel(w, C, P)
     # Input: Product graph Gₚ, weight function λ
     # Initial: value ← 0; SMKernel(1, ∅, Vₚ)
@@ -42,43 +41,49 @@ function subgraph_matching(
 
     # initialize
     value = 0
-    ∅ = Int[]
     Vₚ = collect(vertices(Gₚ))
 
     # define recursive algorithm
     function smkernel(w::Int, C::Vector{Int}, P::Vector{Int})
         while length(P) > 0 # while |P| > 0 do
-            v = first(P) # v ← arbitrary element of P
-            C′ = union(C, v)
-            w′ = w * smkernel_c(Gₚ, v) # multiply by vertex weight
-            for u in C
-                w′ *= smkernel_c(Gₚ, u, v)# multiply by edge weights
+            @inbounds v = P[1] # v ← arbitrary element of P
+            w′ = w
+            if !c_cliques || extends_clique(Gₚ, C, v)
+                C′ = union(C, v)
+                w′ *= prod(smkernel_c(Gₚ, u, v) for u in C; init=smkernel_c(Gₚ, v)) # multiply by vertex, edge weights
+                value += w′ * λ(C′)
+            else
+                C′ = C
             end
-            value += w′ * λ(C′)
-            smkernel(w′, C′, smkernel_newP(c_cliques, P, Gₚ, v, C′)) # extend clique
-            P = setdiff(P, [v]) # P ← P \ {v}
+            smkernel(w′, C′, intersect(P, neighbors(Gₚ, v))) # extend clique
+            @inbounds P = P[2:end] # P ← P \ {v}
         end
         return
     end
 
     # run algorithm
-    smkernel(1, ∅, Vₚ)
+    smkernel(1, Int[], Vₚ)
     return value
 end
-
-# extend clique w/ candidates P ∩ N(v)
-smkernel_newP(::Nothing, P::Vector{Int}, Gₚ::ProductGraph, v::Int, C::Vector{Int})::Vector{Int} =
-    intersect(P, neighbors(Gₚ, v))
-
-# extend clique w/ candidates P ∩ {u ∈ N(v) : l(u, v) = 'c'}
-smkernel_newP(::Bool, P::Vector{Int}, Gₚ::ProductGraph{Modular}, v::Int, C::Vector{Int})::Vector{Int} =
-    intersect(P, [u for u in neighbors(Gₚ, v) if any(has_edge(Gₚ, u, k) && get_prop(Gₚ, u, k, :label) ≠ 0 for k in intersect(C, P))])
 
 # node weight function for SM kernel on modular product graph (i.e. CSI kernel)
 smkernel_c(::ProductGraph{Modular}, ::Int)::Int = 1
 
 # edge weight function for SM kernel on modular product graph (i.e. CSI kernel)
 smkernel_c(::ProductGraph{Modular}, ::Int, ::Int)::Int = 1
+
+# checks if a node v extends the clique C in the graph G
+function extends_clique(G::AbstractGraph, C::Vector{Int}, v::Int)::Bool
+	if C == []
+		return true
+	end
+	for u in C
+		if has_edge(G, u, v) && get_prop(G, u, v, :label) ≠ 0
+			return true
+		end
+	end
+	return false
+end
 
 """
     kernel_score = common_subgraph_isomorphism(g₁xg₂)

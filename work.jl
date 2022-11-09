@@ -16,6 +16,9 @@ begin
     TableOfContents(; title="Update: 2022.11.08")
 end
 
+# ╔═╡ 6a040045-0e23-4a1d-bb4e-dc8ac2eeb6c6
+using Combinatorics
+
 # ╔═╡ dbf109fc-30cf-41a7-b5f7-f98dc1434d8f
 begin
     g₁ = MetaGraph(smilestomol("NC=O"))
@@ -130,6 +133,7 @@ function test_algo(g₁, g₂)
 			else
 				C′ = C
 			end
+			# @info "" v C′ P
 			kernel(C′, intersect(P, neighbors(Gₚ, v)))
 			P = setdiff(P, [v])
 		end
@@ -155,6 +159,12 @@ md"""
 !!! ok "This Is Correct... Right?"
 	Are we all in agreement that each of these subgraphs is a valid and correct one, and that there are no others?
 	I.e., that this algorithm definitely returns the correct result in this case?
+"""
+
+# ╔═╡ c585fd94-3cac-429e-8b91-66c56ce8433c
+md"""
+!!! danger "Wrong!"
+	Works for the simple example, but a larger one shows a duplication problem...
 """
 
 # ╔═╡ 177de406-366a-4356-941b-b8505f208eb9
@@ -318,13 +328,16 @@ md"""
 """
 
 # ╔═╡ 25e5176a-5716-4cd3-bba3-4f27af205421
-@btime random_walk(g₁, g₁; l=4)
+mgk_rwk_aa = @btime random_walk(g₁, g₁; l=4)
 
 # ╔═╡ 62902c49-3ba2-4cff-8f57-01bd032ce7c2
-grakel_compute(g₁, g₁, "RandomWalk(p=4)")
+gkl_rwk_aa1 = grakel_compute(g₁, g₁, "RandomWalk(p=4)")
 
 # ╔═╡ ce542c4f-9b98-4c4e-b113-57ee8b91cb58
-grakel_compute(g₁, g₁, "RandomWalkLabeled(p=4)")
+gkl_rwk_aa2 = grakel_compute(g₁, g₁, "RandomWalkLabeled(p=4)")
+
+# ╔═╡ 5731939b-033a-41a9-aec3-2668d7a8286b
+@assert mgk_rwk_aa == gkl_rwk_aa1 || mgk_rwk_aa == gkl_rwk_aa2
 
 # ╔═╡ 388656e8-7ff2-4929-bbc4-43cba431603b
 md"""
@@ -338,13 +351,16 @@ md"""
 """
 
 # ╔═╡ 66a808cf-e28e-4e47-aef0-c460988f788e
-@btime random_walk(g₁, g₂; l=4)
+mgk_rwk_ab = @btime random_walk(g₁, g₂; l=4)
 
 # ╔═╡ bb18ae2f-2aaf-43f5-8632-10cf0f5f0f12
-grakel_compute(g₁, g₂, "RandomWalk(p=4)")
+gkl_rwk_ab1 = grakel_compute(g₁, g₂, "RandomWalk(p=4)")
 
 # ╔═╡ 00eae4d8-88f9-4191-b156-1a2362272ea7
-grakel_compute(g₁, g₂, "RandomWalkLabeled(p=4)")
+gkl_rwk_ab2 = grakel_compute(g₁, g₂, "RandomWalkLabeled(p=4)")
+
+# ╔═╡ a92a9c1a-c276-4748-aa30-94856b0dabd6
+@assert mgk_rwk_ab == gkl_rwk_ab1 || mgk_rwk_ab == gkl_rwk_ab2
 
 # ╔═╡ 39ec203d-75d6-4947-8af8-2cc09fe1a92c
 md"""
@@ -396,10 +412,13 @@ md"""
 """
 
 # ╔═╡ 185a82b7-6b4d-43e4-b428-88c2b0876399
-@btime common_subgraph_isomorphism(g₁, g₁; c_cliques=true)
+mgk_ccsi_aa = @btime common_subgraph_isomorphism(g₁, g₁; c_cliques=true)
 
 # ╔═╡ cfb0a592-2064-4f10-8745-84caa6301f93
-grakel_compute(g₁, g₁, "SubgraphMatching(k=999, lw='uniform')")
+gkl_ccsi_aa = grakel_compute(g₁, g₁, "SubgraphMatching(k=999, lw='uniform')")
+
+# ╔═╡ db095762-bc79-416f-b568-4c824f274f66
+@assert mgk_ccsi_aa == gkl_ccsi_aa[2]
 
 # ╔═╡ f7c02678-0fa7-41de-9813-4745af529213
 md"""
@@ -407,15 +426,13 @@ md"""
 """
 
 # ╔═╡ 5401eeb6-8895-4d46-864c-cca78476caca
-@btime common_subgraph_isomorphism(g₁, g₂; c_cliques=true)
+mgk_ccsi_ab = @btime common_subgraph_isomorphism(g₁, g₂; c_cliques=true)
 
 # ╔═╡ 722bbc80-1f7a-4bbf-8a5d-817cd722044d
-grakel_compute(g₁, g₂, "SubgraphMatching(k=999, lw='uniform')")
+gkl_ccsi_ab = grakel_compute(g₁, g₂, "SubgraphMatching(k=999, lw='uniform')")
 
-# ╔═╡ 5a71610a-0d28-4cda-ba4d-ff6099cdb8be
-md"""
-!!! note 
-"""
+# ╔═╡ a13fbc1e-8529-467b-99bc-d05fbea03828
+@assert mgk_ccsi_ab == gkl_ccsi_ab[2]
 
 # ╔═╡ 62cae695-8d6e-4eb7-b4f1-55beef266db8
 md"""
@@ -451,40 +468,52 @@ md"""
 	Need to figure out how Grakel takes ``k_v`` and ``k_e``.
 """
 
-# ╔═╡ 59dad7a1-65f6-433b-ba09-31dd1fc5a0da
-md"""
-## Conclusions
-"""
+# ╔═╡ 6cb9bef0-423a-42d5-9474-1faa2eb4b6b5
+println.(grakel_script(g₁, g₂, "SubgraphMatching(k=999, lw='uniform', ke=lambda e: 1, kv=lambda v: 1)", 1000));
 
-# ╔═╡ 2ce8da75-2cdc-4d4c-80ee-8a2ac055e74c
-md"""
-!!! ok "Example Comparisons"
-	- Results from `RandomWalk`/`RandomWalkLabeled` are wrong. 
-	- Labels ignored in `RandomWalk`/`RandomWalkLabeled`.
-	- Working on SM kernel results.
-"""
+# ╔═╡ c06de19a-282e-4de5-b15c-2702ef1daaf7
+grakel_compute(g₁, g₂, "SubgraphMatching(k=999, lw='uniform', ke=lambda e: 1, kv=lambda v: 1)")
 
 # ╔═╡ b8a45a85-f208-49cd-80ec-9dc70e36fae9
 md"""
-## Scaling vs. Nodes
+## Scaling vs. Nodes  ✖
 """
 
 # ╔═╡ e110a84a-ae84-4145-af12-24cfe74d41e7
+graphs = MetaGraph.(smilestomol.([
+	"O=C(C)Oc1ccccc1C(=O)O"
+	"O=C1C[C@@H](C\\C=C1\\C)C(C)=C"
+	"Oc1c(c(O)cc(c1)CCCCC)[C@@H]2\\C=C(/CC[C@H]2\\C(=C)C)C"
+]))
 
+# ╔═╡ 655a0fff-5dab-44c0-b94c-06a4a583e8d8
+test_algo(graphs[1], graphs[2])
+
+# ╔═╡ 87b2d39d-733e-4d07-b26d-f79cebb24e9d
+@btime common_subgraph_isomorphism(graphs[1], graphs[2]; c_cliques=true)
+
+# ╔═╡ 5c892fd7-8a8b-4f31-8a7c-2f5a1279915e
+grakel_compute(graphs[1], graphs[2], "SubgraphMatching(k=999, lw='uniform')")
+
+# ╔═╡ 5e66ee62-40d3-4b79-8ce4-84ba1b8af658
+md"""
+!!! danger "Problem"
+	There is an obvious problem with the connected CSI code...
+	Inspecting the cliques visited, some are duplicates!
+"""
 
 # ╔═╡ 79994dc7-6138-4e3b-b50e-1b2769f80eb2
 md"""
 # Cannabinoid Clustering 🚧
 
-	1. employ CSI kernel to create Gram matrix for cannabanoids. 
+	1. employ CSI kernel to create Gram matrix for cannabanoids ✔
 
-	2. use diffusion map w/ kernel matrix (see here²) to embed into 2D space. 
+	2. use diffusion map w/ kernel matrix to embed into 2D space ✔
 
-	3. color points according to protein, see if the clustering can pick up on this.
+	3. color points according to protein 🌟
 
-	4. how much time does it take to compute the Gram matrix?)
+	4. how much time does it take to compute the Gram matrix? ✔
 
-²[ManifoldLearning.jl diffmap](https://wildart.github.io/ManifoldLearning.jl/dev/diffmap/#StatsAPI.fit-Union%7BTuple%7BT%7D,%20Tuple%7BType%7BDiffMap%7D,AbstractArray%7BT,2%7D%7D%7D%20where%20T%3C:Real)
 """
 
 # ╔═╡ ce79c1aa-1d19-4751-9199-35535e094c67
@@ -498,6 +527,11 @@ md"""
 md"""
 !!! warning "In Progress"
 	See diffmap.jl in private repo
+"""
+
+# ╔═╡ d48ad6f0-e709-400f-a6d1-f7ad6868ccf1
+md"""
+# Literature
 """
 
 # ╔═╡ cbf219a0-184e-4c32-b1d0-9203e2392a1b
@@ -556,6 +590,68 @@ md"""
 - stereochemistry
 """
 
+# ╔═╡ a49a68fa-4032-4576-af10-a863f20bac8e
+md"""
+# Hmm... 🚩
+"""
+
+# ╔═╡ a3583838-05c8-4f28-b674-757a6416129a
+md"""
+!!! danger "Solution... But..."
+	Accumulating the cliques and calculating the kernel value from the unique subset works... but that has an impact on speed.
+	I don't understand the Grakel implementation--it's not clear, documented, or attributed.
+"""
+
+# ╔═╡ 7e7f3c05-5837-48a9-add6-b2566cfda88e
+function calculate_value(G, cliques)
+	value = 0
+	for C in cliques
+		node_product = prod(1 for c in C)
+		edge_product = prod(1 for (s, d) in combinations(C, 2); init=1)
+		C_weight = 1
+		value += node_product * edge_product * C_weight
+	end
+	return value
+end
+
+# ╔═╡ 2022a1c3-e447-4105-a65c-4f4c94156e20
+function test_algo2(g₁, g₂)
+	value = 0
+	Gₚ = ProductGraph{Modular}(g₁, g₂)
+	Vₚ = collect(vertices(Gₚ))
+	cliques = []
+	
+	function kernel(C, P)
+		while length(P) > 0
+			v = first(P)
+			if extends_clique(Gₚ, C, v)
+				C′ = union(C, v)
+				push!(cliques, C′)
+			else
+				C′ = C
+			end
+			kernel(C′, intersect(P, neighbors(Gₚ, v)))
+			P = setdiff(P, [v])
+		end
+	end
+
+	kernel([], Vₚ)
+
+	cliques = unique(cliques)
+	value = calculate_value(Gₚ, cliques)
+	
+	return value, cliques
+end
+
+# ╔═╡ 0cdf1306-3a8a-46ee-b384-0770fb7e9dba
+@btime test_algo2(graphs[1], graphs[2])
+
+# ╔═╡ bba0313d-820f-49f7-aaac-bfe3304bbb21
+@btime test_algo2(g₁, g₂)
+
+# ╔═╡ db4bae15-d7d1-42fd-848f-f0e99c4f9a96
+grakel_compute(graphs[1], graphs[2], "SubgraphMatching(k=999, lw='uniform')")
+
 # ╔═╡ Cell order:
 # ╠═9aa20e3a-559a-11ed-1cd0-358ee55a4bb0
 # ╠═dbf109fc-30cf-41a7-b5f7-f98dc1434d8f
@@ -569,7 +665,9 @@ md"""
 # ╠═89b4dfbd-d00e-4fc6-b66b-7a7fd007f3b8
 # ╠═9b411ba3-9368-4ad1-96bc-0af3ad389b07
 # ╟─f15440b5-6933-4dfe-8068-7bdee34ebf2b
-# ╠═177de406-366a-4356-941b-b8505f208eb9
+# ╠═655a0fff-5dab-44c0-b94c-06a4a583e8d8
+# ╟─c585fd94-3cac-429e-8b91-66c56ce8433c
+# ╟─177de406-366a-4356-941b-b8505f208eb9
 # ╟─dd17bcee-c71b-4141-8620-1ab5f3c91df1
 # ╟─f47322d1-9347-4b34-b60d-efda4b9cbfa8
 # ╠═72ba5ed1-d182-4968-89be-ce5a3a3138f5
@@ -593,11 +691,13 @@ md"""
 # ╠═25e5176a-5716-4cd3-bba3-4f27af205421
 # ╠═62902c49-3ba2-4cff-8f57-01bd032ce7c2
 # ╠═ce542c4f-9b98-4c4e-b113-57ee8b91cb58
+# ╠═5731939b-033a-41a9-aec3-2668d7a8286b
 # ╟─388656e8-7ff2-4929-bbc4-43cba431603b
 # ╟─58958382-7d8d-48d4-84f3-ea68f44604b4
 # ╠═66a808cf-e28e-4e47-aef0-c460988f788e
 # ╠═bb18ae2f-2aaf-43f5-8632-10cf0f5f0f12
 # ╠═00eae4d8-88f9-4191-b156-1a2362272ea7
+# ╠═a92a9c1a-c276-4748-aa30-94856b0dabd6
 # ╟─39ec203d-75d6-4947-8af8-2cc09fe1a92c
 # ╟─ff85644a-b58f-40b1-8624-0888451c0bb4
 # ╟─68beef00-9ff8-480c-8867-0fc1085adde9
@@ -611,25 +711,38 @@ md"""
 # ╟─e9315881-5c88-4651-a468-352cd5c64de8
 # ╠═185a82b7-6b4d-43e4-b428-88c2b0876399
 # ╠═cfb0a592-2064-4f10-8745-84caa6301f93
+# ╠═db095762-bc79-416f-b568-4c824f274f66
 # ╟─f7c02678-0fa7-41de-9813-4745af529213
 # ╠═5401eeb6-8895-4d46-864c-cca78476caca
 # ╠═722bbc80-1f7a-4bbf-8a5d-817cd722044d
-# ╠═5a71610a-0d28-4cda-ba4d-ff6099cdb8be
+# ╠═a13fbc1e-8529-467b-99bc-d05fbea03828
 # ╟─62cae695-8d6e-4eb7-b4f1-55beef266db8
 # ╟─af59b147-1200-4aa4-bb9f-abe88e58187b
 # ╟─7c3765cb-ba0f-475a-a675-6c26eb681f85
 # ╟─a41af8f2-2817-4419-897b-f203a95300ed
 # ╟─fc49c8e4-2ec1-4756-a572-4bb55c7cdf3c
 # ╟─50cbce84-8bc6-4ab9-9380-7d77bc2221f6
-# ╟─59dad7a1-65f6-433b-ba09-31dd1fc5a0da
-# ╠═2ce8da75-2cdc-4d4c-80ee-8a2ac055e74c
+# ╠═6cb9bef0-423a-42d5-9474-1faa2eb4b6b5
+# ╠═c06de19a-282e-4de5-b15c-2702ef1daaf7
 # ╟─b8a45a85-f208-49cd-80ec-9dc70e36fae9
 # ╠═e110a84a-ae84-4145-af12-24cfe74d41e7
+# ╠═87b2d39d-733e-4d07-b26d-f79cebb24e9d
+# ╠═5c892fd7-8a8b-4f31-8a7c-2f5a1279915e
+# ╠═5e66ee62-40d3-4b79-8ce4-84ba1b8af658
 # ╟─79994dc7-6138-4e3b-b50e-1b2769f80eb2
 # ╟─ce79c1aa-1d19-4751-9199-35535e094c67
 # ╟─b4ad3fa6-660b-44ec-831f-b27a794a9ed1
+# ╟─d48ad6f0-e709-400f-a6d1-f7ad6868ccf1
 # ╟─cbf219a0-184e-4c32-b1d0-9203e2392a1b
 # ╟─527c224d-fa2d-4b01-b17e-501ab62f6167
 # ╟─e3eb5365-4c29-4eda-b0b4-7b92d17430e8
 # ╟─9eb41dc9-dfb0-489a-89d1-e9dc47f0327b
 # ╟─036bed20-ad56-4913-b9d2-473d4f6773a2
+# ╠═a49a68fa-4032-4576-af10-a863f20bac8e
+# ╟─a3583838-05c8-4f28-b674-757a6416129a
+# ╠═6a040045-0e23-4a1d-bb4e-dc8ac2eeb6c6
+# ╠═7e7f3c05-5837-48a9-add6-b2566cfda88e
+# ╠═2022a1c3-e447-4105-a65c-4f4c94156e20
+# ╠═0cdf1306-3a8a-46ee-b384-0770fb7e9dba
+# ╠═bba0313d-820f-49f7-aaac-bfe3304bbb21
+# ╠═db4bae15-d7d1-42fd-848f-f0e99c4f9a96
