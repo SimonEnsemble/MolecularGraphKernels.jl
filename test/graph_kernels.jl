@@ -20,9 +20,9 @@ using MolecularGraph, MolecularGraphKernels, Test
 
         ## random walks
         # l = 1. C <--> C * 4 + O <--> O * 2
-        @test random_walk(g₁, g₂, l=1) == 6
+        @test random_walk(g₁, g₂; l=1) == 6
         # l = 2. C - C <--> C -- C * 4 + C - O <--> C - O * 2 + O - C <--> O - C * 2
-        @test random_walk(g₁, g₂, l=2) == 8
+        @test random_walk(g₁, g₂; l=2) == 8
 
         ## matching connected subgraphs
         @test subgraph_matching(g₁, g₂) == 1
