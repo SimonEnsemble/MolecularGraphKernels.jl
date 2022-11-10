@@ -16,9 +16,6 @@ begin
     TableOfContents(; title="Update: 2022.11.08")
 end
 
-# ╔═╡ 6a040045-0e23-4a1d-bb4e-dc8ac2eeb6c6
-using Combinatorics
-
 # ╔═╡ dbf109fc-30cf-41a7-b5f7-f98dc1434d8f
 begin
     g₁ = MetaGraph(smilestomol("NC=O"))
@@ -146,25 +143,6 @@ end
 # ╔═╡ 941c8f5b-5ada-4aa5-97a3-8dd0cf8b02e6
 md"""
 ### Verification
-"""
-
-# ╔═╡ 89b4dfbd-d00e-4fc6-b66b-7a7fd007f3b8
-viz_graph(MetaGraph(ProductGraph{Modular}(g₁, g₂)))
-
-# ╔═╡ 9b411ba3-9368-4ad1-96bc-0af3ad389b07
-test_algo(g₁, g₂)
-
-# ╔═╡ f15440b5-6933-4dfe-8068-7bdee34ebf2b
-md"""
-!!! ok "This Is Correct... Right?"
-	Are we all in agreement that each of these subgraphs is a valid and correct one, and that there are no others?
-	I.e., that this algorithm definitely returns the correct result in this case?
-"""
-
-# ╔═╡ c585fd94-3cac-429e-8b91-66c56ce8433c
-md"""
-!!! danger "Wrong!"
-	Works for the simple example, but a larger one shows a duplication problem...
 """
 
 # ╔═╡ 177de406-366a-4356-941b-b8505f208eb9
@@ -481,16 +459,9 @@ md"""
 
 # ╔═╡ e110a84a-ae84-4145-af12-24cfe74d41e7
 graphs = MetaGraph.(smilestomol.([
-	"O=C(C)Oc1ccccc1C(=O)O"
-	"O=C1C[C@@H](C\\C=C1\\C)C(C)=C"
-	"Oc1c(c(O)cc(c1)CCCCC)[C@@H]2\\C=C(/CC[C@H]2\\C(=C)C)C"
+	"Oc1c(c(O)cc(c1)CCCCC)[C@@H]2\\C=C(/CC[C@H]2\\C(=C)C)C" # cannabidiol
+	"Oc1cc(cc(O)c1C/C=C(\\C)CC\\C=C(/C)C)CCCCC" # cannabigerol
 ]))
-
-# ╔═╡ 655a0fff-5dab-44c0-b94c-06a4a583e8d8
-test_algo(graphs[1], graphs[2])
-
-# ╔═╡ 87b2d39d-733e-4d07-b26d-f79cebb24e9d
-@btime common_subgraph_isomorphism(graphs[1], graphs[2]; c_cliques=true)
 
 # ╔═╡ 5c892fd7-8a8b-4f31-8a7c-2f5a1279915e
 grakel_compute(graphs[1], graphs[2], "SubgraphMatching(k=999, lw='uniform')")
@@ -590,68 +561,6 @@ md"""
 - stereochemistry
 """
 
-# ╔═╡ a49a68fa-4032-4576-af10-a863f20bac8e
-md"""
-# Hmm... 🚩
-"""
-
-# ╔═╡ a3583838-05c8-4f28-b674-757a6416129a
-md"""
-!!! danger "Solution... But..."
-	Accumulating the cliques and calculating the kernel value from the unique subset works... but that has an impact on speed.
-	I don't understand the Grakel implementation--it's not clear, documented, or attributed.
-"""
-
-# ╔═╡ 7e7f3c05-5837-48a9-add6-b2566cfda88e
-function calculate_value(G, cliques)
-	value = 0
-	for C in cliques
-		node_product = prod(1 for c in C)
-		edge_product = prod(1 for (s, d) in combinations(C, 2); init=1)
-		C_weight = 1
-		value += node_product * edge_product * C_weight
-	end
-	return value
-end
-
-# ╔═╡ 2022a1c3-e447-4105-a65c-4f4c94156e20
-function test_algo2(g₁, g₂)
-	value = 0
-	Gₚ = ProductGraph{Modular}(g₁, g₂)
-	Vₚ = collect(vertices(Gₚ))
-	cliques = []
-	
-	function kernel(C, P)
-		while length(P) > 0
-			v = first(P)
-			if extends_clique(Gₚ, C, v)
-				C′ = union(C, v)
-				push!(cliques, C′)
-			else
-				C′ = C
-			end
-			kernel(C′, intersect(P, neighbors(Gₚ, v)))
-			P = setdiff(P, [v])
-		end
-	end
-
-	kernel([], Vₚ)
-
-	cliques = unique(cliques)
-	value = calculate_value(Gₚ, cliques)
-	
-	return value, cliques
-end
-
-# ╔═╡ 0cdf1306-3a8a-46ee-b384-0770fb7e9dba
-@btime test_algo2(graphs[1], graphs[2])
-
-# ╔═╡ bba0313d-820f-49f7-aaac-bfe3304bbb21
-@btime test_algo2(g₁, g₂)
-
-# ╔═╡ db4bae15-d7d1-42fd-848f-f0e99c4f9a96
-grakel_compute(graphs[1], graphs[2], "SubgraphMatching(k=999, lw='uniform')")
-
 # ╔═╡ Cell order:
 # ╠═9aa20e3a-559a-11ed-1cd0-358ee55a4bb0
 # ╠═dbf109fc-30cf-41a7-b5f7-f98dc1434d8f
@@ -662,11 +571,6 @@ grakel_compute(graphs[1], graphs[2], "SubgraphMatching(k=999, lw='uniform')")
 # ╠═0f0fbb49-a724-4804-ba8a-cc31734c17dd
 # ╠═a76c2d1f-faf2-453a-ab90-2b2bb72ecc13
 # ╟─941c8f5b-5ada-4aa5-97a3-8dd0cf8b02e6
-# ╠═89b4dfbd-d00e-4fc6-b66b-7a7fd007f3b8
-# ╠═9b411ba3-9368-4ad1-96bc-0af3ad389b07
-# ╟─f15440b5-6933-4dfe-8068-7bdee34ebf2b
-# ╠═655a0fff-5dab-44c0-b94c-06a4a583e8d8
-# ╟─c585fd94-3cac-429e-8b91-66c56ce8433c
 # ╟─177de406-366a-4356-941b-b8505f208eb9
 # ╟─dd17bcee-c71b-4141-8620-1ab5f3c91df1
 # ╟─f47322d1-9347-4b34-b60d-efda4b9cbfa8
@@ -726,7 +630,6 @@ grakel_compute(graphs[1], graphs[2], "SubgraphMatching(k=999, lw='uniform')")
 # ╠═c06de19a-282e-4de5-b15c-2702ef1daaf7
 # ╟─b8a45a85-f208-49cd-80ec-9dc70e36fae9
 # ╠═e110a84a-ae84-4145-af12-24cfe74d41e7
-# ╠═87b2d39d-733e-4d07-b26d-f79cebb24e9d
 # ╠═5c892fd7-8a8b-4f31-8a7c-2f5a1279915e
 # ╠═5e66ee62-40d3-4b79-8ce4-84ba1b8af658
 # ╟─79994dc7-6138-4e3b-b50e-1b2769f80eb2
@@ -738,11 +641,3 @@ grakel_compute(graphs[1], graphs[2], "SubgraphMatching(k=999, lw='uniform')")
 # ╟─e3eb5365-4c29-4eda-b0b4-7b92d17430e8
 # ╟─9eb41dc9-dfb0-489a-89d1-e9dc47f0327b
 # ╟─036bed20-ad56-4913-b9d2-473d4f6773a2
-# ╠═a49a68fa-4032-4576-af10-a863f20bac8e
-# ╟─a3583838-05c8-4f28-b674-757a6416129a
-# ╠═6a040045-0e23-4a1d-bb4e-dc8ac2eeb6c6
-# ╠═7e7f3c05-5837-48a9-add6-b2566cfda88e
-# ╠═2022a1c3-e447-4105-a65c-4f4c94156e20
-# ╠═0cdf1306-3a8a-46ee-b384-0770fb7e9dba
-# ╠═bba0313d-820f-49f7-aaac-bfe3304bbb21
-# ╠═db4bae15-d7d1-42fd-848f-f0e99c4f9a96
