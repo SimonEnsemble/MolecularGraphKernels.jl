@@ -15,6 +15,9 @@ import Graphs.SimpleGraphs.SimpleEdgeIter
         @test typeof(props(empty, 1)) <: Dict
         @test_throws ErrorException props(empty, 1, 2)
         @test weighttype(empty) == Int
+        @test !is_directed(typeof(empty))
+        @test !is_directed(empty)
+        @test degree(empty) == []
     end
 end
 

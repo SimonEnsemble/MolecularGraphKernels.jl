@@ -306,7 +306,7 @@ md"""
 """
 
 # ╔═╡ 25e5176a-5716-4cd3-bba3-4f27af205421
-mgk_rwk_aa = @btime random_walk(g₁, g₁; l=4)
+mgk_rwk_aa = @btime rwk(g₁, g₁; l=4)
 
 # ╔═╡ 62902c49-3ba2-4cff-8f57-01bd032ce7c2
 gkl_rwk_aa1 = grakel_compute(g₁, g₁, "RandomWalk(p=4)")
@@ -329,7 +329,7 @@ md"""
 """
 
 # ╔═╡ 66a808cf-e28e-4e47-aef0-c460988f788e
-mgk_rwk_ab = @btime random_walk(g₁, g₂; l=4)
+mgk_rwk_ab = @btime rwk(g₁, g₂; l=4)
 
 # ╔═╡ bb18ae2f-2aaf-43f5-8632-10cf0f5f0f12
 gkl_rwk_ab1 = grakel_compute(g₁, g₂, "RandomWalk(p=4)")
