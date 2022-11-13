@@ -14,10 +14,12 @@ using MolecularGraph, MolecularGraphKernels, Test
         random_walk_gm = gram_matrix(random_walk, graphs; l=l)
 
         @test size(random_walk_gm) == (3, 3)
-        @test random_walk_gm[1, 2] == 
-            random_walk_gm[2, 1] == random_walk(graphs[1], graphs[2]; l=l)
-        @test random_walk_gm[3, 2] == 
-            random_walk_gm[2, 3] == random_walk(graphs[3], graphs[2]; l=l)
+        @test random_walk_gm[1, 2] ==
+              random_walk_gm[2, 1] ==
+              random_walk(graphs[1], graphs[2]; l=l)
+        @test random_walk_gm[3, 2] ==
+              random_walk_gm[2, 3] ==
+              random_walk(graphs[3], graphs[2]; l=l)
         @test random_walk_gm[1, 1] == random_walk(graphs[1], graphs[1]; l=l)
     end
 
