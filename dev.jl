@@ -181,7 +181,8 @@ function test_algo(g₁, g₂)
     Gₚ = ProductGraph{Modular}(g₁, g₂)
     Vₚ = collect(vertices(Gₚ))
 
-    kernel(C, P) = while length(P) > 0
+    kernel(C, P) =
+        while length(P) > 0
             v = first(P)
             if extends_clique(Gₚ, C, v)
                 C′ = union(C, v)
