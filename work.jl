@@ -314,7 +314,8 @@ gkl_random_walk_aa1 = grakel_compute(g₁, g₁, "RandomWalk(p=4)")
 gkl_random_walk_aa2 = grakel_compute(g₁, g₁, "RandomWalkLabeled(p=4)")
 
 # ╔═╡ 5731939b-033a-41a9-aec3-2668d7a8286b
-@assert mgk_random_walk_aa == gkl_random_walk_aa1 || mgk_random_walk_aa == gkl_random_walk_aa2
+@assert mgk_random_walk_aa == gkl_random_walk_aa1 ||
+        mgk_random_walk_aa == gkl_random_walk_aa2
 
 # ╔═╡ 388656e8-7ff2-4929-bbc4-43cba431603b
 md"""
@@ -337,7 +338,8 @@ gkl_random_walk_ab1 = grakel_compute(g₁, g₂, "RandomWalk(p=4)")
 gkl_random_walk_ab2 = grakel_compute(g₁, g₂, "RandomWalkLabeled(p=4)")
 
 # ╔═╡ a92a9c1a-c276-4748-aa30-94856b0dabd6
-@assert mgk_random_walk_ab == gkl_random_walk_ab1 || mgk_random_walk_ab == gkl_random_walk_ab2
+@assert mgk_random_walk_ab == gkl_random_walk_ab1 ||
+        mgk_random_walk_ab == gkl_random_walk_ab2
 
 # ╔═╡ 39ec203d-75d6-4947-8af8-2cc09fe1a92c
 md"""
