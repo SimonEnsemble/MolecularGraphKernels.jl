@@ -13,22 +13,10 @@ using MolecularGraph, MolecularGraphKernels, Test
         @test x == random_walk(g₁, g₂; l=l)
     end
 
-    @testset "Common Subgraph Isomorphism" begin
-        x = common_subgraph_isomorphism(g₁, g₂)
-        @test x == 15
-        @test x == common_subgraph_isomorphism(ProductGraph{Modular}(g₁, g₂))
-        @test common_subgraph_isomorphism(g₁, g₂; λ=length) == 26
-    end
-
-    @testset "Subgraph Matching" begin
+    @testset "Connected Common Subgraph Isomorphism" begin
         mpg = ProductGraph{Modular}(g₁, g₂)
-        x = subgraph_matching(mpg, _ -> 1)
-        @test x == 15
-        @test x == common_subgraph_isomorphism(mpg)
-        @test subgraph_matching(mpg, length) == 26
-        @test subgraph_matching(mpg, _ -> 1; c_cliques=true) == 11
-        @test subgraph_matching(mpg, length; c_cliques=true) == 16
-        @test_throws AssertionError subgraph_matching(mpg, length; c_cliques=false)
+        @test ccsi(mpg) == 13
+        @test ccsi(mpg; λ=length) == 22
     end
 end
 
