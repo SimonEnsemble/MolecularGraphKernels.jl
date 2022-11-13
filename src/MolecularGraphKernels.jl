@@ -62,7 +62,7 @@ export
     Weighted,
 
     # graph_kernels.jl
-    rwk,
+    random_walk,
     ccsi,
 
     # graph_conversion.jl

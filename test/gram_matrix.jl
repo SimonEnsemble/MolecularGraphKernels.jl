@@ -11,12 +11,12 @@ using MolecularGraph, MolecularGraphKernels, Test
 
     @testset "Random Walk Kernel" begin
         l = 4
-        rwk_gm = gram_matrix(rwk, graphs; l=l)
+        random_walk_gm = gram_matrix(random_walk, graphs; l=l)
 
-        @test size(rwk_gm) == (3, 3)
-        @test rwk_gm[1, 2] == rwk_gm[2, 1] == rwk(graphs[1], graphs[2]; l=l)
-        @test rwk_gm[3, 2] == rwk_gm[2, 3] == rwk(graphs[3], graphs[2]; l=l)
-        @test rwk_gm[1, 1] == rwk(graphs[1], graphs[1]; l=l)
+        @test size(random_walk_gm) == (3, 3)
+        @test random_walk_gm[1, 2] == random_walk_gm[2, 1] == random_walk(graphs[1], graphs[2]; l=l)
+        @test random_walk_gm[3, 2] == random_walk_gm[2, 3] == random_walk(graphs[3], graphs[2]; l=l)
+        @test random_walk_gm[1, 1] == random_walk(graphs[1], graphs[1]; l=l)
     end
 
     @testset "Connected Common Subgraph Isomorphism Kernel" begin

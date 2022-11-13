@@ -253,7 +253,7 @@ end;
 
 # ╔═╡ 1cdf885f-3c9b-4ef3-ab27-80e50f29aef2
 md"""
-An example script (4-length RWK on g₁ and g₂, average time over 1000 runs):
+An example script (4-length random_walk on g₁ and g₂, average time over 1000 runs):
 """
 
 # ╔═╡ c59742b0-5bcf-4b5b-9c94-354f2f90b284
@@ -305,16 +305,16 @@ md"""
 """
 
 # ╔═╡ 25e5176a-5716-4cd3-bba3-4f27af205421
-mgk_rwk_aa = @btime rwk(g₁, g₁; l=4)
+mgk_random_walk_aa = @btime random_walk(g₁, g₁; l=4)
 
 # ╔═╡ 62902c49-3ba2-4cff-8f57-01bd032ce7c2
-gkl_rwk_aa1 = grakel_compute(g₁, g₁, "RandomWalk(p=4)")
+gkl_random_walk_aa1 = grakel_compute(g₁, g₁, "RandomWalk(p=4)")
 
 # ╔═╡ ce542c4f-9b98-4c4e-b113-57ee8b91cb58
-gkl_rwk_aa2 = grakel_compute(g₁, g₁, "RandomWalkLabeled(p=4)")
+gkl_random_walk_aa2 = grakel_compute(g₁, g₁, "RandomWalkLabeled(p=4)")
 
 # ╔═╡ 5731939b-033a-41a9-aec3-2668d7a8286b
-@assert mgk_rwk_aa == gkl_rwk_aa1 || mgk_rwk_aa == gkl_rwk_aa2
+@assert mgk_random_walk_aa == gkl_random_walk_aa1 || mgk_random_walk_aa == gkl_random_walk_aa2
 
 # ╔═╡ 388656e8-7ff2-4929-bbc4-43cba431603b
 md"""
@@ -328,16 +328,16 @@ md"""
 """
 
 # ╔═╡ 66a808cf-e28e-4e47-aef0-c460988f788e
-mgk_rwk_ab = @btime rwk(g₁, g₂; l=4)
+mgk_random_walk_ab = @btime random_walk(g₁, g₂; l=4)
 
 # ╔═╡ bb18ae2f-2aaf-43f5-8632-10cf0f5f0f12
-gkl_rwk_ab1 = grakel_compute(g₁, g₂, "RandomWalk(p=4)")
+gkl_random_walk_ab1 = grakel_compute(g₁, g₂, "RandomWalk(p=4)")
 
 # ╔═╡ 00eae4d8-88f9-4191-b156-1a2362272ea7
-gkl_rwk_ab2 = grakel_compute(g₁, g₂, "RandomWalkLabeled(p=4)")
+gkl_random_walk_ab2 = grakel_compute(g₁, g₂, "RandomWalkLabeled(p=4)")
 
 # ╔═╡ a92a9c1a-c276-4748-aa30-94856b0dabd6
-@assert mgk_rwk_ab == gkl_rwk_ab1 || mgk_rwk_ab == gkl_rwk_ab2
+@assert mgk_random_walk_ab == gkl_random_walk_ab1 || mgk_random_walk_ab == gkl_random_walk_ab2
 
 # ╔═╡ 39ec203d-75d6-4947-8af8-2cc09fe1a92c
 md"""
