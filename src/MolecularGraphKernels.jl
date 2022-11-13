@@ -76,6 +76,7 @@ export
 
     # gram_matrix.jl
     gram_matrix,
+    gm_norm,
 
     # misc.jl
     display,
