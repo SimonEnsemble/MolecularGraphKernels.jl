@@ -11,8 +11,8 @@ begin
         return Pkg.activate(".")
     end
     using BenchmarkTools, PlutoUI
-	using Graphs, MetaGraphs, MolecularGraph
-	using MolecularGraphKernels
+    using Graphs, MetaGraphs, MolecularGraph
+    using MolecularGraphKernels
     TableOfContents(; title="Update: 2022.11.08")
 end
 
@@ -102,42 +102,40 @@ md"""
 
 # ╔═╡ 0f0fbb49-a724-4804-ba8a-cc31734c17dd
 function extends_clique(Gₚ, C, v)
-	if C == []
-		return true
-	end
-	for u in C
-		if has_edge(Gₚ, u, v) && get_prop(Gₚ, u, v, :label) ≠ 0
-			return true
-		end
-	end
-	return false
+    if C == []
+        return true
+    end
+    for u in C
+        if has_edge(Gₚ, u, v) && get_prop(Gₚ, u, v, :label) ≠ 0
+            return true
+        end
+    end
+    return false
 end
 
 # ╔═╡ a76c2d1f-faf2-453a-ab90-2b2bb72ecc13
 function test_algo(g₁, g₂)
-	value = 0
-	Gₚ = ProductGraph{Modular}(g₁, g₂)
-	Vₚ = collect(vertices(Gₚ))
-	cliques = []
-	
-	function kernel(C, P)
-		while length(P) > 0
-			v = first(P)
-			if extends_clique(Gₚ, C, v)
-				C′ = union(C, v)
-				push!(cliques, C′)
-				value += 1
-			else
-				C′ = C
-			end
-			# @info "" v C′ P
-			kernel(C′, intersect(P, neighbors(Gₚ, v)))
-			P = setdiff(P, [v])
-		end
-	end
+    value = 0
+    Gₚ = ProductGraph{Modular}(g₁, g₂)
+    Vₚ = collect(vertices(Gₚ))
+    cliques = []
 
-	kernel([], Vₚ)
-	return value, cliques
+    kernel(C, P) = while length(P) > 0
+            v = first(P)
+            if extends_clique(Gₚ, C, v)
+                C′ = union(C, v)
+                push!(cliques, C′)
+                value += 1
+            else
+                C′ = C
+            end
+            # @info "" v C′ P
+            kernel(C′, intersect(P, neighbors(Gₚ, v)))
+            P = setdiff(P, [v])
+        end
+
+    kernel([], Vₚ)
+    return value, cliques
 end
 
 # ╔═╡ 941c8f5b-5ada-4aa5-97a3-8dd0cf8b02e6
@@ -164,17 +162,17 @@ md"""
 
 # ╔═╡ 72ba5ed1-d182-4968-89be-ce5a3a3138f5
 function grakel_adj_mat(g::AbstractGraph)::String
-	adj_mat_str = ""
-	adj_mat = adjacency_matrix(g)
-	for row in eachrow(adj_mat)
-		row_str = ""
-		for el in row
-			row_str *= "$el,"
-		end
-		adj_mat_str *= "[" * row_str * "],"
-	end
-	adj_mat_str = "[" * adj_mat_str * "]"
-	return adj_mat_str
+    adj_mat_str = ""
+    adj_mat = adjacency_matrix(g)
+    for row in eachrow(adj_mat)
+        row_str = ""
+        for el in row
+            row_str *= "$el,"
+        end
+        adj_mat_str *= "[" * row_str * "],"
+    end
+    adj_mat_str = "[" * adj_mat_str * "]"
+    return adj_mat_str
 end;
 
 # ╔═╡ 81a684ab-ccbc-4cf7-b88e-e2ad3c3f914d
@@ -184,12 +182,12 @@ md"""
 
 # ╔═╡ a43b9345-42a8-4bf3-b1d1-cbfc84295897
 function grakel_node_labels(g::MetaGraph)::String
-	node_attr_str = ""
-	for v in vertices(g)
-		node_attr_str *= "$(v-1):$(get_prop(g, v, :label)),"
-	end
-	node_attr_str = "{" * node_attr_str * "}"
-	return node_attr_str
+    node_attr_str = ""
+    for v in vertices(g)
+        node_attr_str *= "$(v-1):$(get_prop(g, v, :label)),"
+    end
+    node_attr_str = "{" * node_attr_str * "}"
+    return node_attr_str
 end;
 
 # ╔═╡ 16fd2f0d-6b5d-4049-9708-9523f1cca4b1
@@ -199,15 +197,15 @@ md"""
 
 # ╔═╡ 708ff0fe-0c6e-41d4-98ec-ab801a220bca
 function grakel_edge_labels(g::MetaGraph)::String
-	edge_label_str = ""
-	for e in edges(g)
-		i = src(e)
-		j = dst(e)
-		edge_label_str *= "($(i-1),$(j-1)):$(get_prop(g, i, j, :label)),"
-		edge_label_str *= "($(j-1),$(i-1)):$(get_prop(g, i, j, :label)),"
-	end
-	edge_label_str = "{" * edge_label_str * "}"
-	return edge_label_str
+    edge_label_str = ""
+    for e in edges(g)
+        i = src(e)
+        j = dst(e)
+        edge_label_str *= "($(i-1),$(j-1)):$(get_prop(g, i, j, :label)),"
+        edge_label_str *= "($(j-1),$(i-1)):$(get_prop(g, i, j, :label)),"
+    end
+    edge_label_str = "{" * edge_label_str * "}"
+    return edge_label_str
 end;
 
 # ╔═╡ 121ae0ca-978f-4043-92b1-a7252dc07c28
@@ -217,16 +215,16 @@ md"""
 
 # ╔═╡ 2f36aab7-7697-44f6-b8f2-7a37d2209c37
 function grakel_graph(g::MetaGraph)::String
-	graph_str = "grakel.Graph("
-	graph_str *= grakel_adj_mat(g)
-	graph_str *= ","
-	graph_str *= "node_labels=" 
-	graph_str *= grakel_node_labels(g) 
-	graph_str *= ","
-	graph_str *= "edge_labels="
-	graph_str *= grakel_edge_labels(g)
-	graph_str *= ")"
-	return graph_str
+    graph_str = "grakel.Graph("
+    graph_str *= grakel_adj_mat(g)
+    graph_str *= ","
+    graph_str *= "node_labels="
+    graph_str *= grakel_node_labels(g)
+    graph_str *= ","
+    graph_str *= "edge_labels="
+    graph_str *= grakel_edge_labels(g)
+    graph_str *= ")"
+    return graph_str
 end;
 
 # ╔═╡ 0af46daf-165e-4275-a0a2-b05ae34522a0
@@ -236,20 +234,20 @@ md"""
 
 # ╔═╡ bfff619e-632f-4a42-abfb-e12cce82aab9
 function grakel_script(g₁::MetaGraph, g₂::MetaGraph, kernel::String, n::Int)::Vector{String}
-	script_str = String[]
-	push!(script_str, "import time")
-	push!(script_str, "import grakel")
-	push!(script_str, "g1=$(grakel_graph(g₁))")
-	push!(script_str, "g2=$(grakel_graph(g₂))")
-	push!(script_str, "kernel=grakel.$kernel")
-	push!(script_str, "n=$n")
-	push!(script_str, "tic = time.time()")
-	push!(script_str, "for i in range(n):")
-	push!(script_str, "\tkernel.fit([g1])")
-	push!(script_str, "\tkernel.transform([g2])")
-	push!(script_str, "btime=(time.time()-tic)/n")
-	push!(script_str, "print(btime, kernel.transform([g2])[0][0])")
-	return script_str
+    script_str = String[]
+    push!(script_str, "import time")
+    push!(script_str, "import grakel")
+    push!(script_str, "g1=$(grakel_graph(g₁))")
+    push!(script_str, "g2=$(grakel_graph(g₂))")
+    push!(script_str, "kernel=grakel.$kernel")
+    push!(script_str, "n=$n")
+    push!(script_str, "tic = time.time()")
+    push!(script_str, "for i in range(n):")
+    push!(script_str, "\tkernel.fit([g1])")
+    push!(script_str, "\tkernel.transform([g2])")
+    push!(script_str, "btime=(time.time()-tic)/n")
+    push!(script_str, "print(btime, kernel.transform([g2])[0][0])")
+    return script_str
 end;
 
 # ╔═╡ 1cdf885f-3c9b-4ef3-ab27-80e50f29aef2
@@ -266,21 +264,21 @@ md"""
 """
 
 # ╔═╡ 716b38b3-80f2-4ed0-9140-f446740642b0
-function grakel_compute(g₁, g₂, kernel; n::Int=1000)::Tuple{Float64,Float64}
-	script = grakel_script(g₁, g₂, kernel, n)
-	file = tempname()
-	open(file, "w") do f
-		write.(f, script .* ["\n"])
-	end
-	printed = IOCapture.capture() do
-		run(Cmd([
-			"python3"
-			file
-		]))
-	end.output
-	t, v = parse.(Float64, split(printed))
-	return t, v
-		end;
+function grakel_compute(g₁, g₂, kernel; n::Int=1000)::Tuple{Float64, Float64}
+    script = grakel_script(g₁, g₂, kernel, n)
+    file = tempname()
+    open(file, "w") do f
+        return write.(f, script .* ["\n"])
+    end
+    printed = IOCapture.capture() do
+        return run(Cmd([
+            "python3"
+            file
+        ]))
+    end.output
+    t, v = parse.(Float64, split(printed))
+    return t, v
+end;
 
 # ╔═╡ 4a4f168a-c277-4292-88bc-85b5b7d4205c
 md"""
@@ -447,10 +445,21 @@ md"""
 """
 
 # ╔═╡ 6cb9bef0-423a-42d5-9474-1faa2eb4b6b5
-println.(grakel_script(g₁, g₂, "SubgraphMatching(k=999, lw='uniform', ke=lambda e: 1, kv=lambda v: 1)", 1000));
+println.(
+    grakel_script(
+        g₁,
+        g₂,
+        "SubgraphMatching(k=999, lw='uniform', ke=lambda e: 1, kv=lambda v: 1)",
+        1000
+    )
+);
 
 # ╔═╡ c06de19a-282e-4de5-b15c-2702ef1daaf7
-grakel_compute(g₁, g₂, "SubgraphMatching(k=999, lw='uniform', ke=lambda e: 1, kv=lambda v: 1)")
+grakel_compute(
+    g₁,
+    g₂,
+    "SubgraphMatching(k=999, lw='uniform', ke=lambda e: 1, kv=lambda v: 1)"
+)
 
 # ╔═╡ b8a45a85-f208-49cd-80ec-9dc70e36fae9
 md"""
@@ -458,10 +467,15 @@ md"""
 """
 
 # ╔═╡ e110a84a-ae84-4145-af12-24cfe74d41e7
-graphs = MetaGraph.(smilestomol.([
-	"Oc1c(c(O)cc(c1)CCCCC)[C@@H]2\\C=C(/CC[C@H]2\\C(=C)C)C" # cannabidiol
-	"Oc1cc(cc(O)c1C/C=C(\\C)CC\\C=C(/C)C)CCCCC" # cannabigerol
-]))
+graphs =
+    MetaGraph.(
+        smilestomol.(
+            [
+                "Oc1c(c(O)cc(c1)CCCCC)[C@@H]2\\C=C(/CC[C@H]2\\C(=C)C)C" # cannabidiol
+                "Oc1cc(cc(O)c1C/C=C(\\C)CC\\C=C(/C)C)CCCCC" # cannabigerol
+            ]
+        )
+    )
 
 # ╔═╡ 5c892fd7-8a8b-4f31-8a7c-2f5a1279915e
 grakel_compute(graphs[1], graphs[2], "SubgraphMatching(k=999, lw='uniform')")

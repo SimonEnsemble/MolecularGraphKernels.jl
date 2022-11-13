@@ -5,13 +5,14 @@ using Markdown
 using InteractiveUtils
 
 # ╔═╡ e34f2ac8-6085-11ed-3b82-2111bcdccdb6
-using BenchmarkTools, Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, ProfileCanvas
+using BenchmarkTools,
+    Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, ProfileCanvas
 
 # ╔═╡ e9a89585-56cb-45d6-9190-5b57d5757986
 begin
-	import Graphs: is_directed
-	Graphs.is_directed(::ProductGraph{Modular, Float64}) = false
-	Graphs.is_directed(::Type{ProductGraph{Modular, Float64}}) = false
+    import Graphs: is_directed
+    Graphs.is_directed(::ProductGraph{Modular, Float64}) = false
+    Graphs.is_directed(::Type{ProductGraph{Modular, Float64}}) = false
 end
 
 # ╔═╡ 2f45f704-36a8-4e38-98a0-12b97038ccff
@@ -24,58 +25,58 @@ g₂ = MetaGraph(smilestomol("CN(CO)CO"))
 mpg = ProductGraph{Modular}(g₁, g₂)
 
 # ╔═╡ 0f71d6b2-e331-43c3-bae2-addd8bcc9177
-function bkc_init(Gₚ::ProductGraph{<:Union{Modular, Weighted}}; λ::Function=_->1)::Int
-	function bkc_core(C::U, P::U, D::U, S::U) where U <: Set{Int}
-		value += λ(C)
-		if P == Set([]) && S == Set([])
-			return
-		else
-			for uᵢ in P
-				P = setdiff(P, uᵢ)
-				P′ = P
-				D′ = D
-				S′ = S
-				N = Set(neighbors(Gₚ, uᵢ))
-				for v in D′
-					if has_edge(Gₚ, uᵢ, v) && get_prop(Gₚ, uᵢ, v, :label) ≠ 0
-						if v ∈ T
-							S′ = S′ ∪ [v]
-						else
-							P′ = P′ ∪ [v]
-						end
-						D′ = setdiff(D′, [v])
-					end
-				end
-				bkc_core(C ∪ [uᵢ], P′ ∩ N, D′ ∩ N, S′ ∩ N)
-				S = S ∪ [uᵢ]
-			end
-		end
-	end
-	
-	value = 0
-	T = Set(Int[])
-	for u ∈ vertices(Gₚ)
-		P = Set(Int[])
-		D = Set(Int[])
-		S = Set(Int[])
-		N = Set(neighbors(Gₚ, u))
-		for v ∈ N
-			if get_prop(Gₚ, u, v, :label) ≠ 0
-				if v ∈ T
-					S = S ∪ [v]
-				else
-					P = P ∪ [v]
-				end
-			else
-				if get_prop(Gₚ, u, v, :label) == 0
-					D = D ∪ [v]
-				end
-			end
-		end
-		bkc_core(Set([u]), P, D, S)
-		T = T ∪ [u]
-	end
-	return value
+function bkc_init(Gₚ::ProductGraph{<:Union{Modular, Weighted}}; λ::Function=_ -> 1)::Int
+    function bkc_core(C::U, P::U, D::U, S::U) where {U <: Set{Int}}
+        value += λ(C)
+        if P == Set([]) && S == Set([])
+            return
+        else
+            for uᵢ in P
+                P = setdiff(P, uᵢ)
+                P′ = P
+                D′ = D
+                S′ = S
+                N = Set(neighbors(Gₚ, uᵢ))
+                for v in D′
+                    if has_edge(Gₚ, uᵢ, v) && get_prop(Gₚ, uᵢ, v, :label) ≠ 0
+                        if v ∈ T
+                            S′ = S′ ∪ [v]
+                        else
+                            P′ = P′ ∪ [v]
+                        end
+                        D′ = setdiff(D′, [v])
+                    end
+                end
+                bkc_core(C ∪ [uᵢ], P′ ∩ N, D′ ∩ N, S′ ∩ N)
+                S = S ∪ [uᵢ]
+            end
+        end
+    end
+
+    value = 0
+    T = Set(Int[])
+    for u in vertices(Gₚ)
+        P = Set(Int[])
+        D = Set(Int[])
+        S = Set(Int[])
+        N = Set(neighbors(Gₚ, u))
+        for v in N
+            if get_prop(Gₚ, u, v, :label) ≠ 0
+                if v ∈ T
+                    S = S ∪ [v]
+                else
+                    P = P ∪ [v]
+                end
+            else
+                if get_prop(Gₚ, u, v, :label) == 0
+                    D = D ∪ [v]
+                end
+            end
+        end
+        bkc_core(Set([u]), P, D, S)
+        T = T ∪ [u]
+    end
+    return value
 end
 
 # ╔═╡ c5095cef-2416-4fa9-818f-caface44b6af
@@ -85,78 +86,83 @@ viz_graph(MetaGraph(mpg))
 bkc_init(mpg)
 
 # ╔═╡ 2fa365db-1e5a-46c4-b5bf-315d2878e38b
-g₃, g₄ = MetaGraph.(smilestomol.([
-	"Oc1c(c(O)cc(c1)CCCCC)[C@@H]2\\C=C(/CC[C@H]2\\C(=C)C)C" # cannabidiol
-	"Oc1cc(cc(O)c1C/C=C(\\C)CC\\C=C(/C)C)CCCCC" # cannabigerol
-]))
+g₃, g₄ =
+    MetaGraph.(
+        smilestomol.(
+            [
+                "Oc1c(c(O)cc(c1)CCCCC)[C@@H]2\\C=C(/CC[C@H]2\\C(=C)C)C" # cannabidiol
+                "Oc1cc(cc(O)c1C/C=C(\\C)CC\\C=C(/C)C)CCCCC" # cannabigerol
+            ]
+        )
+    )
 
 # ╔═╡ 086ebeef-e3e0-4753-847b-82483a80311e
 @btime bkc_init(ProductGraph{Modular}(g₃, g₄))
 
 # ╔═╡ e5feca69-63d0-48d7-b55f-9915528e0646
-function bkc_csi(Gₚ::ProductGraph{<:Union{Modular, Weighted}}; λ::Function=_->1)::Int
-	function bkc_core(C::Vector{Int}, P::U, D::U, S::U) where U <: BitVector
-		value += λ(C)
-		if !any(P) && !any(S)
-			return
-		else
-			N = falses(n)
-			P′ = falses(n)
-			D′ = falses(n)
-			S′ = falses(n)
-			for uᵢ in findall(P)
-				P[uᵢ] = false
-				P′ .= P
-				D′ .= D
-				S′ .= S
-				N .= false
-				for v in neighbors(Gₚ, uᵢ)
-					N[v] = true
-				end
-				for v in findall(D′)
-					if has_edge(Gₚ, uᵢ, v) && get_prop(Gₚ, uᵢ, v, :label) ≠ 0
-						if T[v]
-							S′[v] = true
-						else
-							P′[v] = true
-						end
-						D′[v] = false
-					end
-				end
-				bkc_core(C ∪ [uᵢ], P′ .& N, D′ .& N, S′ .& N)
-				S[uᵢ] = true
-			end
-		end
-	end
-	
-	value = 0
-	n = nv(Gₚ)
-	T = falses(n)
-	P = falses(n)
-	D = falses(n)
-	S = falses(n)
-	for u ∈ vertices(Gₚ)
-		P .= false
-		D .= false
-		S .= false
-		N = neighbors(Gₚ, u)
-		for v ∈ N
-			if get_prop(Gₚ, u, v, :label) ≠ 0
-				if T[v]
-					S[v] = true
-				else
-					P[v] = true
-				end
-			else
-				if get_prop(Gₚ, u, v, :label) == 0
-					D[v] = true
-				end
-			end
-		end
-		bkc_core([u], P, D, S)
-		T[u] = true
-	end
-	return value
+function bkc_csi(Gₚ::ProductGraph{<:Union{Modular, Weighted}}; λ::Function=_ -> 1)::Int
+    function bkc_core(C::Vector{Int}, P::U, D::U, S::U) where {U <: BitVector}
+        value += λ(C)
+        if !any(P) && !any(S)
+            return
+        else
+            N = falses(n)
+            P′ = falses(n)
+            D′ = falses(n)
+            S′ = falses(n)
+            for uᵢ in findall(P)
+                P[uᵢ] = false
+                P′ .= P
+                D′ .= D
+                S′ .= S
+                N .= false
+                for v in neighbors(Gₚ, uᵢ)
+                    N[v] = true
+                end
+                for v in findall(D′)
+                    if has_edge(Gₚ, uᵢ, v) && get_prop(Gₚ, uᵢ, v, :label) ≠ 0
+                        if T[v]
+                            S′[v] = true
+                        else
+                            P′[v] = true
+                        end
+                        D′[v] = false
+                    end
+                end
+                bkc_core(C ∪ [uᵢ], P′ .& N, D′ .& N, S′ .& N)
+                S[uᵢ] = true
+            end
+        end
+    end
+
+    value = 0
+    n = nv(Gₚ)
+    T = falses(n)
+    P = falses(n)
+    D = falses(n)
+    S = falses(n)
+    for u in vertices(Gₚ)
+        P .= false
+        D .= false
+        S .= false
+        N = neighbors(Gₚ, u)
+        for v in N
+            if get_prop(Gₚ, u, v, :label) ≠ 0
+                if T[v]
+                    S[v] = true
+                else
+                    P[v] = true
+                end
+            else
+                if get_prop(Gₚ, u, v, :label) == 0
+                    D[v] = true
+                end
+            end
+        end
+        bkc_core([u], P, D, S)
+        T[u] = true
+    end
+    return value
 end
 
 # ╔═╡ 42bb4841-8d0d-4352-9ed4-d2a3c95f2f12

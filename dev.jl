@@ -164,39 +164,37 @@ d = common_subgraph_isomorphism(g₁, g₁; c_cliques=true, λ=length)
 
 # ╔═╡ 1bb00438-1e69-4f57-8adf-4765fbfb3825
 function extends_clique(Gₚ, C, v)
-	if C == []
-		return true
-	end
-	for u in C
-		if has_edge(Gₚ, u, v) && get_prop(Gₚ, u, v, :label) ≠ 0
-			return true
-		end
-	end
-	return false
+    if C == []
+        return true
+    end
+    for u in C
+        if has_edge(Gₚ, u, v) && get_prop(Gₚ, u, v, :label) ≠ 0
+            return true
+        end
+    end
+    return false
 end
 
 # ╔═╡ 7d4bbe58-76ca-42ac-9b29-04ed4b1037f6
 function test_algo(g₁, g₂)
-	value = 0
-	Gₚ = ProductGraph{Modular}(g₁, g₂)
-	Vₚ = collect(vertices(Gₚ))
+    value = 0
+    Gₚ = ProductGraph{Modular}(g₁, g₂)
+    Vₚ = collect(vertices(Gₚ))
 
-	function kernel(C, P)
-		while length(P) > 0
-			v = first(P)
-			if extends_clique(Gₚ, C, v)
-				C′ = union(C, v)
-				value += 1
-			else
-				C′ = C
-			end
-			kernel(C′, intersect(P, neighbors(Gₚ, v)))
-			P = setdiff(P, [v])
-		end
-	end
+    kernel(C, P) = while length(P) > 0
+            v = first(P)
+            if extends_clique(Gₚ, C, v)
+                C′ = union(C, v)
+                value += 1
+            else
+                C′ = C
+            end
+            kernel(C′, intersect(P, neighbors(Gₚ, v)))
+            P = setdiff(P, [v])
+        end
 
-	kernel([], Vₚ)
-	return value
+    kernel([], Vₚ)
+    return value
 end
 
 # ╔═╡ cd5831b7-9530-4f19-ac2f-1b9303624fe0
