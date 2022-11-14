@@ -6,7 +6,7 @@ using InteractiveUtils
 
 # ╔═╡ e34f2ac8-6085-11ed-3b82-2111bcdccdb6
 using BenchmarkTools,
-    Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, ProfileCanvas
+    Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, ProfileCanvas, SparseArrays
 
 # ╔═╡ e9a89585-56cb-45d6-9190-5b57d5757986
 begin
@@ -24,67 +24,6 @@ g₂ = MetaGraph(smilestomol("CN(CO)CO"))
 # ╔═╡ 10ddd07f-1b50-493d-abe8-9b10550d682e
 mpg = ProductGraph{Modular}(g₁, g₂)
 
-# ╔═╡ 0f71d6b2-e331-43c3-bae2-addd8bcc9177
-function bkc_init(Gₚ::ProductGraph{<:Union{Modular, Weighted}}; λ::Function=_ -> 1)::Int
-    function bkc_core(C::U, P::U, D::U, S::U) where {U <: Set{Int}}
-        value += λ(C)
-        if P == Set([]) && S == Set([])
-            return
-        else
-            for uᵢ in P
-                P = setdiff(P, uᵢ)
-                P′ = P
-                D′ = D
-                S′ = S
-                N = Set(neighbors(Gₚ, uᵢ))
-                for v in D′
-                    if has_edge(Gₚ, uᵢ, v) && get_prop(Gₚ, uᵢ, v, :label) ≠ 0
-                        if v ∈ T
-                            S′ = S′ ∪ [v]
-                        else
-                            P′ = P′ ∪ [v]
-                        end
-                        D′ = setdiff(D′, [v])
-                    end
-                end
-                bkc_core(C ∪ [uᵢ], P′ ∩ N, D′ ∩ N, S′ ∩ N)
-                S = S ∪ [uᵢ]
-            end
-        end
-    end
-
-    value = 0
-    T = Set(Int[])
-    for u in vertices(Gₚ)
-        P = Set(Int[])
-        D = Set(Int[])
-        S = Set(Int[])
-        N = Set(neighbors(Gₚ, u))
-        for v in N
-            if get_prop(Gₚ, u, v, :label) ≠ 0
-                if v ∈ T
-                    S = S ∪ [v]
-                else
-                    P = P ∪ [v]
-                end
-            else
-                if get_prop(Gₚ, u, v, :label) == 0
-                    D = D ∪ [v]
-                end
-            end
-        end
-        bkc_core(Set([u]), P, D, S)
-        T = T ∪ [u]
-    end
-    return value
-end
-
-# ╔═╡ c5095cef-2416-4fa9-818f-caface44b6af
-viz_graph(MetaGraph(mpg))
-
-# ╔═╡ d1aaa9b0-1556-4776-8753-df83e3ab6822
-bkc_init(mpg)
-
 # ╔═╡ 2fa365db-1e5a-46c4-b5bf-315d2878e38b
 g₃, g₄ =
     MetaGraph.(
@@ -96,83 +35,113 @@ g₃, g₄ =
         )
     )
 
-# ╔═╡ 086ebeef-e3e0-4753-847b-82483a80311e
-@btime bkc_init(ProductGraph{Modular}(g₃, g₄))
-
-# ╔═╡ e5feca69-63d0-48d7-b55f-9915528e0646
-function bkc_csi(Gₚ::ProductGraph{<:Union{Modular, Weighted}}; λ::Function=_ -> 1)::Int
-    function bkc_core(C::Vector{Int}, P::U, D::U, S::U) where {U <: BitVector}
-        value += λ(C)
-        if !any(P) && !any(S)
-            return
-        else
-            N = falses(n)
-            P′ = falses(n)
-            D′ = falses(n)
-            S′ = falses(n)
-            for uᵢ in findall(P)
-                P[uᵢ] = false
-                P′ .= P
-                D′ .= D
-                S′ .= S
-                N .= false
-                for v in neighbors(Gₚ, uᵢ)
-                    N[v] = true
-                end
-                for v in findall(D′)
-                    if has_edge(Gₚ, uᵢ, v) && get_prop(Gₚ, uᵢ, v, :label) ≠ 0
-                        if T[v]
-                            S′[v] = true
-                        else
-                            P′[v] = true
-                        end
-                        D′[v] = false
-                    end
-                end
-                bkc_core(C ∪ [uᵢ], P′ .& N, D′ .& N, S′ .& N)
-                S[uᵢ] = true
-            end
-        end
-    end
-
-    value = 0
-    n = nv(Gₚ)
-    T = falses(n)
-    P = falses(n)
-    D = falses(n)
-    S = falses(n)
-    for u in vertices(Gₚ)
-        P .= false
-        D .= false
-        S .= false
-        N = neighbors(Gₚ, u)
-        for v in N
-            if get_prop(Gₚ, u, v, :label) ≠ 0
-                if T[v]
-                    S[v] = true
-                else
-                    P[v] = true
-                end
-            else
-                if get_prop(Gₚ, u, v, :label) == 0
-                    D[v] = true
-                end
-            end
-        end
-        bkc_core([u], P, D, S)
-        T[u] = true
-    end
-    return value
+# ╔═╡ 7b525f7e-cc83-4225-a3da-97579bad6a5d
+function mpg_adj_mat(mpg::ProductGraph{Modular})::Matrix{Int}
+	A = zeros(Int, nv(mpg), nv(mpg))
+	for edge in edges(mpg)
+		p = get_prop(mpg, edge, :label)
+		@inbounds A[src(edge), dst(edge)] = p == 0 ? -2 : p
+	end
+	return A + A'
 end
 
-# ╔═╡ 42bb4841-8d0d-4352-9ed4-d2a3c95f2f12
-bkc_csi(ProductGraph{Modular}(g₁, g₂))
+# ╔═╡ ea4ee36e-ee00-4d6b-a00b-47aded819429
+mpg_adj_mat(mpg)
+
+# ╔═╡ 114fdce4-64b7-4a8f-8c11-d28e40dc94f5
+begin
+	struct GraphMatrix{U <: AbstractGraph, T <: Real} <: AbstractMatrix{T}
+		size::Tuple{Int, Int}
+	end
+	
+	GraphMatrix(g::MetaGraph) = GraphMatrix{MetaGraph, Float64}((nv(g), nv(g)))
+
+	import Base: getindex, size
+	Base.getindex(g::GraphMatrix{MetaGraph, Float64}, i...) = i
+	Base.size(g::GraphMatrix) = g.size
+end;
+
+# ╔═╡ e5feca69-63d0-48d7-b55f-9915528e0646
+begin
+	function bkc_csi(M::Matrix{Int}; λ::Function=_ -> 1)::Int
+	    function bkc_core(C::Vector{Int}, P::U, D::U, S::U) where {U <: BitVector}
+	        value += λ(C)
+	        if !any(P) && !any(S)
+	            return
+	        else
+	            N = falses(n)
+	            P′ = falses(n)
+	            D′ = falses(n)
+	            S′ = falses(n)
+	            for uᵢ in findall(P)
+	                @inbounds P[uᵢ] = false
+	                P′ .= P
+	                D′ .= D
+	                S′ .= S
+	                N .= false
+	                @inbounds for v in findall(M[:, uᵢ] .≠ 0)
+	                    N[v] = true
+	                end
+	                for v in findall(D′)
+	                    @inbounds if M[uᵢ, v] ≠ 0 && M[uᵢ, v] ≠ -2
+	                        @inbounds if T[v]
+	                            @inbounds S′[v] = true
+	                        else
+	                            @inbounds P′[v] = true
+	                        end
+	                        @inbounds D′[v] = false
+	                    end
+	                end
+	                bkc_core(C ∪ [uᵢ], P′ .& N, D′ .& N, S′ .& N)
+	                @inbounds S[uᵢ] = true
+	            end
+	        end
+	    end
+	
+	    value = 0
+	    n = size(M, 1)
+	    T = falses(n)
+	    P = falses(n)
+	    D = falses(n)
+	    S = falses(n)
+	    for u in 1:n
+	        P .= false
+	        D .= false
+	        S .= false
+	        @inbounds for v in findall(M[:, u] .≠ 0)
+	            @inbounds if M[u, v] ≠ -2
+	                @inbounds if T[v]
+	                    @inbounds S[v] = true
+	                else
+	                    @inbounds P[v] = true
+	                end
+	            else
+	                @inbounds D[v] = true
+	            end
+	        end
+	        bkc_core([u], P, D, S)
+	        @inbounds T[u] = true
+	    end
+	    return value
+	end
+	
+	bkc_csi(Gₚ::ProductGraph{<:Union{Modular, Weighted}}; kwargs...) = bkc_csi(mpg_adj_mat(Gₚ); kwargs...)
+end
+
+# ╔═╡ 31844d8f-5e2e-417c-b8f8-be69e4d6875e
+@assert bkc_csi(ProductGraph{Modular}(g₃, g₄)) == 6205
 
 # ╔═╡ 6211678d-9563-4684-90cf-b2b50acb84ed
 @btime bkc_csi(ProductGraph{Modular}(g₃, g₄))
 
 # ╔═╡ 75b3a8b9-a25f-4d50-b30e-db57eb8f1205
 @profview bkc_csi(ProductGraph{Modular}(g₃, g₄))
+
+# ╔═╡ de12f397-c1ca-4399-bfa0-ace26c99df38
+GraphMatrix(g₁)
+
+# ╔═╡ d6ae5f82-0d5f-4429-87ea-9b391e47b7a0
+GraphMatrix(mpg)
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
 PLUTO_PROJECT_TOML_CONTENTS = """
@@ -183,6 +152,7 @@ MetaGraphs = "626554b9-1ddb-594c-aa3c-2596fe9399a5"
 MolecularGraph = "6c89ec66-9cd8-5372-9f91-fabc50dd27fd"
 MolecularGraphKernels = "bf3818bd-b6bb-4954-8baa-32c32282e633"
 ProfileCanvas = "efd6af41-a80b-495e-886c-e51b0c7d77a3"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
 BenchmarkTools = "~1.3.2"
@@ -199,7 +169,7 @@ PLUTO_MANIFEST_TOML_CONTENTS = """
 
 julia_version = "1.8.2"
 manifest_format = "2.0"
-project_hash = "6741936025e6d820035c53a3e28e5a4dc148508e"
+project_hash = "93d4e099fc87c449f1086bbb3a47377217ad8e99"
 
 [[deps.Aqua]]
 deps = ["Compat", "Pkg", "Test"]
@@ -894,14 +864,15 @@ version = "17.4.0+0"
 # ╠═2f45f704-36a8-4e38-98a0-12b97038ccff
 # ╠═c6856aad-f4fd-4f41-83f5-5a8729e7fd43
 # ╠═10ddd07f-1b50-493d-abe8-9b10550d682e
-# ╠═0f71d6b2-e331-43c3-bae2-addd8bcc9177
-# ╠═c5095cef-2416-4fa9-818f-caface44b6af
-# ╠═d1aaa9b0-1556-4776-8753-df83e3ab6822
 # ╠═2fa365db-1e5a-46c4-b5bf-315d2878e38b
-# ╠═086ebeef-e3e0-4753-847b-82483a80311e
+# ╠═7b525f7e-cc83-4225-a3da-97579bad6a5d
+# ╠═ea4ee36e-ee00-4d6b-a00b-47aded819429
 # ╠═e5feca69-63d0-48d7-b55f-9915528e0646
-# ╠═42bb4841-8d0d-4352-9ed4-d2a3c95f2f12
+# ╠═31844d8f-5e2e-417c-b8f8-be69e4d6875e
 # ╠═6211678d-9563-4684-90cf-b2b50acb84ed
 # ╠═75b3a8b9-a25f-4d50-b30e-db57eb8f1205
+# ╠═114fdce4-64b7-4a8f-8c11-d28e40dc94f5
+# ╠═de12f397-c1ca-4399-bfa0-ace26c99df38
+# ╠═d6ae5f82-0d5f-4429-87ea-9b391e47b7a0
 # ╟─00000000-0000-0000-0000-000000000001
 # ╟─00000000-0000-0000-0000-000000000002
