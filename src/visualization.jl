@@ -1,5 +1,6 @@
 Base.@kwdef struct VizGraphKwargs
     savename::String = ""
+    savedims_cm::Tuple{Float64, Float64} = (12.0, 12.0) # units: cm
     C::Float64 = 0.1
     layout_style::Symbol = :spring
     node_alpha_mask::Vector{S} where {S <: Real}
@@ -10,7 +11,7 @@ function VizGraphKwargs(mol::GraphMol; kwargs...)
     return VizGraphKwargs(;
         node_alpha_mask=ones(length(mol.nodeattrs)),
         edge_alpha_mask=ones(length(mol.edgeattrs)),
-        layout_style=:graphmol,
+        layout_style=:molecular,
         kwargs...
     )
 end
@@ -75,14 +76,14 @@ function select_graph_layout(layout_style::Symbol, C::Float64)
         circular_layout(args...)
     elseif layout_style == :spectral
         spectral_layout(args...)
-    elseif layout_style == :graphmol
-        molecule_layout(args...)
+    elseif layout_style == :molecular
+        molecular_layout(args...)
     else
         error("Invalid layout style: ", layout_style)
     end
 end
 
-function molecule_layout(
+function molecular_layout(
     g::MetaGraph{Int, Float64}
 )::Tuple{Vector{Float64}, Vector{Float64}}
     coords = zeros(2, nv(g))
@@ -172,7 +173,11 @@ function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
     )
 
     if opt.savename ≠ ""
-        draw(PDF(opt.savename * ".pdf", 13cm, 13cm), plot)
+        the_savename = opt.savename
+        if split(the_savename, ".")[end] != "pdf"
+            the_savename *= ".pdf"
+        end
+        draw(PDF(the_savename, opt.savedims_cm[1] * 1cm, opt.savedims_cm[2] * 1cm), plot)
     end
 
     return plot
