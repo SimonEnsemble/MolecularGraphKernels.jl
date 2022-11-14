@@ -65,7 +65,8 @@ function ProductGraph{T}(
     return product_graph(T, g₁, g₂)
 end
 
-is_directed(::ProductGraph) = false
+Graphs.is_directed(::ProductGraph) = false
+Graphs.is_directed(::Type{<:ProductGraph}) = false
 
 weighttype(::ProductGraph) = Int
 

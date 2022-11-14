@@ -36,7 +36,7 @@ include.(
     [
         "ProductGraph.jl"
         "graph_products.jl"
-        "graph_kernels.jl"
+        "kernels.jl"
         "visualization.jl"
         "graph_conversion.jl"
         "check_isom.jl"
@@ -63,8 +63,7 @@ export
 
     # graph_kernels.jl
     random_walk,
-    common_subgraph_isomorphism,
-    subgraph_matching,
+    ccsi,
 
     # graph_conversion.jl
     MetaGraph,
