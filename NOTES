@@ -1,0 +1,10 @@
+GraphMatrix type for dispatching on efficient graph representations
+This is basically like what Grakel does... but better UX
+
+Each AbstractProductGraph type T needs to have a corresponding constructor:
+    GraphMatrix{T}(::AbstractGraph, AbstractGraph)
+
+Eventually, change the fundamental type from AbstractGraph to GraphMatrix.
+The idea is to convert all molecular graphs to their GraphMatrix representations
+before calculating product graphs (this should be most efficient for computing
+Gram matrices)

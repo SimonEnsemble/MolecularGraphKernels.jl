@@ -39,7 +39,7 @@ using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
     @testset "ProductGraph to adjacency matrix" begin
         @test is_isomorphic(
             adjacency_matrix(ProductGraph{Direct}(A, B)),
-            product_graph_adjacency_matrix(Direct, A, B)
+            GraphMatrix{Direct}(A, B)
         )
     end
 end

@@ -48,17 +48,26 @@ end
 # ╔═╡ ea4ee36e-ee00-4d6b-a00b-47aded819429
 mpg_adj_mat(mpg)
 
+# ╔═╡ 6211678d-9563-4684-90cf-b2b50acb84ed
+@assert eval(quote @btime bkc_csi(ProductGraph{Modular}(g₃, g₄)) end) == 6205
+
 # ╔═╡ 114fdce4-64b7-4a8f-8c11-d28e40dc94f5
 begin
 	struct GraphMatrix{U <: AbstractGraph, T <: Real} <: AbstractMatrix{T}
-		size::Tuple{Int, Int}
+		matrix::Matrix{T}
 	end
 	
-	GraphMatrix(g::MetaGraph) = GraphMatrix{MetaGraph, Float64}((nv(g), nv(g)))
+	function GraphMatrix(g::AbstractGraph)
+		matrix = zeros(typeof(g.defaultweight), nv(g), nv(g))
+		for edge in edges(g)
+			matrix[src(edge), dst(edge)] = get_prop(g, edge, :label)
+		end
+		return GraphMatrix{typeof(g), Float64}(matrix + matrix')
+	end
 
 	import Base: getindex, size
-	Base.getindex(g::GraphMatrix{MetaGraph, Float64}, i...) = i
-	Base.size(g::GraphMatrix) = g.size
+	Base.getindex(g::GraphMatrix, i...) = g.matrix[i...]
+	Base.size(g::GraphMatrix) = size(g.matrix)
 end;
 
 # ╔═╡ e5feca69-63d0-48d7-b55f-9915528e0646
@@ -127,12 +136,6 @@ begin
 	
 	bkc_csi(Gₚ::ProductGraph{<:Union{Modular, Weighted}}; kwargs...) = bkc_csi(mpg_adj_mat(Gₚ); kwargs...)
 end
-
-# ╔═╡ 31844d8f-5e2e-417c-b8f8-be69e4d6875e
-@assert bkc_csi(ProductGraph{Modular}(g₃, g₄)) == 6205
-
-# ╔═╡ 6211678d-9563-4684-90cf-b2b50acb84ed
-@btime bkc_csi(ProductGraph{Modular}(g₃, g₄))
 
 # ╔═╡ 75b3a8b9-a25f-4d50-b30e-db57eb8f1205
 @profview bkc_csi(ProductGraph{Modular}(g₃, g₄))
@@ -868,7 +871,6 @@ version = "17.4.0+0"
 # ╠═7b525f7e-cc83-4225-a3da-97579bad6a5d
 # ╠═ea4ee36e-ee00-4d6b-a00b-47aded819429
 # ╠═e5feca69-63d0-48d7-b55f-9915528e0646
-# ╠═31844d8f-5e2e-417c-b8f8-be69e4d6875e
 # ╠═6211678d-9563-4684-90cf-b2b50acb84ed
 # ╠═75b3a8b9-a25f-4d50-b30e-db57eb8f1205
 # ╠═114fdce4-64b7-4a8f-8c11-d28e40dc94f5

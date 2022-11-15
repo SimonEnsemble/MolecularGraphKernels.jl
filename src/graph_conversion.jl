@@ -62,3 +62,5 @@ function MetaGraph(g::T) where {T <: ProductGraph}
         g.indices
     )
 end
+
+export MetaGraph

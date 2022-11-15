@@ -32,7 +32,7 @@ using MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
         g₂ = MetaGraph(smilestomol("O=C1[C@H](C)[C@@H]2[C@](C(C)C)(C1)C2"))
         for type in [Modular, Direct]
             @test is_isomorphic(
-                product_graph_adjacency_matrix(type, g₁, g₂),
+                GraphMatrix{type}(g₁, g₂),
                 ProductGraph{type}(g₁, g₂)
             )
         end

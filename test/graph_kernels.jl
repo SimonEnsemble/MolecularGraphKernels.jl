@@ -6,7 +6,7 @@ using MolecularGraph, MolecularGraphKernels, Test
     @testset "Random Walk" begin
         g₁, g₂ = smilestomol.(["NC=O", "CN(C=O)C=O"])
         l = 4
-        x = random_walk(product_graph_adjacency_matrix(Direct, g₁, g₂); l=l)
+        x = random_walk(GraphMatrix{Direct}(g₁, g₂); l=l)
         @test x == 74
         @test x == random_walk(ProductGraph{Direct}(g₁, g₂); l=l)
         @test x == random_walk(g₁, g₂; l=l)

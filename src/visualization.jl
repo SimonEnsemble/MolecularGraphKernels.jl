@@ -182,3 +182,5 @@ function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
 
     return plot
 end
+
+export viz_graph

@@ -79,3 +79,5 @@ end
 function ccsi(A::Union{AbstractMetaGraph, GraphMol}, B::GraphMol; kwargs...)::Int
     return ccsi(A, MetaGraph(B); kwargs...)
 end
+
+export ccsi
