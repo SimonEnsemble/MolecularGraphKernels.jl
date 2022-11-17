@@ -11,16 +11,15 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
     P  = falses(n)
     D  = falses(n)
     S  = falses(n)
-    Cₒ = falses(n)
+    Cₒ = [0]
     # algorithm registers (recursive)
-    N  = falses(n)
+    N = falses(n)
     P′ = falses(n)
     D′ = falses(n)
     S′ = falses(n)
-    C′ = falses(n)
 
-    function bkc_core(C::U, P::U, D::U, S::U) where {U <: BitVector}
-        value += λ(findall(C))
+    function bkc_core(C::Vector{Int}, P::U, D::U, S::U) where {U <: BitVector}
+        value += λ(C)
         if !any(P) && !any(S)
             return
         else
@@ -29,7 +28,6 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
                 P′ .= P
                 D′ .= D
                 S′ .= S
-                C′ .= C
                 N .= false
                 @inbounds for v in findall(M[:, uᵢ] .≠ 0)
                     N[v] = true
@@ -44,11 +42,7 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
                         @inbounds D′[v] = false
                     end
                 end
-                @inbounds C′[uᵢ] = true
-                P′ .= P′ .& N
-                D′ .= D′ .& N
-                S′ .= S′ .& N
-                bkc_core(C′, P′, D′, S′)
+                bkc_core(C ∪ [uᵢ], P′ .& N, D′ .& N, S′ .& N)
                 @inbounds S[uᵢ] = true
             end
         end
@@ -58,7 +52,6 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
         P .= false
         D .= false
         S .= false
-        Cₒ .= false
         @inbounds for v in findall(M[:, u] .≠ 0)
             @inbounds if M[u, v] ≠ D_EDGE
                 @inbounds if T[v]
@@ -70,7 +63,7 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
                 @inbounds D[v] = true
             end
         end
-        @inbounds Cₒ[u] = true
+        @inbounds Cₒ[1] = u
         bkc_core(Cₒ, P, D, S)
         @inbounds T[u] = true
     end
