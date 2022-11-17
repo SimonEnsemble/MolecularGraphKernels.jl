@@ -2,20 +2,34 @@
 computes the Subgraph Matching kernel on product graph Gₚ with weight function λ
 """
 function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
-    function bkc_core(C::Vector{Int}, P::U, D::U, S::U) where {U <: BitVector}
-        value += λ(C)
+    # kernel output value
+    value = 0
+    # size (nodes) of product graph
+    n = size(M, 1)
+    # algorithm registers (top-level)
+    T  = falses(n)
+    P  = falses(n)
+    D  = falses(n)
+    S  = falses(n)
+    Cₒ = falses(n)
+    # algorithm registers (recursive)
+    N  = falses(n)
+    P′ = falses(n)
+    D′ = falses(n)
+    S′ = falses(n)
+    C′ = falses(n)
+
+    function bkc_core(C::U, P::U, D::U, S::U) where {U <: BitVector}
+        value += λ(findall(C))
         if !any(P) && !any(S)
             return
         else
-            N = falses(n)
-            P′ = falses(n)
-            D′ = falses(n)
-            S′ = falses(n)
             for uᵢ in findall(P)
                 @inbounds P[uᵢ] = false
                 P′ .= P
                 D′ .= D
                 S′ .= S
+                C′ .= C
                 N .= false
                 @inbounds for v in findall(M[:, uᵢ] .≠ 0)
                     N[v] = true
@@ -30,23 +44,21 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
                         @inbounds D′[v] = false
                     end
                 end
-                bkc_core(C ∪ [uᵢ], P′ .& N, D′ .& N, S′ .& N)
+                @inbounds C′[uᵢ] = true
+                P′ .= P′ .& N
+                D′ .= D′ .& N
+                S′ .= S′ .& N
+                bkc_core(C′, P′, D′, S′)
                 @inbounds S[uᵢ] = true
             end
         end
     end
 
-    value = 0
-    n = size(M, 1)
-    T = falses(n)
-    P = falses(n)
-    D = falses(n)
-    S = falses(n)
-    Cₒ = [0]
     for u in 1:n
         P .= false
         D .= false
         S .= false
+        Cₒ .= false
         @inbounds for v in findall(M[:, u] .≠ 0)
             @inbounds if M[u, v] ≠ D_EDGE
                 @inbounds if T[v]
@@ -58,7 +70,7 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
                 @inbounds D[v] = true
             end
         end
-        @inbounds Cₒ[1] = u
+        @inbounds Cₒ[u] = true
         bkc_core(Cₒ, P, D, S)
         @inbounds T[u] = true
     end
