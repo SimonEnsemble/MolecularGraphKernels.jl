@@ -1,3 +1,6 @@
+# definition for how d-type edges will be labeled
+const D_EDGE = -2
+
 """
 applies the modular product graph adjacency matrix marking rules: common adjacency (a.k.a. the direct product graph rule) and common non-adjacency
 """
@@ -30,7 +33,7 @@ end
 return the appropriate label for an edge in a product graph given its type
 """
 function product_graph_edge_label(::Type{Modular}, g₁::MetaGraph, u₁::Int, v₁::Int)
-    return has_edge(g₁, u₁, v₁) ? get_prop(g₁, u₁, v₁, :label) : 0
+    return has_edge(g₁, u₁, v₁) ? get_prop(g₁, u₁, v₁, :label) : D_EDGE
 end
 
 GraphMatrix{Modular}(g₁::MetaGraph, g₂::MetaGraph) = 

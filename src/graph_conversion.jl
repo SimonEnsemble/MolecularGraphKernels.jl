@@ -35,7 +35,7 @@ converts a modular product graph into the corresponding direct product graph
 function ProductGraph{Direct}(fpg::ProductGraph{Modular})::ProductGraph{Direct}
     dpg = ProductGraph{Direct}(fpg.graph)
     for e in edges(fpg)
-        if get_prop(fpg, e, :label) == 0
+        if get_prop(fpg, e, :label) == D_EDGE
             rem_edge!(dpg, e)
         end
     end

@@ -54,8 +54,8 @@ end
     add_edge!(g₁xg₂, 1, 2, Dict(:label => 1))
     add_edge!(g₁xg₂, 1, 3, Dict(:label => 1))
     add_edge!(g₁xg₂, 1, 4, Dict(:label => 1))
-    add_edge!(g₁xg₂, 1, 5, Dict(:label => 0)) # non-adj
-    add_edge!(g₁xg₂, 1, 6, Dict(:label => 0)) # non-adj
+    add_edge!(g₁xg₂, 1, 5, Dict(:label => -2)) # non-adj
+    add_edge!(g₁xg₂, 1, 6, Dict(:label => -2)) # non-adj
     add_edge!(g₁xg₂, 5, 2, Dict(:label => 2))
     add_edge!(g₁xg₂, 6, 4, Dict(:label => 2))
 
