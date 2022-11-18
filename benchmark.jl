@@ -35,8 +35,17 @@ t = capture.output
 
 @info "Product Graph: $t"
 
+capture = IOCapture.capture() do
+    return eval(quote @btime GraphMatrix(mpg) end)
+end
+
+M = capture.value
+t = capture.output
+
+@info "Matrix Conversion: $t"
+
 capture = IOCapture.capture() do 
-    return eval(quote @btime ccsi(mpg) end)
+    return eval(quote @btime ccsi(M) end)
 end
 
 k = capture.value
