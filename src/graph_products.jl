@@ -37,9 +37,7 @@ end
 """
 map w ∈ g₁ x g₂ ↦ (v₁ ∈ g₁, v₂ ∈ g₂)
 """
-function build_w_to_v₁v₂_pair_map(
-    v₁v₂_pair_to_w::Matrix{Int}
-)::Vector{Tuple{Int, Int}}
+function build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w::Matrix{Int})::Vector{Tuple{Int, Int}}
     v₁v₂_pairs = findall(!iszero, v₁v₂_pair_to_w) # vector of CartesianIndices
     return [(w[1], w[2]) for w in v₁v₂_pairs] # vector of tuples
 end

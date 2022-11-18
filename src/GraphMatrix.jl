@@ -1,4 +1,5 @@
-struct GraphMatrix{U <: Union{AbstractGraph, AbstractProductGraph}, T <: Real} <: AbstractMatrix{T}
+struct GraphMatrix{U <: Union{AbstractGraph, AbstractProductGraph}, T <: Real} <:
+       AbstractMatrix{T}
     matrix::Matrix{T}
 end
 
@@ -16,17 +17,11 @@ end
 
 GraphMatrix{T}(M::AbstractMatrix{U}) where {T, U} = GraphMatrix{T, U}(M)
 
-function GraphMatrix{T}(
-    g₁::AbstractGraph,
-    g₂::GraphMol
-) where T
+function GraphMatrix{T}(g₁::AbstractGraph, g₂::GraphMol) where {T}
     return GraphMatrix{T}(g₁, MetaGraph(g₂))
 end
 
-function GraphMatrix{T}(
-    g₁::GraphMol,
-    g₂::Union{GraphMol, AbstractGraph}
-) where T
+function GraphMatrix{T}(g₁::GraphMol, g₂::Union{GraphMol, AbstractGraph}) where {T}
     return GraphMatrix{T}(MetaGraph(g₁), g₂)
 end
 
