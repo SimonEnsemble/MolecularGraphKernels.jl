@@ -75,7 +75,7 @@ end
 ccsi(Gₚ::ProductGraph; kwargs...) = ccsi(GraphMatrix(Gₚ); kwargs...)
 
 function ccsi(A::AbstractMetaGraph, B::AbstractMetaGraph; kwargs...)::Int
-    return ccsi(ProductGraph{Modular}(A, B); kwargs...)
+    return ccsi(GraphMatrix{Modular}(A, B); kwargs...)
 end
 
 function ccsi(A::GraphMol, B::AbstractMetaGraph; kwargs...)::Int

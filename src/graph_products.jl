@@ -51,14 +51,14 @@ function product_graph_matrix_and_maps(
     type::Type{T},
     g₁::MetaGraph,
     g₂::MetaGraph
-)::Tuple{AbstractMatrix, AbstractMatrix, Vector} where {T <: AbstractProductGraph}
+)::Tuple{AbstractMatrix, Vector} where {T <: AbstractProductGraph}
     # get (v₁ ∈ g₁, v₂ ∈ g₂) <--> w ∈ g₁xg₂ mappings
     v₁v₂_pair_to_w = build_v₁v₂_pair_to_w_map(g₁, g₂)
     w_to_v₁v₂_pair = build_w_to_v₁v₂_pair_map(v₁v₂_pair_to_w)
 
     # pre-allocate adj matrix
     n_g₁xg₂ = length(w_to_v₁v₂_pair)
-    A = zeros(Bool, n_g₁xg₂, n_g₁xg₂)
+    A = zeros(Int, n_g₁xg₂, n_g₁xg₂)
 
     # loop over pairs of vertices in the product graph
     for wᵢ in 1:n_g₁xg₂
@@ -77,7 +77,7 @@ function product_graph_matrix_and_maps(
             record_adjacency!(A, type, g₁, g₂, e₁, e₂, u₁, u₂, v₁, v₂, wᵢ, wⱼ)
         end
     end
-    return A, v₁v₂_pair_to_w, w_to_v₁v₂_pair
+    return A, w_to_v₁v₂_pair
 end
 
 """
@@ -88,7 +88,7 @@ function product_graph(
     g₁::MetaGraph,
     g₂::MetaGraph
 )::ProductGraph{T} where {T <: AbstractProductGraph}
-    A, _, w_to_v₁v₂_pair = product_graph_matrix_and_maps(type, g₁, g₂)
+    A, w_to_v₁v₂_pair = product_graph_matrix_and_maps(type, g₁, g₂)
     n_g₁xg₂ = length(w_to_v₁v₂_pair)
 
     g₁xg₂ = ProductGraph{T}(MetaGraph(SimpleGraph(A)))
@@ -104,7 +104,7 @@ function product_graph(
         u₁, _ = w_to_v₁v₂_pair[wᵢ]
         for wⱼ in (wᵢ + 1):n_g₁xg₂
             v₁, _ = w_to_v₁v₂_pair[wⱼ]
-            if A[wᵢ, wⱼ]
+            if A[wᵢ, wⱼ] ≠ 0
                 set_prop!(g₁xg₂, wᵢ, wⱼ, :label, product_graph_edge_label(type, g₁, u₁, v₁))
             end
         end

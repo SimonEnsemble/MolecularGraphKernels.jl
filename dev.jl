@@ -130,76 +130,8 @@ viz_graph(
     g₂;
     node_alpha_mask=g₂_node_alpha_mask,
     edge_alpha_mask=g₂_edge_alpha_mask,
-    layout_style=:graphmol
+    layout_style=:molecular
 )
-
-# ╔═╡ 5bd29f0b-cc2a-49f2-809f-6901a1bba0a4
-md"""
-## SM/CSI kernel algo
-"""
-
-# ╔═╡ b11405d1-92ed-4654-afcf-edda66b8869c
-a = common_subgraph_isomorphism(g₁, g₁)
-
-# ╔═╡ e1bbd601-7f99-4182-95f3-4cfc654f3674
-b = common_subgraph_isomorphism(g₁, g₁; c_cliques=true)
-
-# ╔═╡ a0bca13e-66b3-4c9c-bc2f-7e57f802a355
-c = common_subgraph_isomorphism(g₁, g₁; λ=length)
-
-# ╔═╡ a4668741-2287-4b98-aaff-c0cc8b692962
-d = common_subgraph_isomorphism(g₁, g₁; c_cliques=true, λ=length)
-
-# ╔═╡ a932193c-d455-40c9-b705-578ec9fc1b19
-@test a == 7
-
-# ╔═╡ e1f672fc-9371-4f84-ad6e-c2f19c96291e
-@test b == 6
-
-# ╔═╡ 4fc11462-ec49-4210-899f-05d70057fc4c
-@test c == 12
-
-# ╔═╡ b14a5f00-b1c2-4c82-9d83-128ea9bdc36c
-@test d == 10
-
-# ╔═╡ 1bb00438-1e69-4f57-8adf-4765fbfb3825
-function extends_clique(Gₚ, C, v)
-    if C == []
-        return true
-    end
-    for u in C
-        if has_edge(Gₚ, u, v) && get_prop(Gₚ, u, v, :label) ≠ 0
-            return true
-        end
-    end
-    return false
-end
-
-# ╔═╡ 7d4bbe58-76ca-42ac-9b29-04ed4b1037f6
-function test_algo(g₁, g₂)
-    value = 0
-    Gₚ = ProductGraph{Modular}(g₁, g₂)
-    Vₚ = collect(vertices(Gₚ))
-
-    kernel(C, P) =
-        while length(P) > 0
-            v = first(P)
-            if extends_clique(Gₚ, C, v)
-                C′ = union(C, v)
-                value += 1
-            else
-                C′ = C
-            end
-            kernel(C′, intersect(P, neighbors(Gₚ, v)))
-            P = setdiff(P, [v])
-        end
-
-    kernel([], Vₚ)
-    return value
-end
-
-# ╔═╡ cd5831b7-9530-4f19-ac2f-1b9303624fe0
-@test test_algo(g₁, g₁) == 6
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
@@ -218,15 +150,3 @@ end
 # ╠═39326496-e4dc-4b32-b538-feaa47066982
 # ╠═87aa9631-ccef-4532-a06b-0aaee425d908
 # ╠═7663b5a0-d0a9-4a72-9d75-745a91160737
-# ╟─5bd29f0b-cc2a-49f2-809f-6901a1bba0a4
-# ╠═b11405d1-92ed-4654-afcf-edda66b8869c
-# ╠═e1bbd601-7f99-4182-95f3-4cfc654f3674
-# ╠═a0bca13e-66b3-4c9c-bc2f-7e57f802a355
-# ╠═a4668741-2287-4b98-aaff-c0cc8b692962
-# ╠═a932193c-d455-40c9-b705-578ec9fc1b19
-# ╠═e1f672fc-9371-4f84-ad6e-c2f19c96291e
-# ╠═4fc11462-ec49-4210-899f-05d70057fc4c
-# ╠═b14a5f00-b1c2-4c82-9d83-128ea9bdc36c
-# ╠═1bb00438-1e69-4f57-8adf-4765fbfb3825
-# ╠═7d4bbe58-76ca-42ac-9b29-04ed4b1037f6
-# ╠═cd5831b7-9530-4f19-ac2f-1b9303624fe0

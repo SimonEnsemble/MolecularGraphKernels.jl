@@ -16,9 +16,6 @@ end
 
 GraphMatrix{T}(M::AbstractMatrix{U}) where {T, U} = GraphMatrix{T, U}(M)
 
-"""
-compute the adjacency matrix of the product graph of given type between g₁ and g₂, but do not explicitly construct the graph
-"""
 function GraphMatrix{T}(
     g₁::AbstractGraph,
     g₂::GraphMol
