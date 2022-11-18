@@ -17,7 +17,7 @@ import PrecompileSignatures: @precompile_signatures
 function __init__()
     # RDKitMinimalLib doesn't work on Windows 
     # https://github.com/eloyfelix/RDKitMinimalLib.jl/issues/13
-    if !Sys.iswindows() 
+    if !Sys.iswindows()
         # pre-compute the MACCS queries. must ignore "?". replace with nothing.
         global _maccs_queries = [
             (smarts_pattern == "?" ? nothing : get_qmol(smarts_pattern), nb_matches) for
