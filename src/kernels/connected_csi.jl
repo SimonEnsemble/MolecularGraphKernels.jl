@@ -11,14 +11,15 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
     P  = falses(n)
     D  = falses(n)
     S  = falses(n)
-    Cₒ = [0]
+    Cₒ = falses(n)
     # algorithm registers (recursive)
     N = falses(n)
     P′ = falses(n)
     D′ = falses(n)
     S′ = falses(n)
+    C′ = falses(n)
 
-    function bkc_core(C::Vector{Int}, P::U, D::U, S::U) where {U <: BitVector}
+    function bkc_core(C::U, P::U, D::U, S::U) where {U <: BitVector}
         value += λ(C)
         if !any(P) && !any(S)
             return
@@ -28,10 +29,8 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
                 P′ .= P
                 D′ .= D
                 S′ .= S
-                N .= false
-                @inbounds for v in findall(M[:, uᵢ] .≠ 0)
-                    N[v] = true
-                end
+                N .= true
+                @inbounds N[M[:, uᵢ] .== 0] .= false
                 for v in findall(D′)
                     @inbounds if M[uᵢ, v] ≠ 0 && M[uᵢ, v] ≠ D_EDGE
                         @inbounds if T[v]
@@ -42,7 +41,9 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
                         @inbounds D′[v] = false
                     end
                 end
-                bkc_core(C ∪ [uᵢ], P′ .& N, D′ .& N, S′ .& N)
+                C′ .= C
+                C′[uᵢ] = true
+                bkc_core(C′, P′ .& N, D′ .& N, S′ .& N)
                 @inbounds S[uᵢ] = true
             end
         end
@@ -63,7 +64,8 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
                 @inbounds D[v] = true
             end
         end
-        @inbounds Cₒ[1] = u
+        Cₒ .= false
+        @inbounds Cₒ[u] = true
         bkc_core(Cₒ, P, D, S)
         @inbounds T[u] = true
     end
