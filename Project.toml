@@ -1,7 +1,7 @@
 name = "MolecularGraphKernels"
 uuid = "bf3818bd-b6bb-4954-8baa-32c32282e633"
 authors = ["Cory Simon <cory.simon@oregonstate.edu>", "Adrian Henle <eahenle@gmail.com>"]
-version = "0.7.0"
+version = "0.8.0"
 
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
@@ -18,7 +18,6 @@ PeriodicTable = "7b2266bf-644c-5ea3-82d8-af4bbd25a884"
 PrecompileSignatures = "91cefc8d-f054-46dc-8f8c-26e11d7c5411"
 RDKitMinimalLib = "44044271-7623-48dc-8250-42433c44e4b7"
 SharedArrays = "1a1011a3-84de-559e-8e89-a11a2f7dc383"
-SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [compat]
 Aqua = "^0.5"

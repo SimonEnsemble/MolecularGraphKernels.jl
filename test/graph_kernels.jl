@@ -6,7 +6,7 @@ using MolecularGraph, MolecularGraphKernels, Test
     @testset "Random Walk" begin
         g₁, g₂ = smilestomol.(["NC=O", "CN(C=O)C=O"])
         l = 4
-        x = random_walk(product_graph_adjacency_matrix(Direct, g₁, g₂); l=l)
+        x = random_walk(GraphMatrix{Direct}(g₁, g₂); l=l)
         @test x == 74
         @test x == random_walk(ProductGraph{Direct}(g₁, g₂); l=l)
         @test x == random_walk(g₁, g₂; l=l)
@@ -30,14 +30,14 @@ using MolecularGraph, MolecularGraphKernels, Test
         # C-O ↔ C-O x1
         # C-C-O ↔ C-C-O x1
         @test ccsi(g₁, g₂) == 10
-        @test ccsi(g₁, g₂; λ=length) == 15
+        @test ccsi(g₁, g₂; λ=sum) == 15
     end
 
     @testset "Connected Common Subgraph Isomorphism" begin
         g₁, g₂ = smilestomol.(["NC=O", "CN(C=O)C=O"])
         mpg = ProductGraph{Modular}(g₁, g₂)
         @test ccsi(mpg) == 13
-        @test ccsi(mpg; λ=length) == 22
+        @test ccsi(mpg; λ=sum) == 22
     end
 end
 

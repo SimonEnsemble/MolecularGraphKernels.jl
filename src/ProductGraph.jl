@@ -1,3 +1,6 @@
+import Graphs: is_directed, SimpleEdge
+import MetaGraphs: weighttype, PropDict, MetaDict, set_props!, props
+
 """
 abstract type for product graphs
 """
@@ -80,3 +83,5 @@ props(g::ProductGraph, e::SimpleEdge{Int}) =
     else
         error("No such edge: ", e)
     end
+
+export AbstractProductGraph, ProductGraph, is_directed, weighttype, props, set_props!

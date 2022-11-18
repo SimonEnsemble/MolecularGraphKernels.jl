@@ -1,3 +1,5 @@
+import Base: display
+
 """
 prints the node and edge lists of a graph
 """
@@ -36,3 +38,5 @@ function isomorphic_subgraphs(
         induced_subgraph.([MetaGraph(mpg)], cliques[sortperm(length.(cliques); rev=true)])
     return [ProductGraph{Modular}(tup[1]) for tup in tups]
 end
+
+export display, isomorphic_subgraphs

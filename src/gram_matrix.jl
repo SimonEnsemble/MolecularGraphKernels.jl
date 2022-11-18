@@ -38,3 +38,5 @@ function gm_norm(mat::Matrix{<:Real})::Matrix{Float64}
     gm_norm!(m)
     return m
 end
+
+export gram_matrix, gm_norm

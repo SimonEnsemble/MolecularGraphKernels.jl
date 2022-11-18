@@ -46,7 +46,7 @@ end
 function viz_edge_labels(graph::ProductGraph{Modular})::Vector{String}
     # modular product graph specific: relabel d-type edges
     edgelabel = viz_edge_labels(MetaGraph(graph))
-    replace!(edgelabel, "0" => "d")
+    replace!(edgelabel, "$D_EDGE" => "d")
     return edgelabel
 end
 
@@ -182,3 +182,5 @@ function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
 
     return plot
 end
+
+export viz_graph

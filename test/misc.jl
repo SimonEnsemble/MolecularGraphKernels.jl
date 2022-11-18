@@ -27,7 +27,7 @@ using Graphs, IOCapture, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
         set_prop!(manual_isom1, 2, :label, 6)
         set_prop!(manual_isom1, 3, :label, 8)
         add_edge!(manual_isom1, 1, 2, Dict(:label => 1))
-        add_edge!(manual_isom1, 1, 3, Dict(:label => 0))
+        add_edge!(manual_isom1, 1, 3, Dict(:label => -2))
         add_edge!(manual_isom1, 3, 2, Dict(:label => 2))
         manual_isom1 = ProductGraph{Modular}(manual_isom1)
 

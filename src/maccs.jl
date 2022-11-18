@@ -197,6 +197,7 @@ returns the MACCS fingerprint from a SMILES string
     Not supported in Windows (RDKitMinimalLib incompatibility).
 """
 function maccs_fp(smiles::String)::BitVector
+    @assert !Sys.iswindows() "MACCS fingerprint not supported in Windows!"
     mol = get_mol(smiles)
     x = falses(length(maccs_queries))
     for (i, (pattern, nb_matches_needed)) in enumerate(_maccs_queries)

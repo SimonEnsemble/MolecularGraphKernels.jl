@@ -1,3 +1,5 @@
+using Graphs.Experimental: vf2, IsomorphismProblem
+
 """
     isomorphism_detected = is_isomorphic(A, B)
     isomorphic_topology = is_isomorphic(A, B)
@@ -42,3 +44,5 @@ is_isomorphic(A::AbstractMatrix, B::ProductGraph) = is_isomorphic(A, adjacency_m
 function is_isomorphic(A::ProductGraph, B::Union{ProductGraph, AbstractMatrix})
     return is_isomorphic(adjacency_matrix(A), B)
 end
+
+export is_isomorphic

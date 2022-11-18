@@ -1,7 +1,6 @@
 module MolecularGraphKernels
 
-using Base.Threads,
-    Cairo,
+using Cairo,
     Colors,
     Compose,
     Distributed,
@@ -12,17 +11,12 @@ using Base.Threads,
     MolecularGraph,
     PeriodicTable,
     RDKitMinimalLib,
-    SharedArrays,
-    SparseArrays
-using Graphs.Experimental: vf2, IsomorphismProblem
-using PrecompileSignatures: @precompile_signatures
-
-import Base: display, size
-import Graphs: is_directed, SimpleEdge
-import MetaGraphs: weighttype, PropDict, MetaDict, set_props!, props
-import SparseArrays: AbstractSparseMatrixCSC, _checkbuffers, getcolptr, rowvals, nonzeros
+    SharedArrays
+import PrecompileSignatures: @precompile_signatures
 
 function __init__()
+    # RDKitMinimalLib doesn't work on Windows 
+    # https://github.com/eloyfelix/RDKitMinimalLib.jl/issues/13
     if !Sys.iswindows()
         # pre-compute the MACCS queries. must ignore "?". replace with nothing.
         global _maccs_queries = [
@@ -35,6 +29,7 @@ end
 include.(
     [
         "ProductGraph.jl"
+        "GraphMatrix.jl"
         "graph_products.jl"
         "kernels.jl"
         "visualization.jl"
@@ -45,42 +40,6 @@ include.(
         "gram_matrix.jl"
     ]
 )
-
-export
-
-    # ProductGraph.jl
-    ProductGraph,
-    is_directed,
-    weighttype,
-    props,
-    set_props!,
-
-    # graph_products.jl
-    product_graph_adjacency_matrix,
-    Modular,
-    Direct,
-    Weighted,
-
-    # graph_kernels.jl
-    random_walk,
-    ccsi,
-
-    # graph_conversion.jl
-    MetaGraph,
-
-    # visualization.jl
-    viz_graph,
-
-    # check_isom.jl
-    is_isomorphic,
-
-    # gram_matrix.jl
-    gram_matrix,
-    gm_norm,
-
-    # misc.jl
-    display,
-    isomorphic_subgraphs
 
 @precompile_signatures(MolecularGraphKernels)
 
