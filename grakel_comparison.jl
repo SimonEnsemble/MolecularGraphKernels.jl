@@ -49,7 +49,7 @@ function grakel_graph(g::MetaGraph)::String
     return graph_str
 end
 
-function grakel_script(kernel::String, n::Int, graphs::Vector{<: MetaGraph})::Vector{String}
+function grakel_script(kernel::String, n::Int, graphs::Vector{<:MetaGraph})::Vector{String}
     script_str = String[]
     push!(script_str, "import time")
     push!(script_str, "import grakel")
