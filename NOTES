@@ -1,10 +1,51 @@
+# NEW DATA TYPE
 GraphMatrix type for dispatching on efficient graph representations
 This is basically like what Grakel does... but better UX
 
 Each AbstractProductGraph type T needs to have a corresponding constructor:
     GraphMatrix{T}(::AbstractGraph, AbstractGraph)
 
-Eventually, change the fundamental type from AbstractGraph to GraphMatrix.
-The idea is to convert all molecular graphs to their GraphMatrix representations
-before calculating product graphs (this should be most efficient for computing
-Gram matrices)
+# IDEA
+Change the fundamental type from AbstractGraph to GraphMatrix.
+Convert all molecular graphs to their GraphMatrix representations before calculating product graphs (this should be most efficient for computing Gram matrices)
+
+# SUPER CONFUSING!
+adding grakel_comparison.jl to src causes script-based usage of gram_matrix to fail, but Pkg>test works just fine!
+
+# IDEA
+Should be able to avoid using SharedArray by using pmap
+Think this will speed up gram_matrix by a lot
+## WHAT IS GOING ON
+Tried the idea above, and found some BIZARRE behavior...
+
+# IDEA
+Gram matrix normalization should be parallelized.
+
+# BENCHMARKS
+Inputs: 2
+MGK (1 proc):  520 ms
+MGK (2 procs): 496 ms
+MGK (3 procs): 494 ms
+Grakel: 210 ms
+
+Inputs: 49
+MGK (1 proc):  134 s
+MGK (4 procs):  68 s
+MGK (10 procs): 48 s
+MGK (20 procs): 40 s
+MGK (48 procs): 31 s
+Grakel: 54 s
+
+Inputs: 98
+MGK (48 procs): 81 s
+Grakel:        207 s
+
+## CONCLUSIONS
+Grakel has some additional optimizations going on that make it faster on a single core.
+HOWEVER, MGK shows superior scalability on distributed platforms.
+
+MGK also should be faster than it is... likely cause is use of SharedArray.
+Maybe eventually can go back and speed that up.
+
+If you need to compute a Gram matrix on a large data set stored as SMILES, MGK lets you do so in parallel with absolutely minimal user code.
+In fact, the amount of extra code needed for Grakel to even run in the first place isn't being reflected in these benchmarks (all of that code is written by a Julia program, and only the kernel computations are timed), so arguably Grakel is much slower than these numbers show... so MGK is a pretty clear winner IMO.

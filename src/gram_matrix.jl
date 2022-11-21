@@ -9,8 +9,8 @@ function gram_matrix(
 
     @sync @distributed for i in 1:nb_mols
         for j in i:nb_mols
-            matrix[j, i] = kernel(molecules[i], molecules[j]; kwargs...)
-            matrix[i, j] = matrix[j, i]
+            @inbounds matrix[j, i] = kernel(molecules[i], molecules[j]; kwargs...)
+            @inbounds matrix[i, j] = matrix[j, i]
         end
     end
 
@@ -24,11 +24,11 @@ function gram_matrix(
 end
 
 function gm_norm!(mat::Matrix{Float64})
-    n = size(mat)[1]
-    for j in 1:n
-        for i in j:n
-            mat[i, j] /= √(mat[i, i] * mat[j, j])
-            mat[j, i] = mat[i, j]
+    @inbounds sqrts = [√(mat[i, i]) for i in axes(mat, 1)]
+    for j in axes(mat, 2)
+        for i in axes(mat, 1)
+            @inbounds mat[i, j] /= sqrts[i] * sqrts[j]
+            @inbounds mat[j, i] = mat[i, j]
         end
     end
 end
