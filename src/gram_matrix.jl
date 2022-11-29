@@ -7,10 +7,11 @@ function gram_matrix(
     nb_mols = length(molecules)
     matrix = SharedArray{Float64}(nb_mols, nb_mols)
 
-    @sync @distributed for i in 1:nb_mols
-        for j in i:nb_mols
-            @inbounds matrix[j, i] = kernel(molecules[i], molecules[j]; kwargs...)
-            @inbounds matrix[i, j] = matrix[j, i]
+    sp = sortperm(degree.(molecules), rev=true)
+
+    @sync @distributed for i in eachindex(sp)
+        for j in i:length(sp)
+            @inbounds matrix[sp[i], sp[j]] = matrix[sp[j], sp[i]] = kernel(molecules[sp[i]], molecules[sp[j]]; kwargs...)
         end
     end
 
