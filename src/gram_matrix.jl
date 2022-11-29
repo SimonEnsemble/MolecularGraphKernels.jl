@@ -9,7 +9,7 @@ function gram_matrix(
 
     sp = sortperm(degree.(molecules), rev=true)
 
-    @sync @distributed for i in eachindex(sp)
+    @showprogress @distributed for i in eachindex(sp)
         for j in i:length(sp)
             @inbounds matrix[sp[i], sp[j]] = matrix[sp[j], sp[i]] = kernel(molecules[sp[i]], molecules[sp[j]]; kwargs...)
         end
