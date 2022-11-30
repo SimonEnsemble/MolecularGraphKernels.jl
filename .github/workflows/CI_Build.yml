@@ -12,7 +12,7 @@ concurrency: # only allow the most recent workflow to execute
   cancel-in-progress: true
 
 env: # environment variables
-  julia_version: '1.8.2' # julia version to use on all runners (except cross-platform)
+  julia_version: '1.8.3' # julia version to use on all runners (except cross-platform)
 
 
 jobs: # run in parallel within workflow
@@ -63,7 +63,7 @@ jobs: # run in parallel within workflow
         uses: julia-actions/julia-buildpkg@latest
 
       - name: multi-process setup
-        run: julia --color=yes -e 'import Pkg; Pkg.develop(".")'
+        run: julia --color=yes -e 'import Pkg; Pkg.develop(path=".")'
 
       - name: test
         run: julia -p 2 --color=yes test/gram_matrix.jl
