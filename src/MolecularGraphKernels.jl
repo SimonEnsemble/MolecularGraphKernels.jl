@@ -11,8 +11,7 @@ using Cairo,
     MolecularGraph,
     PeriodicTable,
     ProgressMeter,
-    RDKitMinimalLib,
-    SharedArrays
+    RDKitMinimalLib
 import PrecompileSignatures: @precompile_signatures
 
 function __init__()

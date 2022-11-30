@@ -4,18 +4,14 @@ function gram_matrix(
     normalize::Bool=false,
     kwargs...
 )::Matrix{Float64}
-    nb_mols = length(molecules)
-    matrix = SharedArray{Float64}(nb_mols, nb_mols)
-
     sp = sortperm(degree.(molecules), rev=true)
-
-    @showprogress @distributed for i in eachindex(sp)
-        for j in i:length(sp)
-            @inbounds matrix[sp[i], sp[j]] = matrix[sp[j], sp[i]] = kernel(molecules[sp[i]], molecules[sp[j]]; kwargs...)
-        end
+    pairs = reduce(vcat, [[(i, j, molecules[i], molecules[j]) for j in sp if j ≥ i] for i in sp])
+    f_(x) = x[1], x[2], kernel(x[3], x[4]; kwargs...)
+    k = @showprogress pmap(f_, pairs)
+    matrix = zeros(length(molecules), length(molecules))
+    for (i, j, k) in k
+        @inbounds matrix[i, j] = matrix[j, i] = k
     end
-
-    matrix = Matrix{Float64}(matrix)
 
     if normalize
         gm_norm!(matrix)
