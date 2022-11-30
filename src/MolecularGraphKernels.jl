@@ -10,8 +10,8 @@ using Cairo,
     MetaGraphs,
     MolecularGraph,
     PeriodicTable,
-    RDKitMinimalLib,
-    SharedArrays
+    ProgressMeter,
+    RDKitMinimalLib
 import PrecompileSignatures: @precompile_signatures
 
 function __init__()
