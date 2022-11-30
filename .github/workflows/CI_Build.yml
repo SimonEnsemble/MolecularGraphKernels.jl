@@ -63,7 +63,7 @@ jobs: # run in parallel within workflow
         uses: julia-actions/julia-buildpkg@latest
 
       - name: test
-        run: julia -p 2 --project --color=yes test/gram_matrix.jl'
+        run: julia -p 2 --project --color=yes test/gram_matrix.jl
 
   aqua-jl:
     runs-on: ubuntu-latest
