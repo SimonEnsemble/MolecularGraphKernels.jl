@@ -4,8 +4,11 @@ function gram_matrix(
     normalize::Bool=false,
     kwargs...
 )::Matrix{Float64}
-    sp = sortperm(degree.(molecules), rev=true)
-    pairs = reduce(vcat, [[(i, j, molecules[i], molecules[j]) for j in sp if j ≥ i] for i in sp])
+    sp = sortperm(degree.(molecules); rev=true)
+    pairs = reduce(
+        vcat,
+        [[(i, j, molecules[i], molecules[j]) for j in sp if j ≥ i] for i in sp]
+    )
     f_(x) = x[1], x[2], kernel(x[3], x[4]; kwargs...)
     k = @showprogress pmap(f_, pairs)
     matrix = zeros(length(molecules), length(molecules))
