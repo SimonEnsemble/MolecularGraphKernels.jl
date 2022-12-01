@@ -33,7 +33,9 @@ using MolecularGraph, MolecularGraphKernels, Test
         @test sum(gram_matrix(kernel1, graphs)) == 9
 
         kernel2(g₁, g₂; k=2) = k
-        @test sum(gram_matrix(kernel2, graphs)) == sum(gram_matrix(kernel2, graphs; k=4)) / 2 == 18
+        @test sum(gram_matrix(kernel2, graphs)) ==
+              sum(gram_matrix(kernel2, graphs; k=4)) / 2 ==
+              18
     end
 
     @testset "Normalization" begin
