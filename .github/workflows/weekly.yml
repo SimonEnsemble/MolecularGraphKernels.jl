@@ -10,7 +10,7 @@ concurrency: # only allow the most recent workflow to execute
   cancel-in-progress: true
 
 env: # environment variables
-  julia_version: '1.8.2' # julia version to use on all runners (except cross-platform-julia)
+  julia_version: 'nightly' # julia version to use on all runners (except cross-platform-julia)
 
 
 jobs: # run in parallel within workflow
@@ -31,6 +31,10 @@ jobs: # run in parallel within workflow
         uses: julia-actions/setup-julia@latest
         with:
           version: ${{ env.julia_version }}
+
+      - name: FIGlet/LLVM Windows Workaround
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: julia --color=yes -e 'import Pkg; Pkg.develop("FIGlet")'
       
       - name: build package
         uses: julia-actions/julia-buildpkg@latest

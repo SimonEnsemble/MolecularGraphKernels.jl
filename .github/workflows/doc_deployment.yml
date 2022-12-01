@@ -10,14 +10,13 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  julia_version: '1.8.2'
-
+  julia_version: 'nightly'
 
 jobs:
   
   deploy-docs:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     env:
       GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       DOCUMENTER_KEY: ${{secrets.DOCUMENTER_KEY}}
