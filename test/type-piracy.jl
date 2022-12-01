@@ -30,7 +30,8 @@ function all_methods(mainmod::Module=Main)
         end
     end
 
-    index_func(f) = try
+    index_func(f) =
+        try
             f ∈ done_functions && return
             push!(done_functions, f)
             append!(found_methods, methods(f))
