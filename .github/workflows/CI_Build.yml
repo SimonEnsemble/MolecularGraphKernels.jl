@@ -62,11 +62,8 @@ jobs: # run in parallel within workflow
       - name: build package
         uses: julia-actions/julia-buildpkg@latest
 
-      - name: multi-process setup
-        run: julia --color=yes -e 'import Pkg; Pkg.develop(path=".")'
-
       - name: test
-        run: julia -p 2 --color=yes --project test/gram_matrix.jl
+        run: julia --color=yes --project test/distributed.jl
 
   aqua-jl:
     runs-on: ubuntu-latest
