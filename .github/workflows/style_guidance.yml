@@ -1,4 +1,4 @@
-name: formatter
+name: Style
 
 on:
   pull_request:
@@ -9,11 +9,54 @@ concurrency: # only allow the most recent workflow to execute
   cancel-in-progress: true
 
 env: # environment variables
-  julia_version: '1.8.2' # julia version to use on all runners (except cross-platform-julia)
+  julia_version: 'nightly' # julia version to use on all runners (except cross-platform-julia)
 
 jobs:
+  aqua-jl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: checkout commit
+        uses: actions/checkout@v2
+
+      - name: set up Julia
+        uses: julia-actions/setup-julia@latest
+        with:
+          version: ${{ env.julia_version }}
+
+      - name: add Aqua
+        run: julia --project --color=yes -e 'import Pkg; Pkg.add("Aqua")'
+
+      - name: build package
+        uses: julia-actions/julia-buildpkg@latest
+
+      - name: Aqua.jl
+        run: julia --project --color=yes ./test/aqua.jl
+
+  type-piracy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: checkout commit
+        uses: actions/checkout@v2
+
+      - name: set up Julia
+        uses: julia-actions/setup-julia@latest
+        with:
+          version: ${{ env.julia_version }}
+
+      - name: build package
+        uses: julia-actions/julia-buildpkg@latest
+
+      - name: YoHoHo
+        run: julia --project --color=yes ./test/type-piracy.jl
+
   formatting:
     runs-on: ubuntu-latest
+    timeout-minutes: 5
+
     steps:
       - uses: mdecoleman/pr-branch-name@1.2.0
         id: vars
