@@ -34,7 +34,7 @@ jobs: # run in parallel within workflow
 
       - name: FIGlet/LLVM Windows Workaround
         if: ${{ matrix.os == 'windows-latest' }}
-        run: julia --color=yes -e 'import Pkg;  Pkg.pkg"dev FIGlet"'
+        run: julia --color=yes -e 'import Pkg.develop;  develop(ARGS[1])' FIGlet
       
       - name: build package
         uses: julia-actions/julia-buildpkg@latest
