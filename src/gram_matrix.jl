@@ -13,7 +13,7 @@ function gram_matrix(
     k = @showprogress pmap(f_, pairs)
     matrix = zeros(length(molecules), length(molecules))
     for (i, j, k) in k
-        @inbounds matrix[i, j] = matrix[j, i] = k
+        matrix[i, j] = matrix[j, i] = k
     end
 
     if normalize
@@ -24,11 +24,11 @@ function gram_matrix(
 end
 
 function gm_norm!(mat::Matrix{Float64})
-    @inbounds sqrts = [√(mat[i, i]) for i in axes(mat, 1)]
+    sqrts = [√(mat[i, i]) for i in axes(mat, 1)]
     for j in axes(mat, 2)
-        for i in axes(mat, 1)
-            @inbounds mat[i, j] /= sqrts[i] * sqrts[j]
-            @inbounds mat[j, i] = mat[i, j]
+        for i in [i for i in axes(mat, 1) if i ≥ j]
+            mat[i, j] /= sqrts[i] * sqrts[j]
+            mat[j, i] = mat[i, j]
         end
     end
 end
