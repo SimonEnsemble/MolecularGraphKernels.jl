@@ -13,10 +13,7 @@ function gram_matrix(
         skip_idx = []
     end
     sp = sortperm(nv.(molecules); rev=true)
-    tasks = reduce(
-        vcat,
-        [[(i, j, molecules[i], molecules[j]) for j in sp if j ≥ i] for i in sp]
-    )
+    tasks = [(i, j, molecules[i], molecules[j]) for j in sp for i in sp if j ≥ i]
     filter!(t -> CartesianIndex(t[1], t[2]) ∉ skip_idx, tasks)
     f_(x) = x[1], x[2], kernel(x[3], x[4]; kwargs...)
     k = @showprogress pmap(f_, tasks)
