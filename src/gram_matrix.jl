@@ -2,16 +2,24 @@ function gram_matrix(
     kernel::Function,
     molecules::Vector{MetaGraph{Int, Float64}};
     normalize::Bool=false,
+    resume_from_error::String="",
     kwargs...
 )::Matrix{Float64}
-    sp = sortperm(degree.(molecules); rev=true)
+    if resume_from_error ≠ ""
+        matrix = load(resume_from_error)["matrix"]
+        skip_idx = findall(matrix .≠ -1)
+    else
+        matrix = -1 * ones(length(molecules), length(molecules))
+        skip_idx = []
+    end
+    sp = sortperm(nv.(molecules); rev=true)
     tasks = reduce(
         vcat,
         [[(i, j, molecules[i], molecules[j]) for j in sp if j ≥ i] for i in sp]
     )
+    filter!(t -> CartesianIndex(t[1], t[2]) ∉ skip_idx, tasks)
     f_(x) = x[1], x[2], kernel(x[3], x[4]; kwargs...)
     k = @showprogress pmap(f_, tasks)
-    matrix = -1 * ones(length(molecules), length(molecules))
     for (i, j, k) in k
         matrix[i, j] = matrix[j, i] = k
     end
@@ -29,7 +37,7 @@ function dump_on_error(matrix::Matrix{Float64})
     # running out of RAM can cause values to not be assigned...
     if any(matrix .== -1)
         jldsave("gram_matrix_dump_$(split(tempname(), "/")[end]).jld2"; matrix)
-        error("Zero(s) on Gram matrix diagonal. Something has gone wrong!")
+        error("Matrix element(s) not calculated. Something has gone wrong!")
     end
 end
 
