@@ -11,7 +11,7 @@ function gram_matrix(
         (i, j, molecules[i], molecules[j]) 
         for j in ordered_idx for i in ordered_idx if j ≥ i
     ]
-    # check for local cache (unless disabled)
+    # check for local cache
     if isfile(local_cache)
         @warn "Using local cache"
         # check for completed jobs in local cache file
@@ -23,10 +23,6 @@ function gram_matrix(
         end
         # filter job list for only un-completed jobs
         jobs = jobs[.! skip_jobs]
-    else
-        # local cache not found; create it
-        open(local_cache, "w") do f
-        end
     end
     # the function to run on each job
     f_(x) = x[1], x[2], kernel(x[3], x[4]; kwargs...)
