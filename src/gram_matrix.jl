@@ -8,8 +8,8 @@ function gram_matrix(
     # determine list of jobs
     ordered_idx = sortperm(nv.(molecules); rev=true)
     jobs = [
-        (i, j, molecules[i], molecules[j]) 
-        for j in ordered_idx for i in ordered_idx if j ≥ i
+        (i, j, molecules[i], molecules[j]) for j in ordered_idx for
+        i in ordered_idx if j ≥ i
     ]
     # check for local cache
     if isfile(local_cache)
@@ -22,7 +22,7 @@ function gram_matrix(
             skip_jobs[job_idx] = true
         end
         # filter job list for only un-completed jobs
-        jobs = jobs[.! skip_jobs]
+        jobs = jobs[.!skip_jobs]
     end
     # the function to run on each job
     f_(x) = x[1], x[2], kernel(x[3], x[4]; kwargs...)
@@ -39,7 +39,7 @@ function gram_matrix(
             (i, j, k) = f_(job)
             # write to local cache
             open(local_cache, "a") do f
-                write(f, "$i,$j,$k\n")
+                return write(f, "$i,$j,$k\n")
             end
         end
         # collect results from local cache
