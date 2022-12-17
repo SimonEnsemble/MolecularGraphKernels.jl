@@ -7,7 +7,10 @@ function gram_matrix(
 )::Matrix{Float64}
     # determine list of jobs
     ordered_idx = sortperm(nv.(molecules); rev=true)
-    jobs = [(i, j, molecules[i], molecules[j]) for j in ordered_idx for i in ordered_idx if j ≥ i]
+    jobs = [
+        (i, j, molecules[i], molecules[j]) 
+        for j in ordered_idx for i in ordered_idx if j ≥ i
+    ]
     # check for local cache (unless disabled)
     if isfile(local_cache)
         @warn "Using local cache"
