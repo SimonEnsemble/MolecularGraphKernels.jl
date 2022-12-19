@@ -36,11 +36,11 @@ function gram_matrix(
     end
 
     # progress meter
-    progress = Progress(length(jobs); dt=1, desc="Calculating Gram matrix ")
-    update!(progress, 0)
+    progress = Progress(length(jobs); dt=0.5, desc="Calculating Gram matrix ")
 
     # collect results from workers
     open(local_cache, "a") do cache
+        update!(progress, 0)
         # we need to get back as many results as we sent out jobs
         for _ in jobs
             # get the return values from a job (block until one comes in)
