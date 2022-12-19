@@ -12,6 +12,8 @@ end
 
 using MolecularGraph, MolecularGraphKernels, Test
 
+@everywhere using Graphs
+
 @testset verbose = true "Gram matrix" begin
     graphs = MetaGraph.(smilestomol.([
         "c1ccccc1"
@@ -40,5 +42,17 @@ using MolecularGraph, MolecularGraphKernels, Test
     @testset "Normalization" begin
         K = gram_matrix(random_walk, graphs; l=3)
         @test gram_matrix(random_walk, graphs; l=3, normalize=true) == gm_norm(K)
+    end
+
+    @testset "Resume From Cache" begin
+        k(args...) = sum(nv.([args...]))
+        K = gram_matrix(k, graphs)
+        @test sum(K) == 6 * sum(nv.(graphs))
+        open("test_cache", "w") do f
+            write(f, "1,1,12\n")
+            write(f, "2,2,6\n")
+            write(f, "3,3,14\n")
+        end
+        @test K == gram_matrix(k, graphs; local_cache="test_cache")
     end
 end

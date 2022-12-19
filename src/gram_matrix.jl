@@ -6,7 +6,7 @@ function gram_matrix(
     kwargs...
 )::Matrix{Float64}
     # build the job list
-    jobs = enumerate_jobs(molecules, local_cache)
+    jobs, matrix = enumerate_jobs(molecules, local_cache)
 
     # generate task channels
     job_channel = RemoteChannel(() -> Channel{Tuple}(length(jobs)))
@@ -36,9 +36,6 @@ function gram_matrix(
         remote_do(do_work, p, job_channel, result_channel)
         next!(progress)
     end
-
-    # results matrix
-    matrix = fill(NaN, length(molecules), length(molecules))
 
     # progress meter
     progress = Progress(length(jobs), 1, "Calculating Gram matrix ")
@@ -80,12 +77,14 @@ function enumerate_jobs(molecules, local_cache)
         (i, j, molecules[i], molecules[j]) for j in ordered_idx for
         i in ordered_idx if j ≥ i
     ]
+    # results matrix
+    matrix = fill(NaN, length(molecules), length(molecules))
 
     # (optionally) resume from local cache
     if isfile(local_cache)
         @warn "Resuming from local cache"
         # indices of jobs that will be skipped (already completed)
-        skip_jobs = falses(length(jobs))
+        skip_jobs = trues(length(jobs))
         # read the cache
         cache_data = open(local_cache, "r") do f
             # extract the entires from each line in the cache file
@@ -96,20 +95,29 @@ function enumerate_jobs(molecules, local_cache)
             return [parse.(Float64, tokens) for tokens in line_tokens]
         end
         # compare cache and jobs list
-        progress = Progress(length(cache_data); desc="Comparing cache to task list ")
+        progress = Progress(length(cache_data); desc="Loading cached results ")
         for job in cache_data
-            # if found, add to list of jobs to skip
-            job_idx = findfirst(j -> j[1] == job[1] && j[2] == job[2], jobs)
-            if !isnothing(job_idx)
-                skip_jobs[job_idx] = true
-            end
+            # record cached result
+            i, j = Int.(job[1:2])
+            k = job[3]
+            matrix[i, j] = matrix[j, i] = k
             next!(progress)
         end
+        # find indices of jobs not in cache
+        missing_idx = findall(isnan, matrix)
         # filter job list for only un-completed jobs
+        for idx in missing_idx
+            # find the job corresponding to the missing index
+            i = findfirst(job -> job[1] == idx[1] && job[2] == idx[2], jobs)
+            # only job (i, j) will exist; just move on if looking for duplicate (j, i)
+            if !isnothing(i)
+                skip_jobs[i] = false
+            end
+        end
         jobs = jobs[.!skip_jobs]
     end
 
-    return jobs
+    return jobs, matrix
 end
 
 function gm_norm!(mat::Matrix{Float64})
