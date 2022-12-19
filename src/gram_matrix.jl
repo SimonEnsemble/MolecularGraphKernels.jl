@@ -13,7 +13,7 @@ function gram_matrix(
     result_channel = RemoteChannel(() -> Channel{Tuple}(length(workers())))
 
     # push jobs to channel
-    progress = Progress(length(jobs); desc="Pushing jobs to queue ")
+    progress = Progress(length(jobs); dt=1, desc="Pushing jobs to queue ")
     for job in jobs
         @async errormonitor(put!(job_channel, job))
         next!(progress)
@@ -36,7 +36,7 @@ function gram_matrix(
     end
 
     # progress meter
-    progress = Progress(length(jobs); desc="Calculating Gram matrix ")
+    progress = Progress(length(jobs); dt=1, desc="Calculating Gram matrix ")
     update!(progress, 0)
 
     # collect results from workers
@@ -94,7 +94,7 @@ function enumerate_jobs(molecules, local_cache)
             return [parse.(Float64, tokens) for tokens in line_tokens]
         end
         # compare cache and jobs list
-        progress = Progress(length(cache_data); desc="Loading cached results ")
+        progress = Progress(length(cache_data); dt=1, desc="Loading cached results ")
         for job in cache_data
             # record cached result
             i, j = Int.(job[1:2])
