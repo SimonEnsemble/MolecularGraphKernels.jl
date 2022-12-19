@@ -13,8 +13,10 @@ function gram_matrix(
     result_channel = RemoteChannel(() -> Channel{Tuple}(length(workers())))
 
     # push jobs to channel
+    progress = Progress(length(jobs); desc="Pushing jobs to queue ")
     for job in jobs
         @async errormonitor(put!(job_channel, job))
+        next!(progress)
     end
 
     # worker task function
@@ -29,8 +31,10 @@ function gram_matrix(
     end
 
     # start running the jobs on worker processes
+    progress = Progress(length(workers()); desc="Starting workers ")
     for p in workers()
         remote_do(do_work, p, job_channel, result_channel)
+        next!(progress)
     end
 
     # results matrix
@@ -92,10 +96,14 @@ function enumerate_jobs(molecules, local_cache)
             return [parse.(Float64, tokens) for tokens in line_tokens]
         end
         # compare cache and jobs list
+        progress = Progress(length(cache_data); desc="Comparing cache to task list ")
         for job in cache_data
             # if found, add to list of jobs to skip
             job_idx = findfirst(j -> j[1] == job[1] && j[2] == job[2], jobs)
-            skip_jobs[job_idx] = true
+            if !isnothing(job_idx)
+                skip_jobs[job_idx] = true
+            end
+            next!(progress)
         end
         # filter job list for only un-completed jobs
         jobs = jobs[.!skip_jobs]
