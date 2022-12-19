@@ -31,14 +31,13 @@ function gram_matrix(
     end
 
     # start running the jobs on worker processes
-    progress = Progress(length(workers()); desc="Starting workers ")
     for p in workers()
         remote_do(do_work, p, job_channel, result_channel)
-        next!(progress)
     end
 
     # progress meter
-    progress = Progress(length(jobs), 1, "Calculating Gram matrix ")
+    progress = Progress(length(jobs); desc="Calculating Gram matrix ")
+    update!(progress, 0)
 
     # collect results from workers
     open(local_cache, "a") do cache
