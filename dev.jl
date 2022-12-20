@@ -10,12 +10,10 @@ begin
     IOCapture.capture() do
         Pkg.activate(".")
         Pkg.resolve()
-        Pkg.add.(
-            [
-                "PlutoLinks"
-                "PlutoUI"
-            ]
-        )
+        Pkg.add.([
+            "PlutoLinks"
+            "PlutoUI"
+        ])
         return
     end
     using PlutoLinks, PlutoUI
@@ -30,18 +28,13 @@ using Graphs, MetaGraphs, MolecularGraph, SparseArrays
 
 # ╔═╡ cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
 
-
 # ╔═╡ 9188ef1e-16fe-4a79-8ba6-2b0e907d743a
-
 
 # ╔═╡ fb64efc5-e959-401f-96d1-464de7d47547
 
-
 # ╔═╡ 971586d9-266b-4dfd-97d6-dc3aed449600
 
-
 # ╔═╡ f4f182e7-e8fe-4f1e-9867-0e01c8a850b1
-
 
 # ╔═╡ 3b6fe89d-7727-4098-b958-e52baefe250d
 md"""
