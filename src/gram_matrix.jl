@@ -3,6 +3,7 @@ function gram_matrix(
     molecules::Vector{MetaGraph{Int, Float64}};
     normalize::Bool=false,
     local_cache::AbstractString=split(tempname(), "/")[end],
+    max_runtime::Real=Inf,
     kwargs...
 )::Matrix{Float64}
     # build the job list
@@ -40,21 +41,32 @@ function gram_matrix(
 
     # collect results from workers
     open(local_cache, "a") do cache
-        update!(progress, 0)
+        # start the timer
+        runtime_start = time()
         # we need to get back as many results as we sent out jobs
-        for _ in jobs
-            # get the return values from a job (block until one comes in)
-            i, j, k = take!(result_channel)
-            # fill in the matrix
-            matrix[i, j] = matrix[j, i] = k
-            # write to the recovery file
-            write(cache, "$i,$j,$k\n")
-            # increment progress meter
-            next!(progress)
+        done = 0
+        while done < length(jobs)
+            # check if any jobs have returned
+            if isready(result_channel)
+                # get the return values from a job
+                i, j, k = take!(result_channel)
+                # fill in the matrix
+                matrix[i, j] = matrix[j, i] = k
+                # write to the recovery file
+                write(cache, "$i,$j,$k\n")
+                # increment completed job count
+                done += 1
+            end
+            # update progress meter
+            update!(progress, done)
+            # see if the time limit has elapsed
+            if time() - runtime_start ≥ max_runtime
+                error("Maximum runtime exceeded!")
+            end
         end
     end
 
-    # verify that the matrix really is complete
+    # verify that the matrix really is complete (will error if max runtime exceeded)
     @assert !any(isnan, matrix)
 
     # (optional) normalize results

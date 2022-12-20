@@ -10,23 +10,13 @@ begin
     IOCapture.capture() do
         Pkg.activate(".")
         Pkg.resolve()
-        Pkg.add.(
-            [
-                "Documenter"
-                "Aqua"
-                "BenchmarkTools"
-                "ProfileCanvas"
-                "PlutoLinks"
-                "PlutoTeachingTools"
-                "PlutoTest"
-                "PlutoUI"
-            ]
-        )
+        Pkg.add.([
+            "PlutoLinks"
+            "PlutoUI"
+        ])
         return
     end
-    using Documenter
-    using Aqua, BenchmarkTools, ProfileCanvas
-    using PlutoLinks, PlutoTeachingTools, PlutoTest, PlutoUI
+    using PlutoLinks, PlutoUI
     TableOfContents()
 end
 
@@ -37,37 +27,14 @@ end
 using Graphs, MetaGraphs, MolecularGraph, SparseArrays
 
 # ╔═╡ cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
-md"""
-# Dev Notebook Header
-"""
 
 # ╔═╡ 9188ef1e-16fe-4a79-8ba6-2b0e907d743a
-md"""
-### Local Development Preamble
-
-Gives access to many tools useful for developing local packages.
-
-Should be run from the root of the local package repo under development.
-"""
 
 # ╔═╡ fb64efc5-e959-401f-96d1-464de7d47547
-md"""
-### Local Package Revision
-
-Invokes file monitoring for the local package (by name).
-"""
 
 # ╔═╡ 971586d9-266b-4dfd-97d6-dc3aed449600
-md"""
-### Additional Dependencies
-
-External packages needed within the notebook for the specific project(s) at hand.
-"""
 
 # ╔═╡ f4f182e7-e8fe-4f1e-9867-0e01c8a850b1
-md"""
-# Development Code
-"""
 
 # ╔═╡ 3b6fe89d-7727-4098-b958-e52baefe250d
 md"""

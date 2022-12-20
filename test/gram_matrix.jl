@@ -30,11 +30,20 @@ using MolecularGraph, MolecularGraphKernels, Test
         @test csi_gm[1, 2] == csi_gm[2, 1] == ccsi(graphs[1], graphs[2])
         @test csi_gm[3, 2] == csi_gm[3, 2] == ccsi(graphs[3], graphs[2])
         @test csi_gm[2, 2] == ccsi(graphs[2], graphs[2])
+        @test csi_gm == gram_matrix(ccsi, graphs; max_depth=10)
+        csi_gm2 = gram_matrix(ccsi, graphs; max_depth=3)
+        @test csi_gm ≠ csi_gm2
+        idx = [[2, 2], [2, 3], [3, 2]]
+        @test all(csi_gm[i...] == csi_gm2[i...] for i in idx)
     end
 
     @testset "Normalization" begin
         K = gram_matrix(random_walk, graphs; l=3)
         @test gram_matrix(random_walk, graphs; l=3, normalize=true) == gm_norm(K)
+    end
+
+    @testset "Time Limit" begin
+        @test_throws ErrorException gram_matrix(random_walk, graphs; l=4, max_runtime=0)
     end
 end
 

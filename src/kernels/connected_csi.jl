@@ -1,12 +1,13 @@
 """
 computes the Subgraph Matching kernel on product graph Gₚ with weight function λ
 """
-function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
+function ccsi(M::AbstractMatrix; λ::Function=_ -> 1, max_depth::Int=50)::Int
     # kernel output value
     value = 0
     # size (nodes) of product graph
     n = size(M, 1)
     # algorithm registers (top-level)
+    depth = 0
     T = falses(n)
     P = falses(n)
     D = falses(n)
@@ -19,8 +20,12 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
     S′ = falses(n)
     C′ = falses(n)
 
-    function bkc_core(C::U, P::U, D::U, S::U) where {U <: BitVector}
+    function bkc_core(C::U, P::U, D::U, S::U, depth::Int) where {U <: BitVector}
         value += λ(C)
+        depth += 1
+        if depth ≥ max_depth
+            return
+        end
         if !any(P) && !any(S)
             return
         else
@@ -43,7 +48,8 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
                 end
                 C′ .= C
                 C′[uᵢ] = true
-                bkc_core(C′, P′ .& N, D′ .& N, S′ .& N)
+                bkc_core(C′, P′ .& N, D′ .& N, S′ .& N, depth)
+                depth -= 1
                 @inbounds S[uᵢ] = true
             end
         end
@@ -66,7 +72,8 @@ function ccsi(M::AbstractMatrix; λ::Function=_ -> 1)::Int
         end
         Cₒ .= false
         @inbounds Cₒ[u] = true
-        bkc_core(Cₒ, P, D, S)
+        depth = 0
+        bkc_core(Cₒ, P, D, S, depth)
         @inbounds T[u] = true
     end
     return value

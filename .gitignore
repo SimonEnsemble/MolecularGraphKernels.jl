@@ -1,7 +1,4 @@
-Project.toml
 Manifest.toml
 docs/build/*
 *.pdf
-__pycache__
-.vscode
-*.jld2
+jl_*

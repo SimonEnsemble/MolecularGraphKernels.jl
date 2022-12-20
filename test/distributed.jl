@@ -52,6 +52,7 @@ using MolecularGraph, MolecularGraphKernels, Test
             write(f, "1,1,12\n")
             write(f, "2,2,6\n")
             write(f, "3,3,14\n")
+            return
         end
         @test K == gram_matrix(k, graphs; local_cache="test_cache")
     end

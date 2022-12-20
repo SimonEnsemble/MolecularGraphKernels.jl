@@ -13,15 +13,9 @@ Convert all molecular graphs to their GraphMatrix representations before calcula
 adding grakel_comparison.jl to src causes script-based usage of gram_matrix to fail, but Pkg>test works just fine!
 
 # IDEA
-Should be able to avoid using SharedArray by using pmap
-Think this will speed up gram_matrix by a lot
-## WHAT IS GOING ON
-Tried the idea above, and found some BIZARRE behavior...
-
-# IDEA
 Gram matrix normalization should be parallelized.
 
-# BENCHMARKS
+# BENCHMARKS (out of date)
 Inputs: 2
 MGK (1 proc):  520 ms
 MGK (2 procs): 496 ms
@@ -43,9 +37,6 @@ Grakel:        207 s
 ## CONCLUSIONS
 Grakel has some additional optimizations going on that make it faster on a single core.
 HOWEVER, MGK shows superior scalability on distributed platforms.
-
-MGK also should be faster than it is... likely cause is use of SharedArray.
-Maybe eventually can go back and speed that up.
 
 If you need to compute a Gram matrix on a large data set stored as SMILES, MGK lets you do so in parallel with absolutely minimal user code.
 In fact, the amount of extra code needed for Grakel to even run in the first place isn't being reflected in these benchmarks (all of that code is written by a Julia program, and only the kernel computations are timed), so arguably Grakel is much slower than these numbers show... so MGK is a pretty clear winner IMO.
