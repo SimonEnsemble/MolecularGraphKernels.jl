@@ -4,7 +4,7 @@
 Convert a `GraphMol` object into the corresponding `MetaGraph`
 
 !!! note
-    
+
     Hydrogen atoms are generally treated implicitly.
 """
 function MetaGraph(mol::GraphMol)::MetaGraph
