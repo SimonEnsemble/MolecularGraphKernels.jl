@@ -4,17 +4,17 @@ on:
   pull_request:
     branches: [ main ]
 
-concurrency: # only allow the most recent workflow to execute
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-env: # environment variables
-  julia_version: 'nightly' # julia version to use on all runners (except cross-platform-julia)
+env: 
+  julia_version: 'nightly'
 
 jobs:
   aqua-jl:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
 
     steps:
       - name: checkout commit
@@ -36,7 +36,7 @@ jobs:
 
   type-piracy:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
 
     steps:
       - name: checkout commit

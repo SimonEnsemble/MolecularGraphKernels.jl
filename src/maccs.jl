@@ -193,7 +193,7 @@ maccs_queries = [
 returns the MACCS fingerprint from a SMILES string
 
 !!! warning
-    
+
     Not supported in Windows (RDKitMinimalLib incompatibility).
 """
 function maccs_fp(smiles::String)::BitVector
