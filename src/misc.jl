@@ -20,10 +20,12 @@ function display(g::AbstractMetaGraph)
     end
 end
 
+BANNER = String(read(joinpath(dirname(pathof(MolecularGraphKernels)), "banner.txt")))
+
 """
 Prints the stylized ASCII console banner for the package.
 """
-banner() = FIGlet.render("MolecularGraphKernels", FIGlet.availablefonts()[449])
+banner() = println(BANNER)
 
 """
 extracts the isomorphic subgraphs of the modular product graph via clique detection
