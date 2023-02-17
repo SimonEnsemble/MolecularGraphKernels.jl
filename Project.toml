@@ -35,6 +35,3 @@ PrecompileSignatures = "^3.0"
 ProgressMeter = "^1.7"
 RDKitMinimalLib = "^1.1"
 julia = "^1.7"
-
-[extras]
-Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
