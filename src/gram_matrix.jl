@@ -66,6 +66,8 @@ function gram_matrix(
         end
     end
 
+    dump_on_error(matrix)
+
     # verify that the matrix really is complete (will error if max runtime exceeded)
     @assert !any(isnan, matrix)
 
@@ -79,6 +81,14 @@ function gram_matrix(
 
     # return results
     return matrix
+end
+
+function dump_on_error(matrix::Matrix{Float64})
+    # running out of RAM can cause values to not be assigned...
+    if any(matrix .== -1)
+        jldsave("gram_matrix_dump_$(split(tempname(), "/")[end]).jld2"; matrix)
+        error("Zero(s) on Gram matrix diagonal. Something has gone wrong!")
+    end
 end
 
 function enumerate_jobs(molecules, local_cache)
