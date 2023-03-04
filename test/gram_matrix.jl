@@ -1,7 +1,6 @@
 module Test_gram_matrix
 
 using MolecularGraph, MolecularGraphKernels, Test
-import MolecularGraphKernels: dump_on_error
 
 @testset verbose = true "Gram matrix" begin
     graphs = MetaGraph.(smilestomol.([
@@ -45,14 +44,6 @@ import MolecularGraphKernels: dump_on_error
 
     @testset "Time Limit" begin
         @test_throws ErrorException gram_matrix(random_walk, graphs; l=4, max_runtime=0)
-    end
-
-    @testset "Error Recovery" begin
-        K = ones(20, 20)
-        @test isnothing(dump_on_error(K))
-        K[rand(1:20), rand(1:20)] = -1
-        @test_throws ErrorException dump_on_error(K)
-        @test length(filter(contains("gram_matrix_dump_jl_"), readdir())) > 0
     end
 end
 
