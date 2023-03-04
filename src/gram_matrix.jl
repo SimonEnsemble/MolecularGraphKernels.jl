@@ -14,11 +14,12 @@ function gram_matrix(
     result_channel = RemoteChannel(() -> Channel{Tuple}(length(workers())))
 
     # push jobs to channel
-    progress = Progress(length(jobs); dt=1, desc="Pushing jobs to queue ")
+    progress = ProgressUnknown("Pushing jobs to queue "; spinner=true)
     for job in jobs
         @async errormonitor(put!(job_channel, job))
         next!(progress)
     end
+    finish!(progress)
 
     # worker task function
     function do_work(job_channel, result_channel)
@@ -66,8 +67,6 @@ function gram_matrix(
         end
     end
 
-    dump_on_error(matrix)
-
     # verify that the matrix really is complete (will error if max runtime exceeded)
     @assert !any(isnan, matrix)
 
@@ -81,14 +80,6 @@ function gram_matrix(
 
     # return results
     return matrix
-end
-
-function dump_on_error(matrix::Matrix{Float64})
-    # running out of RAM can cause values to not be assigned...
-    if any(matrix .== -1)
-        jldsave("gram_matrix_dump_$(split(tempname(), "/")[end]).jld2"; matrix)
-        error("Zero(s) on Gram matrix diagonal. Something has gone wrong!")
-    end
 end
 
 function enumerate_jobs(molecules, local_cache)
