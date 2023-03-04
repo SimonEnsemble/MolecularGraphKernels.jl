@@ -63,7 +63,7 @@ end
 
 @testset verbose = true "Examples" begin
     g₁ = MetaGraph(smilestomol("COP(=O)(OC)OC(Br)C(Cl)(Cl)Br"))
-	g₂ = MetaGraph(smilestomol("COP(N)(=O)SC"))
+    g₂ = MetaGraph(smilestomol("COP(N)(=O)SC"))
     dpg = ProductGraph{Direct}(g₁, g₂)
     test_vis(dpg, "bee-tox", "example"; C=5)
 end

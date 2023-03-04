@@ -12,7 +12,7 @@ using MolecularGraph, MolecularGraphKernels, Test
         @test x == random_walk(g₁, g₂; l=l)
 
         g₁ = MetaGraph(smilestomol("COP(=O)(OC)OC(Br)C(Cl)(Cl)Br"))
-	    g₂ = MetaGraph(smilestomol("COP(N)(=O)SC"))
+        g₂ = MetaGraph(smilestomol("COP(N)(=O)SC"))
         dpg = ProductGraph{Direct}(g₁, g₂)
         @test random_walk(dpg; l=0) == 17
         @test random_walk(dpg; l=1) == 14
