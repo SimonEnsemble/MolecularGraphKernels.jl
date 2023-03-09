@@ -1,6 +1,8 @@
 module Test_graph_products
 
 using Combinatorics, Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
+include("is_isomorphic.jl")
+using .IsIsomorphic
 
 @testset "direct product graph" begin
     # Fig. 4 of "Classifying the toxicity of pesticides to honey bees viasupport vector machines with random walk graph kernels"

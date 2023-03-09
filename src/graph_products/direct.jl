@@ -32,8 +32,4 @@ function product_graph_edge_label(::Type{Direct}, g₁::MetaGraph, u₁::Int, v�
     return get_prop(g₁, u₁, v₁, :label)
 end
 
-function GraphMatrix{Direct}(g₁::MetaGraph, g₂::MetaGraph)
-    return GraphMatrix{Direct}(product_graph_matrix_and_maps(Direct, g₁, g₂)[1])
-end
-
 export Direct

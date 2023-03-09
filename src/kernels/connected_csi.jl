@@ -85,12 +85,4 @@ function ccsi(A::AbstractMetaGraph, B::AbstractMetaGraph; kwargs...)::Int
     return ccsi(GraphMatrix{Modular}(A, B); kwargs...)
 end
 
-function ccsi(A::GraphMol, B::AbstractMetaGraph; kwargs...)::Int
-    return ccsi(MetaGraph(A), B; kwargs...)
-end
-
-function ccsi(A::Union{AbstractMetaGraph, GraphMol}, B::GraphMol; kwargs...)::Int
-    return ccsi(A, MetaGraph(B); kwargs...)
-end
-
 export ccsi

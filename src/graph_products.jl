@@ -78,6 +78,14 @@ function product_graph_matrix_and_maps(
     return A, w_to_v₁v₂_pair
 end
 
+function product_graph_matrix_and_maps(type::Type, A::GraphMol, B::AbstractMetaGraph)::Int
+    return product_graph_matrix_and_maps(type, MetaGraph(A), B)
+end
+
+function product_graph_matrix_and_maps(type::Type, A::Union{AbstractMetaGraph, GraphMol}, B::GraphMol)::Int
+    return product_graph_matrix_and_maps(type, A, MetaGraph(B))
+end
+
 """
 compute the product graph of given type between g₁ and g₂
 """

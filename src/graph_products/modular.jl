@@ -36,9 +36,4 @@ function product_graph_edge_label(::Type{Modular}, g₁::MetaGraph, u₁::Int, v
     return has_edge(g₁, u₁, v₁) ? get_prop(g₁, u₁, v₁, :label) : D_EDGE
 end
 
-function GraphMatrix{Modular}(g₁::MetaGraph, g₂::MetaGraph)::GraphMatrix{Modular}
-    A, _ = product_graph_matrix_and_maps(Modular, g₁, g₂)
-    return GraphMatrix{Modular}(A)
-end
-
 export Modular
