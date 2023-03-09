@@ -82,7 +82,11 @@ function product_graph_matrix_and_maps(type::Type, A::GraphMol, B::AbstractMetaG
     return product_graph_matrix_and_maps(type, MetaGraph(A), B)
 end
 
-function product_graph_matrix_and_maps(type::Type, A::Union{AbstractMetaGraph, GraphMol}, B::GraphMol)::Int
+function product_graph_matrix_and_maps(
+    type::Type,
+    A::Union{AbstractMetaGraph, GraphMol},
+    B::GraphMol
+)::Int
     return product_graph_matrix_and_maps(type, A, MetaGraph(B))
 end
 
