@@ -143,7 +143,7 @@ function gm_norm!(mat::Matrix{Float64})
 end
 
 function gm_norm(mat::Matrix{<:Real})::Matrix{Float64}
-    m = deepcopy(mat)
+    m = copy(mat)
     gm_norm!(m)
     return m
 end

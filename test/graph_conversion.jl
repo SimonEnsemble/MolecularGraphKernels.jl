@@ -1,6 +1,8 @@
 module Test_graph_conversion
 
 using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
+include("is_isomorphic.jl")
+using .IsIsomorphic
 
 @testset verbose = true "graph conversion" begin
     @testset "GraphMol to MetaGraph" begin

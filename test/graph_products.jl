@@ -1,6 +1,8 @@
 module Test_graph_products
 
 using Combinatorics, Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
+include("is_isomorphic.jl")
+using .IsIsomorphic
 
 @testset "direct product graph" begin
     # Fig. 4 of "Classifying the toxicity of pesticides to honey bees viasupport vector machines with random walk graph kernels"
@@ -106,6 +108,18 @@ end
             for (x, y) in with_replacement_combinations([A, B, C, D, E], 2)
                 @test is_isomorphic(ProductGraph{type}(x, x), ProductGraph{type}(x, y))
             end
+        end
+    end
+end
+
+@testset verbose = true "Type Flexibility" begin
+    m₁ = smilestomol("OC(=O)C(C#N)CC(=O)O")
+    m₂ = smilestomol("OCC(O)CCO")
+    g₁, g₂ = MetaGraph.([m₁, m₂])
+
+    for type in [Modular, Direct]
+        @testset "$type" begin
+            @test is_isomorphic(ProductGraph{type}(m₁, m₂), ProductGraph{type}(g₁, g₂))
         end
     end
 end

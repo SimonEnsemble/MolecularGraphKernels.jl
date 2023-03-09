@@ -20,25 +20,11 @@ function display(g::AbstractMetaGraph)
     end
 end
 
-BANNER = String(read(joinpath(dirname(pathof(MolecularGraphKernels)), "banner.txt")))
+const BANNER = String(read(joinpath(dirname(pathof(MolecularGraphKernels)), "banner.txt")))
 
 """
 Prints the stylized ASCII console banner for the package.
 """
 banner() = println(BANNER)
 
-"""
-extracts the isomorphic subgraphs of the modular product graph via clique detection
-"""
-function isomorphic_subgraphs(
-    mpg::ProductGraph{Modular};
-    min_size::Int=3
-)::Vector{ProductGraph{Modular}}
-    max_cliques = maximal_cliques(mpg.graph)
-    cliques = filter(c -> length(c) ≥ min_size, max_cliques)
-    tups =
-        induced_subgraph.([MetaGraph(mpg)], cliques[sortperm(length.(cliques); rev=true)])
-    return [ProductGraph{Modular}(tup[1]) for tup in tups]
-end
-
-export display, isomorphic_subgraphs
+export display

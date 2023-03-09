@@ -1,6 +1,8 @@
 module Test_check_isom
 
 using MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
+include("is_isomorphic.jl")
+using .IsIsomorphic
 
 @testset verbose = true "isomorphism detection" begin
     @testset "MetaGraphs" begin

@@ -34,7 +34,6 @@ include.(
         "kernels.jl"
         "visualization.jl"
         "graph_conversion.jl"
-        "check_isom.jl"
         "misc.jl"
         "maccs.jl"
         "gram_matrix.jl"
