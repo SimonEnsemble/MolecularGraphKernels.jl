@@ -112,4 +112,16 @@ end
     end
 end
 
+@testset verbose = true "Type Flexibility" begin
+    m₁ = smilestomol("OC(=O)C(C#N)CC(=O)O")
+    m₂ = smilestomol("OCC(O)CCO")
+    g₁, g₂ = MetaGraph.([m₁, m₂])
+
+    for type in [Modular, Direct]
+        @testset "$type" begin
+            @test is_isomorphic(ProductGraph{type}(m₁, m₂), ProductGraph{type}(g₁, g₂))
+        end
+    end
+end
+
 end
