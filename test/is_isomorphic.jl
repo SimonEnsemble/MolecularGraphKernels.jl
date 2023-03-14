@@ -1,3 +1,6 @@
+module IsIsomorphic
+
+using Graphs, MetaGraphs, MolecularGraphKernels
 using Graphs.Experimental: vf2, IsomorphismProblem
 
 """
@@ -46,3 +49,5 @@ function is_isomorphic(A::ProductGraph, B::Union{ProductGraph, AbstractMatrix})
 end
 
 export is_isomorphic
+
+end

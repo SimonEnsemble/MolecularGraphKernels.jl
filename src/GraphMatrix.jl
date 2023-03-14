@@ -25,4 +25,8 @@ function GraphMatrix{T}(g₁::GraphMol, g₂::Union{GraphMol, AbstractGraph}) wh
     return GraphMatrix{T}(MetaGraph(g₁), g₂)
 end
 
+function GraphMatrix{M}(g₁::T, g₂::U) where {T, U <: Union{GraphMol, AbstractGraph}, M}
+    return GraphMatrix{M}(product_graph_matrix_and_maps(M, g₁, g₂)[1])
+end
+
 export GraphMatrix, getindex, size

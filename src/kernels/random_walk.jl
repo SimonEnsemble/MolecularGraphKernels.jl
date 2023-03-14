@@ -13,16 +13,12 @@ function random_walk(g₁xg₂::ProductGraph{Direct}; kwargs...)::Int
     return random_walk(adjacency_matrix(g₁xg₂); kwargs...)
 end
 
-function random_walk(A::AbstractMetaGraph, B::AbstractMetaGraph; kwargs...)::Int
+function random_walk(
+    A::T,
+    B::T;
+    kwargs...
+)::Int where {T <: Union{AbstractMetaGraph, GraphMol}}
     return random_walk(GraphMatrix{Direct}(A, B); kwargs...)
-end
-
-function random_walk(A::GraphMol, B::AbstractMetaGraph; kwargs...)::Int
-    return random_walk(MetaGraph(A), B; kwargs...)
-end
-
-function random_walk(A::Union{AbstractMetaGraph, GraphMol}, B::GraphMol; kwargs...)::Int
-    return random_walk(A, MetaGraph(B); kwargs...)
 end
 
 export random_walk
