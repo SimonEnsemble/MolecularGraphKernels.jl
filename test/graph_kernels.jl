@@ -1,6 +1,8 @@
 module Test_graph_kernels
 
-using MolecularGraph, MolecularGraphKernels, Test
+using MolecularGraph, MolecularGraphKernels, Test, Graphs, MetaGraphs
+import MolecularGraphKernels: Node, Tree, ⊗ₜ, kCombinations, kCompositions, ConSubG, CombinationsFromTree, CombinationsWithV
+
 
 @testset verbose = true "Graph Kernels" begin
     @testset "Random Walk" begin
@@ -45,6 +47,29 @@ using MolecularGraph, MolecularGraphKernels, Test
         mpg = ProductGraph{Modular}(g₁, g₂)
         @test ccsi(mpg) == 13
         @test ccsi(mpg; λ=sum) == 22
+    end
+
+    @testset "All-Connected Graphlet Kernel" begin
+        G = begin
+            local graph = MetaGraph(5)
+            for v in vertices(graph)
+                set_prop!(graph, v, :visited, false)
+            end
+            add_edge!(graph, 1, 2)
+            add_edge!(graph, 1, 4)
+            add_edge!(graph, 1, 5)
+            add_edge!(graph, 2, 3)
+            add_edge!(graph, 2, 4)
+            add_edge!(graph, 3, 4)
+            
+            for e in edges(graph)
+                set_prop!(graph, e, :label, 1)
+            end
+            graph
+        end
+
+        @test connected_graphlet(ProductGraph{Direct}(G), n=2:4) == 46
+
     end
 end
 
