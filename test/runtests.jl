@@ -9,7 +9,7 @@ include.(
         "check_isom.jl"
         "graph_conversion.jl"
         "graph_products.jl"
-        "consubg.jl"
+        "con_sub_g.jl"
         "graph_kernels.jl"
         "gram_matrix.jl"
         "visualization.jl"
