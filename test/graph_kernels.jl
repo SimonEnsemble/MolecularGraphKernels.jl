@@ -1,8 +1,15 @@
 module Test_graph_kernels
 
 using MolecularGraph, MolecularGraphKernels, Test, Graphs, MetaGraphs
-import MolecularGraphKernels: Node, Tree, ⊗ₜ, kCombinations, kCompositions, ConSubG, CombinationsFromTree, CombinationsWithV
-
+import MolecularGraphKernels:
+    Node,
+    Tree,
+    ⊗ₜ,
+    k_combinations,
+    k_compositions,
+    con_sub_g,
+    combinations_from_tree,
+    combinations_with_v
 
 @testset verbose = true "Graph Kernels" begin
     @testset "Random Walk" begin
@@ -61,15 +68,14 @@ import MolecularGraphKernels: Node, Tree, ⊗ₜ, kCombinations, kCompositions, 
             add_edge!(graph, 2, 3)
             add_edge!(graph, 2, 4)
             add_edge!(graph, 3, 4)
-            
+
             for e in edges(graph)
                 set_prop!(graph, e, :label, 1)
             end
             graph
         end
 
-        @test connected_graphlet(ProductGraph{Direct}(G), n=2:4) == 46
-
+        @test connected_graphlet(ProductGraph{Direct}(G); n=2:4) == 46
     end
 end
 
