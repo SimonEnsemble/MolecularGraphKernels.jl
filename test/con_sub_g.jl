@@ -1,6 +1,6 @@
 module Test_con_sub_g
 
-using Combinatorics, Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test 
+using Combinatorics, Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 import MolecularGraphKernels:
     Tree,
     combination_tree,
@@ -20,8 +20,8 @@ function isomorphic_trees(t1::Tree, t2::Tree)::Bool
         n₁ = t1[i]
         n₂ = t2[i]
         if n₁.node != n₂.node ||
-            n₁.vertex != n₂.vertex ||
-            sort([n₁.children[v].node for v in 1:length(n₁.children)]) != sort([n₂.children[v].node for v in 1:length(n₂.children)])
+           n₁.vertex != n₂.vertex ||
+           sort([n₁.children[v].node for v in 1:length(n₁.children)]) != sort([n₂.children[v].node for v in 1:length(n₂.children)])
             !!
             sort([n₁.children[v].vertex for v in 1:length(n₁.children)]) != sort([n₂.children[v].vertex for v in 1:length(n₂.children)])
             return false
@@ -45,7 +45,7 @@ end
     tree_manual[6].new = false
     tree_manual[7].new = false
 
-    G =  MetaGraph(5)
+    G = MetaGraph(5)
     for v in vertices(G)
         set_prop!(G, v, :visited, false)
     end
@@ -97,9 +97,8 @@ end
         i in sort.(con_sub_g(4, G))
     )
 
-    @test all(
-        i in sort.(⊗ₜ([[6, 7]], [[8]], tree_algo)) for i in sort.([[6, 7, 8]])
-    ) && all(i in sort.([[6, 7, 8]]) for i in sort.(⊗ₜ([[6, 7]], [[8]], tree_algo)))
+    @test all(i in sort.(⊗ₜ([[6, 7]], [[8]], tree_algo)) for i in sort.([[6, 7, 8]])) &&
+          all(i in sort.([[6, 7, 8]]) for i in sort.(⊗ₜ([[6, 7]], [[8]], tree_algo)))
 
     combos = sort.(combinations_from_tree(tree_algo, 4, 1))
     test_combos = sort.([[4, 3, 2, 1], [3, 2, 8, 1], [5, 2, 8, 1], [7, 6, 8, 1]])

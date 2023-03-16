@@ -24,7 +24,7 @@ import Base.getindex
 Base.getindex(tree::Tree, idx::Int) = tree.nodes[idx]
 
 """
-add a node to `tree`, as a child of node number `node`, 
+add a node to `tree`, as a child of node number `node`,
 associated with graph vertex `vertex`
 """
 function add_node!(tree::Tree, node::Int, vertex::Int)
@@ -139,7 +139,11 @@ end
 """
 generate the size-`k` node combinations from `tree` starting at `st_root`
 """
-@memoize function combinations_from_tree(tree::Tree, k::Int, st_root::Int=1)::Vector{Vector{Int}}
+@memoize function combinations_from_tree(
+    tree::Tree,
+    k::Int,
+    st_root::Int=1
+)::Vector{Vector{Int}}
     t = st_root
     lnodesets = Vector{Int}[]
     k == 1 && return [[t]]
@@ -162,7 +166,7 @@ generate the size-`k` node combinations from `tree` starting at `st_root`
                 for combo_product in
                     ## I will give $20 to whoever can explain why I can't reduce 
                     ## over S or [S[i] for i in eachindex(S)].  Not even kidding.
-                    reduce((a, b) -> ⊗ₜ(a, b, tree), [S[i] for i in 1:length(S)]) 
+                    reduce((a, b) -> ⊗ₜ(a, b, tree), [S[i] for i in 1:length(S)])
                     lnodesets = lnodesets ∪ Vector{Int}[combo_product ∪ Int[t]]
                 end
             end
@@ -200,7 +204,10 @@ end
 """
 calculate the connected graphlet kernel for DPG `G` using graphlet sizes from `n`
 """
-function connected_graphlet(G::ProductGraph{Direct}; n::Union{Vector{Int}, UnitRange}=2:4)::Int
+function connected_graphlet(
+    G::ProductGraph{Direct};
+    n::Union{Vector{Int}, UnitRange}=2:4
+)::Int
     if length(n) == 1
         return n * length(con_sub_g(n, G))
     else
