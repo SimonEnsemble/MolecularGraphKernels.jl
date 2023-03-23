@@ -7,59 +7,73 @@ using InteractiveUtils
 # ╔═╡ 2f71ecea-c75d-11ed-1945-0139d58c164a
 using CairoMakie, GraphMakie, MolecularGraph, Graphs, MetaGraphs
 
+# ╔═╡ 1d2c4246-4a93-4249-bc37-9b7c43504e05
+
+
 # ╔═╡ 8d34e17e-e40a-48e5-98b6-e4052e4feeb2
-import MolecularGraphKernels: MetaGraph, VizGraphKwargs, ProductGraph, Direct, viz_node_colors
-
-# ╔═╡ eeda2cec-9f6c-49b8-9e31-130fb0cfd744
-g₁ = MetaGraph(smilestomol("CC(O)=O"))
-
-# ╔═╡ 1938b863-aa74-4acb-a475-b6a3609c8880
-g₂ = MetaGraph(smilestomol("CCO"))
-
-# ╔═╡ 7e6cd467-9d28-4d6b-8ca7-033b33d2256a
-const graph_ax_kwargs = Dict(
-	[
-		:xticksvisible,
-		:yticksvisible,
-		:xticklabelsvisible,
-		:yticklabelsvisible,
-		:xgridvisible,
-		:ygridvisible,
-		:topspinevisible,
-		:bottomspinevisible,
-		:leftspinevisible,
-		:rightspinevisible
-	] .=> false
-)
+import MolecularGraphKernels: MetaGraph, VizGraphKwargs, ProductGraph, Direct, viz_node_colors, Modular, viz_node_labels, viz_edge_labels
 
 # ╔═╡ 810fa4f4-85d9-408c-b0e6-fba9313b44d2
-function viz_graph!(
-	ax::Axis, 
-	graph::AbstractMetaGraph; 
-	node_color::Symbol=:black,
-	highlight::Vector{Int}=Int[],
-	highlight_color=:orange,
-	highlight_width::Int=25
-)
-	subgraph = induced_subgraph(SimpleGraph(graph), highlight)[1]
-	if subgraph ≠ MetaGraph()
+begin
+	import GraphMakie.NetworkLayout: AbstractLayout
+	
+	struct Molecular <: AbstractLayout{2, Float64}
+	end
+	
+	function (::Molecular)(graph::AbstractMetaGraph)::Vector{<: Point}
+		return [Point2(get_prop(graph, v, :coords)) for v in vertices(graph)]
+	end
+	
+	const graph_ax_kwargs = Dict(
+		vcat(
+			[
+				:xticksvisible,
+				:yticksvisible,
+				:xticklabelsvisible,
+				:yticklabelsvisible,
+				:xgridvisible,
+				:ygridvisible,
+				:topspinevisible,
+				:bottomspinevisible,
+				:leftspinevisible,
+				:rightspinevisible
+			] .=> false, 
+			[:aspect => DataAspect()]
+		)
+	)
+	
+	GraphAxis(grid_pos::GridPosition; kwargs...) = 
+		Axis(grid_pos; graph_ax_kwargs..., kwargs...)
+	
+	function viz_graph!(
+		ax::Axis, 
+		graph::AbstractMetaGraph; 
+		node_color::Symbol=:black,
+		highlight::Vector{Int}=Int[],
+		highlight_color::Symbol=:orange,
+		highlight_width::Int=25,
+		layout::Type{<: AbstractLayout}=GraphMakie.Spring
+	)
+		subgraph = induced_subgraph(SimpleGraph(graph), highlight)[1]
+		if subgraph ≠ MetaGraph()
+			GraphMakie.graphplot!(
+				ax, 
+				subgraph;
+				node_attr=(; color=highlight_color, markersize=highlight_width),
+				edge_attr=(; color=highlight_color, linewidth=0.7highlight_width),
+				layout=_->layout()(graph)[highlight]
+			)
+		end
 		GraphMakie.graphplot!(
 			ax, 
-			subgraph;
-			node_attr=(; color=highlight_color, markersize=highlight_width),
-			edge_attr=(; color=highlight_color, linewidth=0.7highlight_width),
-			layout=_->GraphMakie.Spring()(graph)[highlight]
+			graph;
+			layout=layout(),
+			node_attr=(; color=viz_node_colors(graph)),
+			nlabels=viz_node_labels(graph),
+			elabels=viz_edge_labels(graph)
 		)
 	end
-	GraphMakie.graphplot!(
-		ax, 
-		graph;
-		node_attr=(; color=node_color == :label ? viz_node_colors(graph) : node_color)
-	)
-end
-
-# ╔═╡ fd451c5c-b77a-44ec-ae65-2a924301b8f6
-begin
+	
 	viz_graph(graph::AbstractMetaGraph; kwargs...) = 
 		viz_graph(graph, VizGraphKwargs(graph); kwargs...)
 	function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs; kwargs...)
@@ -67,21 +81,21 @@ begin
 		viz_graph!(Axis(fig[1, 1]; graph_ax_kwargs...), graph; kwargs...)
 		return fig
 	end
-end
+end;
 
-# ╔═╡ 08105059-4164-4503-b1bf-3f3ac5a5e035
-GraphMakie.Spring()
+# ╔═╡ 126e486e-3ad0-46c3-b21a-5190ed90bed2
 
-# ╔═╡ a5d4402c-cc8f-4e3e-b901-e3929b439287
-viz_graph(g₁; node_color=:label, highlight=[1, 2, 3])
 
-# ╔═╡ 97a7500f-6499-4379-bb9c-fe1dc9fd76de
-GraphAxis(grid_pos::GridPosition; kwargs...) = Axis(grid_pos; graph_ax_kwargs..., kwargs...)
+# ╔═╡ eeda2cec-9f6c-49b8-9e31-130fb0cfd744
+g₁ = MetaGraph(smilestomol("CC(O)=O"))
+
+# ╔═╡ 1938b863-aa74-4acb-a475-b6a3609c8880
+g₂ = MetaGraph(smilestomol("CCO"))
 
 # ╔═╡ b262501f-a776-416d-ab5a-e53a3314fa9f
 dpg = ProductGraph{Direct}(g₁, g₂)
 
-# ╔═╡ 0f5a17c3-128b-4881-94ad-811121f17e66
+# ╔═╡ a86c30d9-a02f-4e15-8007-f1c5d6e6186e
 begin
 	k3 = MetaGraph(3)
 	set_prop!(k3, 1, :label, 6)
@@ -89,10 +103,7 @@ begin
 	set_prop!(k3, 3, :label, 8)
 	add_edge!(k3, 1, 2, :label, 1)
 	add_edge!(k3, 3, 2, :label, 1)
-end
-
-# ╔═╡ a86c30d9-a02f-4e15-8007-f1c5d6e6186e
-begin
+	
 	k4 = MetaGraph(4)
 	set_prop!(k4, 1, :label, 6)
 	set_prop!(k4, 2, :label, 6)
@@ -101,59 +112,36 @@ begin
 	add_edge!(k4, 3, 2, :label, 1)
 	set_prop!(k4, 4, :label, 8)
 	add_edge!(k4, 2, 4, :label, 2)
-end
+end;
 
 # ╔═╡ fba8a4a1-4c42-4802-8ff6-ba8a40b23e1e
 begin
 	local fig = Figure()
 
 	# plot molecules on sides of top row
-	viz_graph!(GraphAxis(fig[1,1]; title="g₁"), g₁, node_color=:label)
-	viz_graph!(GraphAxis(fig[1,5]; title="g₂"), g₂, node_color=:label)
+	viz_graph!(GraphAxis(fig[1,1]; title="g₁"), g₁, layout=Molecular)
+	viz_graph!(GraphAxis(fig[1,5]; title="g₂"), g₂, layout=Molecular)
 
 	# plot DPG in center of top row
-	viz_graph!(GraphAxis(fig[1, 3]; title="g₁×g₂"), dpg, node_color=:label)
+	viz_graph!(GraphAxis(fig[1, 3]; title="g₁×g₂"), dpg)
 
 	# plot k=3 graphlet in center column
-	viz_graph!(GraphAxis(fig[3, 3]; title="k=3"), k3, node_color=:label)
+	viz_graph!(GraphAxis(fig[3, 3]; title="k=3"), k3)
 
 	# highlight graphlet in molecule 1
-	viz_graph!(
-		GraphAxis(fig[3, 1]), 
-		g₁;
-		highlight=[1, 2, 3], 
-		node_color=:label
-	)
+	viz_graph!(GraphAxis(fig[3, 1]), g₁; highlight=[1, 2, 3], layout=Molecular)
 
 	# highlight graphlet in molecule 2
-	viz_graph!(
-		GraphAxis(fig[3,5]; title="g₂"), 
-		g₂, 
-		node_color=:label,
-		highlight=[1, 2, 3]
-	)
+	viz_graph!(GraphAxis(fig[3,5]), g₂, highlight=[1, 2, 3], layout=Molecular)
 
 	# plot k=4 graphlets in center column
-	viz_graph!(
-		GraphAxis(fig[5, 3]; title="k=4"), 
-		k4, 
-		node_color=:label
-	)
+	viz_graph!(GraphAxis(fig[5, 3]; title="k=4"), k4)
 	
 	# highlight graphlet in molecule 1
-	viz_graph!(
-		GraphAxis(fig[5, 1]), 
-		g₁;
-		highlight=[1, 2, 3, 4], 
-		node_color=:label
-	)
+	viz_graph!(GraphAxis(fig[5, 1]), g₁; highlight=[1, 2, 3, 4], layout=Molecular)
 
 	# [don't] highlight in molecule 2 (nothing to highlight)
-	viz_graph!(
-		GraphAxis(fig[5, 5]), 
-		g₂;
-		node_color=:label
-	)
+	viz_graph!(GraphAxis(fig[5, 5]), g₂; layout=Molecular)
 	
 	fig
 end
@@ -1599,17 +1587,13 @@ version = "3.5.0+0"
 
 # ╔═╡ Cell order:
 # ╠═2f71ecea-c75d-11ed-1945-0139d58c164a
+# ╠═810fa4f4-85d9-408c-b0e6-fba9313b44d2
+# ╠═1d2c4246-4a93-4249-bc37-9b7c43504e05
 # ╠═8d34e17e-e40a-48e5-98b6-e4052e4feeb2
+# ╠═126e486e-3ad0-46c3-b21a-5190ed90bed2
 # ╠═eeda2cec-9f6c-49b8-9e31-130fb0cfd744
 # ╠═1938b863-aa74-4acb-a475-b6a3609c8880
-# ╠═7e6cd467-9d28-4d6b-8ca7-033b33d2256a
-# ╠═810fa4f4-85d9-408c-b0e6-fba9313b44d2
-# ╠═fd451c5c-b77a-44ec-ae65-2a924301b8f6
-# ╠═08105059-4164-4503-b1bf-3f3ac5a5e035
-# ╠═a5d4402c-cc8f-4e3e-b901-e3929b439287
-# ╠═97a7500f-6499-4379-bb9c-fe1dc9fd76de
 # ╠═b262501f-a776-416d-ab5a-e53a3314fa9f
-# ╠═0f5a17c3-128b-4881-94ad-811121f17e66
 # ╠═a86c30d9-a02f-4e15-8007-f1c5d6e6186e
 # ╠═fba8a4a1-4c42-4802-8ff6-ba8a40b23e1e
 # ╟─00000000-0000-0000-0000-000000000001

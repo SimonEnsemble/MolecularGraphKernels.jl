@@ -1,6 +1,7 @@
 module MolecularGraphKernels
 
 using Cairo,
+    CairoMakie,
     Colors,
     Compose,
     Distributed,

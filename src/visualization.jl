@@ -1,8 +1,11 @@
+import GraphMakie.NetworkLayout: AbstractLayout
+
 Base.@kwdef struct VizGraphKwargs
     savename::String = ""
-    savedims_cm::Tuple{Float64, Float64} = (12.0, 12.0) # units: cm
-    C::Float64 = 0.1
-    layout_style::Symbol = :spring
+    layout::Type{<: AbstractLayout} = GraphMakie.Spring
+    highlight::Vector{Int}=Int[]
+    highlight_color::Symbol=:orange
+    highlight_width::Int=25
     node_alpha_mask::Vector{S} where {S <: Real}
     edge_alpha_mask::Vector{T} where {T <: Real}
 end
@@ -11,7 +14,6 @@ function VizGraphKwargs(mol::GraphMol; kwargs...)
     return VizGraphKwargs(;
         node_alpha_mask=ones(length(mol.nodeattrs)),
         edge_alpha_mask=ones(length(mol.edgeattrs)),
-        layout_style=:molecular,
         kwargs...
     )
 end
@@ -66,33 +68,6 @@ function viz_edge_colors(::ProductGraph{Modular}, edgelabel::Vector{String})::Ve
     return edgestrokec
 end
 
-"""
-sets the gplot layout style
-"""
-function select_graph_layout(layout_style::Symbol, C::Float64)
-    return (args...) -> if layout_style == :spring
-        spring_layout(args...; C=C)
-    elseif layout_style == :circular
-        circular_layout(args...)
-    elseif layout_style == :spectral
-        spectral_layout(args...)
-    elseif layout_style == :molecular
-        molecular_layout(args...)
-    else
-        error("Invalid layout style: ", layout_style)
-    end
-end
-
-function molecular_layout(
-    g::MetaGraph{Int, Float64}
-)::Tuple{Vector{Float64}, Vector{Float64}}
-    coords = zeros(2, nv(g))
-    for v in vertices(g)
-        coords[:, v] .= get_prop(g, v, :coords)
-    end
-    return (coords[1, :], coords[2, :])
-end
-
 const DARKGRAY =
     parse.(Int, ["#A09C9C"[x] for x in [[2, 3], [4, 5], [6, 7]]], base=16) ./ 255
 
@@ -134,6 +109,69 @@ function alpha_mask!(label::Vector{String}, mask::Vector{T}) where {T <: Real}
     end
 end
 
+struct Molecular <: AbstractLayout{2, Float64} end
+
+function (::Molecular)(graph::AbstractMetaGraph)::Vector{<: Point}
+    return [Point2(get_prop(graph, v, :coords)) for v in vertices(graph)]
+end
+
+const graph_ax_kwargs = Dict(
+    vcat(
+        [
+            :xticksvisible,
+            :yticksvisible,
+            :xticklabelsvisible,
+            :yticklabelsvisible,
+            :xgridvisible,
+            :ygridvisible,
+            :topspinevisible,
+            :bottomspinevisible,
+            :leftspinevisible,
+            :rightspinevisible
+        ] .=> false, 
+        [:aspect => DataAspect()]
+    )
+)
+
+GraphAxis(grid_pos::GridPosition; kwargs...) = 
+    Axis(grid_pos; graph_ax_kwargs..., kwargs...)
+
+function viz_graph!(
+    ax::Axis, 
+    graph::AbstractMetaGraph,
+    opt::VizGraphKwargs=VizGraphKwargs(graph)
+)
+    subgraph = induced_subgraph(SimpleGraph(graph), opt.highlight)[1]
+    if subgraph ≠ MetaGraph()
+        GraphMakie.graphplot!(
+            ax, 
+            subgraph;
+            node_attr=(; color=opt.highlight_color, markersize=opt.highlight_width),
+            edge_attr=(; color=opt.highlight_color, linewidth=0.7 * opt.highlight_width),
+            layout=_->opt.layout()(graph)[opt.highlight]
+        )
+    end
+
+    node_labels = viz_node_labels(graph)
+    alpha_mask!(node_labels, opt.node_alpha_mask)
+    edge_labels = viz_edge_labels(graph)
+    alpha_mask!(edge_labels, opt.edge_alpha_mask)
+    node_colors = viz_node_colors(graph)
+    alpha_mask!(node_colors, opt.node_alpha_mask)
+    edge_colors = viz_edge_colors(graph, edge_labels)
+    alpha_mask!(edge_colors, opt.edge_alpha_mask)
+    GraphMakie.graphplot!(
+        ax, 
+        graph;
+        layout=opt.layout(),
+        node_attr=(; color=node_colors),
+        edge_attr=(; color=edge_colors),
+        nlabels=node_labels,
+        elabels=edge_labels
+    )
+    return
+end
+
 """
 Visualize a molecular or product graph
 """
@@ -144,43 +182,19 @@ end
 viz_graph(mol::GraphMol, opt::VizGraphKwargs) = viz_graph(MetaGraph(mol), opt)
 
 function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
-    layout = select_graph_layout(opt.layout_style, opt.C)
-    x_coords, y_coords = layout(graph)
-
-    edgelabel = viz_edge_labels(graph)
-    alpha_mask!(edgelabel, opt.edge_alpha_mask)
-
-    edgestrokec = viz_edge_colors(graph, edgelabel)
-    alpha_mask!(edgestrokec, opt.edge_alpha_mask)
-
-    nodefillc = viz_node_colors(graph)
-    alpha_mask!(nodefillc, opt.node_alpha_mask)
-
-    nodelabel = viz_node_labels(graph)
-    alpha_mask!(nodelabel, opt.node_alpha_mask)
-
-    plot = gplot(
-        graph,
-        x_coords,
-        y_coords;
-        nodefillc=nodefillc,
-        nodelabel=nodelabel,
-        edgelabel=edgelabel,
-        NODELABELSIZE=5.0,
-        EDGELABELSIZE=6.0,
-        NODESIZE=0.3 / sqrt(nv(graph)),
-        edgestrokec=edgestrokec
-    )
+    fig = Figure()
+    
+    viz_graph!(Axis(fig[1, 1]; graph_ax_kwargs...), graph, opt)
 
     if opt.savename ≠ ""
         the_savename = opt.savename
         if split(the_savename, ".")[end] != "pdf"
             the_savename *= ".pdf"
         end
-        draw(PDF(the_savename, opt.savedims_cm[1] * 1cm, opt.savedims_cm[2] * 1cm), plot)
+        CairoMakie.save(the_savename, fig)
     end
 
-    return plot
+    return fig
 end
 
 export viz_graph

@@ -96,8 +96,7 @@ end
 viz_graph(
     g₂;
     node_alpha_mask=g₂_node_alpha_mask,
-    edge_alpha_mask=g₂_edge_alpha_mask,
-    layout_style=:molecular
+    edge_alpha_mask=g₂_edge_alpha_mask
 )
 
 # ╔═╡ Cell order:
