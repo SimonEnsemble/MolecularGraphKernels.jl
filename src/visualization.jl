@@ -2,10 +2,10 @@ import GraphMakie.NetworkLayout: AbstractLayout
 
 Base.@kwdef struct VizGraphKwargs
     savename::String = ""
-    layout::Type{<: AbstractLayout} = GraphMakie.Spring
-    highlight::Vector{Int}=Int[]
-    highlight_color::Symbol=:orange
-    highlight_width::Int=25
+    layout::Type{<:AbstractLayout} = GraphMakie.Spring
+    highlight::Vector{Int} = Int[]
+    highlight_color::Symbol = :orange
+    highlight_width::Int = 25
     node_alpha_mask::Vector{S} where {S <: Real}
     edge_alpha_mask::Vector{T} where {T <: Real}
 end
@@ -111,7 +111,7 @@ end
 
 struct Molecular <: AbstractLayout{2, Float64} end
 
-function (::Molecular)(graph::AbstractMetaGraph)::Vector{<: Point}
+function (::Molecular)(graph::AbstractMetaGraph)::Vector{<:Point}
     return [Point2(get_prop(graph, v, :coords)) for v in vertices(graph)]
 end
 
@@ -128,27 +128,26 @@ const graph_ax_kwargs = Dict(
             :bottomspinevisible,
             :leftspinevisible,
             :rightspinevisible
-        ] .=> false, 
+        ] .=> false,
         [:aspect => DataAspect()]
     )
 )
 
-GraphAxis(grid_pos::GridPosition; kwargs...) = 
-    Axis(grid_pos; graph_ax_kwargs..., kwargs...)
+GraphAxis(grid_pos::GridPosition; kwargs...) = Axis(grid_pos; graph_ax_kwargs..., kwargs...)
 
 function viz_graph!(
-    ax::Axis, 
+    ax::Axis,
     graph::AbstractMetaGraph,
     opt::VizGraphKwargs=VizGraphKwargs(graph)
 )
     subgraph = induced_subgraph(SimpleGraph(graph), opt.highlight)[1]
     if subgraph ≠ MetaGraph()
         GraphMakie.graphplot!(
-            ax, 
+            ax,
             subgraph;
             node_attr=(; color=opt.highlight_color, markersize=opt.highlight_width),
             edge_attr=(; color=opt.highlight_color, linewidth=0.7 * opt.highlight_width),
-            layout=_->opt.layout()(graph)[opt.highlight]
+            layout=_ -> opt.layout()(graph)[opt.highlight]
         )
     end
 
@@ -161,7 +160,7 @@ function viz_graph!(
     edge_colors = viz_edge_colors(graph, edge_labels)
     alpha_mask!(edge_colors, opt.edge_alpha_mask)
     GraphMakie.graphplot!(
-        ax, 
+        ax,
         graph;
         layout=opt.layout(),
         node_attr=(; color=node_colors),
@@ -183,7 +182,7 @@ viz_graph(mol::GraphMol, opt::VizGraphKwargs) = viz_graph(MetaGraph(mol), opt)
 
 function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
     fig = Figure()
-    
+
     viz_graph!(Axis(fig[1, 1]; graph_ax_kwargs...), graph, opt)
 
     if opt.savename ≠ ""

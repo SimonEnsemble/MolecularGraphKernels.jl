@@ -23,7 +23,12 @@ end
 end
 
 @testset verbose = true "Graph Types" begin
-    test_vis(smilestomol("c1ccccc1"), "benzene", "MetaGraph"; layout=MolecularGraphKernels.Molecular)
+    test_vis(
+        smilestomol("c1ccccc1"),
+        "benzene",
+        "MetaGraph";
+        layout=MolecularGraphKernels.Molecular
+    )
     test_vis(
         ProductGraph{Direct}(smilestomol("NC=O"), smilestomol("C(NC=O)NC=O")),
         "dpg",
@@ -39,8 +44,8 @@ end
 @testset verbose = true "Graph Plot Styles" begin
     mol = smilestomol("C(NC=O)NC=O")
     styles = Dict(
-        "spring" => GraphMakie.Spring,  
-        "spectral" => GraphMakie.Spectral, 
+        "spring" => GraphMakie.Spring,
+        "spectral" => GraphMakie.Spectral,
         "stress" => GraphMakie.Stress,
         "molecular" => MolecularGraphKernels.Molecular
     )
