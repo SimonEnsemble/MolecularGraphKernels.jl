@@ -9,82 +9,89 @@ using CairoMakie, GraphMakie, MolecularGraph, Graphs, MetaGraphs
 
 # ╔═╡ 1d2c4246-4a93-4249-bc37-9b7c43504e05
 
-
 # ╔═╡ 8d34e17e-e40a-48e5-98b6-e4052e4feeb2
-import MolecularGraphKernels: MetaGraph, VizGraphKwargs, ProductGraph, Direct, viz_node_colors, Modular, viz_node_labels, viz_edge_labels
+import MolecularGraphKernels:
+    MetaGraph,
+    VizGraphKwargs,
+    ProductGraph,
+    Direct,
+    viz_node_colors,
+    Modular,
+    viz_node_labels,
+    viz_edge_labels
 
 # ╔═╡ 810fa4f4-85d9-408c-b0e6-fba9313b44d2
 begin
-	import GraphMakie.NetworkLayout: AbstractLayout
-	
-	struct Molecular <: AbstractLayout{2, Float64}
-	end
-	
-	function (::Molecular)(graph::AbstractMetaGraph)::Vector{<: Point}
-		return [Point2(get_prop(graph, v, :coords)) for v in vertices(graph)]
-	end
-	
-	const graph_ax_kwargs = Dict(
-		vcat(
-			[
-				:xticksvisible,
-				:yticksvisible,
-				:xticklabelsvisible,
-				:yticklabelsvisible,
-				:xgridvisible,
-				:ygridvisible,
-				:topspinevisible,
-				:bottomspinevisible,
-				:leftspinevisible,
-				:rightspinevisible
-			] .=> false, 
-			[:aspect => DataAspect()]
-		)
-	)
-	
-	GraphAxis(grid_pos::GridPosition; kwargs...) = 
-		Axis(grid_pos; graph_ax_kwargs..., kwargs...)
-	
-	function viz_graph!(
-		ax::Axis, 
-		graph::AbstractMetaGraph; 
-		node_color::Symbol=:black,
-		highlight::Vector{Int}=Int[],
-		highlight_color::Symbol=:orange,
-		highlight_width::Int=25,
-		layout::Type{<: AbstractLayout}=GraphMakie.Spring
-	)
-		subgraph = induced_subgraph(SimpleGraph(graph), highlight)[1]
-		if subgraph ≠ MetaGraph()
-			GraphMakie.graphplot!(
-				ax, 
-				subgraph;
-				node_attr=(; color=highlight_color, markersize=highlight_width),
-				edge_attr=(; color=highlight_color, linewidth=0.7highlight_width),
-				layout=_->layout()(graph)[highlight]
-			)
-		end
-		GraphMakie.graphplot!(
-			ax, 
-			graph;
-			layout=layout(),
-			node_attr=(; color=viz_node_colors(graph)),
-			nlabels=viz_node_labels(graph),
-			elabels=viz_edge_labels(graph)
-		)
-	end
-	
-	viz_graph(graph::AbstractMetaGraph; kwargs...) = 
-		viz_graph(graph, VizGraphKwargs(graph); kwargs...)
-	function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs; kwargs...)
-		fig = Figure()
-		viz_graph!(Axis(fig[1, 1]; graph_ax_kwargs...), graph; kwargs...)
-		return fig
-	end
+    import GraphMakie.NetworkLayout: AbstractLayout
+
+    struct Molecular <: AbstractLayout{2, Float64} end
+
+    function (::Molecular)(graph::AbstractMetaGraph)::Vector{<:Point}
+        return [Point2(get_prop(graph, v, :coords)) for v in vertices(graph)]
+    end
+
+    const graph_ax_kwargs = Dict(
+        vcat(
+            [
+                :xticksvisible,
+                :yticksvisible,
+                :xticklabelsvisible,
+                :yticklabelsvisible,
+                :xgridvisible,
+                :ygridvisible,
+                :topspinevisible,
+                :bottomspinevisible,
+                :leftspinevisible,
+                :rightspinevisible
+            ] .=> false,
+            [:aspect => DataAspect()]
+        )
+    )
+
+    function GraphAxis(grid_pos::GridPosition; kwargs...)
+        return Axis(grid_pos; graph_ax_kwargs..., kwargs...)
+    end
+
+    function viz_graph!(
+        ax::Axis,
+        graph::AbstractMetaGraph;
+        node_color::Symbol=:black,
+        highlight::Vector{Int}=Int[],
+        highlight_color::Symbol=:orange,
+        highlight_width::Int=25,
+        layout::Type{<:AbstractLayout}=GraphMakie.Spring
+    )
+        subgraph = induced_subgraph(SimpleGraph(graph), highlight)[1]
+        if subgraph ≠ MetaGraph()
+            GraphMakie.graphplot!(
+                ax,
+                subgraph;
+                node_attr=(; color=highlight_color, markersize=highlight_width),
+                edge_attr=(; color=highlight_color, linewidth=0.7highlight_width),
+                layout=_ -> layout()(graph)[highlight]
+            )
+        end
+        return GraphMakie.graphplot!(
+            ax,
+            graph;
+            layout=layout(),
+            node_attr=(; color=viz_node_colors(graph)),
+            nlabels=viz_node_labels(graph),
+            elabels=viz_edge_labels(graph)
+        )
+    end
+
+    function viz_graph(graph::AbstractMetaGraph; kwargs...)
+        return viz_graph(graph, VizGraphKwargs(graph); kwargs...)
+    end
+    function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs; kwargs...)
+        fig = Figure()
+        viz_graph!(Axis(fig[1, 1]; graph_ax_kwargs...), graph; kwargs...)
+        return fig
+    end
 end;
 
 # ╔═╡ 126e486e-3ad0-46c3-b21a-5190ed90bed2
-
 
 # ╔═╡ eeda2cec-9f6c-49b8-9e31-130fb0cfd744
 g₁ = MetaGraph(smilestomol("CC(O)=O"))
@@ -97,53 +104,53 @@ dpg = ProductGraph{Direct}(g₁, g₂)
 
 # ╔═╡ a86c30d9-a02f-4e15-8007-f1c5d6e6186e
 begin
-	k3 = MetaGraph(3)
-	set_prop!(k3, 1, :label, 6)
-	set_prop!(k3, 2, :label, 6)
-	set_prop!(k3, 3, :label, 8)
-	add_edge!(k3, 1, 2, :label, 1)
-	add_edge!(k3, 3, 2, :label, 1)
-	
-	k4 = MetaGraph(4)
-	set_prop!(k4, 1, :label, 6)
-	set_prop!(k4, 2, :label, 6)
-	set_prop!(k4, 3, :label, 8)
-	add_edge!(k4, 1, 2, :label, 1)
-	add_edge!(k4, 3, 2, :label, 1)
-	set_prop!(k4, 4, :label, 8)
-	add_edge!(k4, 2, 4, :label, 2)
+    k3 = MetaGraph(3)
+    set_prop!(k3, 1, :label, 6)
+    set_prop!(k3, 2, :label, 6)
+    set_prop!(k3, 3, :label, 8)
+    add_edge!(k3, 1, 2, :label, 1)
+    add_edge!(k3, 3, 2, :label, 1)
+
+    k4 = MetaGraph(4)
+    set_prop!(k4, 1, :label, 6)
+    set_prop!(k4, 2, :label, 6)
+    set_prop!(k4, 3, :label, 8)
+    add_edge!(k4, 1, 2, :label, 1)
+    add_edge!(k4, 3, 2, :label, 1)
+    set_prop!(k4, 4, :label, 8)
+    add_edge!(k4, 2, 4, :label, 2)
 end;
 
 # ╔═╡ fba8a4a1-4c42-4802-8ff6-ba8a40b23e1e
 begin
-	local fig = Figure()
+    local fig = Figure()
 
-	# plot molecules on sides of top row
-	viz_graph!(GraphAxis(fig[1,1]; title="g₁"), g₁, layout=Molecular)
-	viz_graph!(GraphAxis(fig[1,5]; title="g₂"), g₂, layout=Molecular)
+    # plot molecules on sides of top row
+    viz_graph!(GraphAxis(fig[1, 1]; title="g₁"), g₁; layout=Molecular)
+    viz_graph!(GraphAxis(fig[1, 5]; title="g₂"), g₂; layout=Molecular)
 
-	# plot DPG in center of top row
-	viz_graph!(GraphAxis(fig[1, 3]; title="g₁×g₂"), dpg)
+    # plot DPG in center of top row
+    viz_graph!(GraphAxis(fig[1, 3]; title="g₁×g₂"), dpg)
 
-	# plot k=3 graphlet in center column
-	viz_graph!(GraphAxis(fig[3, 3]; title="k=3"), k3)
+    # plot k=3 graphlet in center column
+    viz_graph!(GraphAxis(fig[3, 3]; title="k=3"), k3)
 
-	# highlight graphlet in molecule 1
-	viz_graph!(GraphAxis(fig[3, 1]), g₁; highlight=[1, 2, 3], layout=Molecular)
+    # highlight graphlet in molecule 1
+    viz_graph!(GraphAxis(fig[3, 1]), g₁; highlight=[1, 2, 3], layout=Molecular)
 
-	# highlight graphlet in molecule 2
-	viz_graph!(GraphAxis(fig[3,5]), g₂, highlight=[1, 2, 3], layout=Molecular)
+    # highlight graphlet in molecule 2
+    viz_graph!(GraphAxis(fig[3, 5]), g₂; highlight=[1, 2, 3], layout=Molecular)
 
-	# plot k=4 graphlets in center column
-	viz_graph!(GraphAxis(fig[5, 3]; title="k=4"), k4)
-	
-	# highlight graphlet in molecule 1
-	viz_graph!(GraphAxis(fig[5, 1]), g₁; highlight=[1, 2, 3, 4], layout=Molecular)
+    # plot k=4 graphlets in center column
+    viz_graph!(GraphAxis(fig[5, 3]; title="k=4"), k4)
 
-	# [don't] highlight in molecule 2 (nothing to highlight)
-	viz_graph!(GraphAxis(fig[5, 5]), g₂; layout=Molecular)
-	
-	fig
+    # highlight graphlet in molecule 1
+    viz_graph!(GraphAxis(fig[5, 1]), g₁; highlight=[1, 2, 3, 4], layout=Molecular)
+
+    # [don't] highlight in molecule 2 (nothing to highlight)
+    viz_graph!(GraphAxis(fig[5, 5]), g₂; layout=Molecular)
+
+    fig
 end
 
 # ╔═╡ 00000000-0000-0000-0000-000000000001
