@@ -1,10 +1,11 @@
 module MolecularGraphKernels
 
 using Cairo,
+    CairoMakie,
     Colors,
     Compose,
     Distributed,
-    GraphPlot,
+    GraphMakie,
     Graphs,
     JLD2,
     MetaGraphs,

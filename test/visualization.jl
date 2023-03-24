@@ -1,15 +1,10 @@
 module Test_visualization
 
-using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
+using GraphMakie, Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 import MolecularGraphKernels: VizGraphKwargs
 
 function test_vis(graph, graph_name, set_name; kwargs...)
-    opts = VizGraphKwargs(graph; kwargs...)
     @testset "$set_name" begin
-        if opts.layout_style == :bogus_style
-            @test_throws ErrorException viz_graph(graph; kwargs...)
-            return
-        end
         rm("$graph_name.pdf"; force=true)
         @test !isnothing(viz_graph(graph; savename=graph_name, kwargs...))
         vis = isfile("$graph_name.pdf")
@@ -28,7 +23,12 @@ end
 end
 
 @testset verbose = true "Graph Types" begin
-    test_vis(smilestomol("c1ccccc1"), "benzene", "MetaGraph")
+    test_vis(
+        smilestomol("c1ccccc1"),
+        "benzene",
+        "MetaGraph";
+        layout=MolecularGraphKernels.Molecular
+    )
     test_vis(
         ProductGraph{Direct}(smilestomol("NC=O"), smilestomol("C(NC=O)NC=O")),
         "dpg",
@@ -43,8 +43,14 @@ end
 
 @testset verbose = true "Graph Plot Styles" begin
     mol = smilestomol("C(NC=O)NC=O")
-    for style in [:spring, :circular, :spectral, :bogus_style]
-        test_vis(mol, "$style", "$style"; layout_style=style)
+    styles = Dict(
+        "spring" => GraphMakie.Spring,
+        "spectral" => GraphMakie.Spectral,
+        "stress" => GraphMakie.Stress,
+        "molecular" => MolecularGraphKernels.Molecular
+    )
+    for (k, v) in styles
+        test_vis(mol, k, k; layout=v)
     end
 end
 
@@ -65,7 +71,7 @@ end
     g₁ = MetaGraph(smilestomol("COP(=O)(OC)OC(Br)C(Cl)(Cl)Br"))
     g₂ = MetaGraph(smilestomol("COP(N)(=O)SC"))
     dpg = ProductGraph{Direct}(g₁, g₂)
-    test_vis(dpg, "bee-tox", "example"; C=5)
+    test_vis(dpg, "bee-tox", "example")
 end
 
 end

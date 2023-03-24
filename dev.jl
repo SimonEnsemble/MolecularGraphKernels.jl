@@ -93,12 +93,7 @@ begin
 end
 
 # ╔═╡ 7663b5a0-d0a9-4a72-9d75-745a91160737
-viz_graph(
-    g₂;
-    node_alpha_mask=g₂_node_alpha_mask,
-    edge_alpha_mask=g₂_edge_alpha_mask,
-    layout_style=:molecular
-)
+viz_graph(g₂; node_alpha_mask=g₂_node_alpha_mask, edge_alpha_mask=g₂_edge_alpha_mask)
 
 # ╔═╡ Cell order:
 # ╟─cd9f1c9c-ebcd-4733-a7ec-4fd743b0d81b
