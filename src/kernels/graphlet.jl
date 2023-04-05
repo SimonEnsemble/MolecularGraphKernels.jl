@@ -153,7 +153,7 @@ generate the size-`k` node combinations from `tree` starting at `st_root`
 	for i = 1:minimum([length(childrenₜ), k-1])
 		for nodecombo in k_combinations(i, childrenₜ)
 			for string in k_compositions(i, k - 1)
-				S = Dict{Int}()
+				S = Dict{Int, Any}()
 				fail = false
 				for pos in 1:i
 					stRoot = nodecombo[pos]
@@ -191,10 +191,10 @@ function con_sub_g(k::Int,graph::MetaGraph)::Vector{Vector{Int}}
 	for v in vertices(G)
 		set_prop!(G, v, :visited, false)
 	end
-	list = Dict()
+	list = Vector{Int}
 	queue = reverse(vertices(G))
 	for v in queue
-		list = list ∪ CombinationsWithV(v,k,G)
+		list = list ∪ combinations_with_v(v,k,G)
 		rem_vertex!(G,v)
 	end
 	return list
