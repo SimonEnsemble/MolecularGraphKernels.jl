@@ -59,7 +59,7 @@ function combination_tree(v::Int, k::Int, graph::AbstractMetaGraph)::Tree
                 else
                     tree[nₜ′].new = false
                 end
-                if depth ≤ k
+                if depth ≤ k - 1
                     build_tree(nₜ′, depth + 1, k)
                 end
             end
@@ -111,68 +111,67 @@ const ∅ = Vector{Int}[]
 """
 union product
 """
-function ⊗ₜ(S₁::T, S₂::T, tree::Tree)::T where {T <: Vector{Vector{Int}}}
-    if S₁ == ∅ || S₂ == ∅
-        return S₁
-    else
-        union_product = Vector{Int}[]
-        for s₁ in S₁
-            for s₂ in S₂
-                new_ct = any([tree[v].new for v in s₂])
-                for i in s₁
-                    vᵢ = tree[i].vertex
-                    children = [child.vertex for child in tree[i].children]
-                    for j in s₂
-                        vⱼ = tree[j].vertex
-                        if vᵢ == vⱼ || (!new_ct && in(children .== vⱼ)(1) == true)
-                            return ∅
-                        end
-                    end
-                end
-                union_product = union_product ∪ [s₁ ∪ s₂]
-            end
-        end
-        return union_product
-    end
+function ⊗ₜ(S₁,S₂,tree)
+	UnionProduct = Dict()
+	if S₁ == ∅
+		return UnionProduct
+	end
+	if S₂ == ∅
+		return S₁
+	else
+		for s₁ ∈ S₁
+			for s₂ ∈ S₂
+				no_union = false
+				new_ct = any([tree[v].new for v in s₂])
+				for i ∈ s₁
+					vᵢ=tree[i].vertex
+					Childrenᵢ = [tree[i].children[v].vertex for v in 1:length(tree[i].children)]
+					for j ∈ s₂
+						vⱼ=tree[j].vertex
+						if vᵢ == vⱼ || (!new_ct && in(Childrenᵢ.==vⱼ)(1)==true)
+							no_union = true
+						end
+					end
+				end
+				if !no_union
+					UnionProduct = UnionProduct ∪ [s₁ ∪ s₂]
+				end
+			end
+		end
+	return UnionProduct
+	end
 end
 
 """
 generate the size-`k` node combinations from `tree` starting at `st_root`
 """
-@memoize function combinations_from_tree(
-    tree::Tree,
-    k::Int,
-    st_root::Int=1
-)::Vector{Vector{Int}}
-    t = st_root
-    lnodesets = Vector{Int}[]
-    k == 1 && return [[t]]
-    children = [tree[t].children[v].node for v in 1:length(tree[t].children)]
-    for i in 1:minimum([length(children), k - 1])
-        for node_combo in k_combinations(i, children)
-            for string in k_compositions(i, k - 1)
-                S = Dict()
-                fail = false
-                for pos in 1:i
-                    st_root = node_combo[pos]
-                    size = string[pos]
-                    S[pos] = combinations_from_tree(tree, size, st_root)
-                    if S[pos] == []
-                        fail = true
-                        break
-                    end
-                end
-                fail && continue
-                for combo_product in
-                    ## I will give $20 to whoever can explain why I can't reduce 
-                    ## over S or [S[i] for i in eachindex(S)].  Not even kidding.
-                    reduce((a, b) -> ⊗ₜ(a, b, tree), [S[i] for i in 1:length(S)])
-                    lnodesets = lnodesets ∪ Vector{Int}[combo_product ∪ Int[t]]
-                end
-            end
-        end
-    end
-    return lnodesets[length.(lnodesets) .== k]
+@memoize function CombinationsFromTree(tree,k::Int,stRoot::Int=1)::Vector{Vector{Int}}
+	t=stRoot
+	lnodesets = []
+	k==1 && return [[t]]
+	Childrenₜ = [tree[t].children[v].node for v in 1:length(tree[t].children)]
+	for i = 1:minimum([length(Childrenₜ),k-1])
+		for NodeComb in kCombinations(i,Childrenₜ)
+			for string in kCompositions(i,k-1)
+				S = Dict()
+				fail = false
+				for pos in 1:i
+					stRoot = NodeComb[pos]
+					size = string[pos]
+					S[pos] = CombinationsFromTree(tree,size,stRoot)
+					if S[pos] == []
+						fail  = true
+						break
+					end
+				end
+				fail && continue
+				for comProduct in reduce((a,b)->⊗ₜ(a,b,tree), [S[i] for i in 1:length(S)])
+					lnodesets = lnodesets ∪ [comProduct ∪ [t]]
+				end
+			end
+		end
+	end
+	return lnodesets
 end
 
 """
@@ -187,43 +186,48 @@ end
 """
 enumerate the set of sets of vertices comprising the size-`k` graphlets of `graph`
 """
-function con_sub_g(k::Int, graph::AbstractMetaGraph)::Vector{Vector{Int}}
-    G = deepcopy(graph)
-    for v in vertices(G)
-        set_prop!(G, v, :visited, false)
-    end
-    list = Vector{Int}[]
-    queue = reverse(vertices(G))
-    for v in queue
-        list = list ∪ combinations_with_v(v, k, G)
-        rem_vertex!(G, v)
-    end
-    return list
+function con_sub_g(k::Int,graph::MetaGraph)::Vector{Vector{Int}}
+	G = deepcopy(graph)
+	for v in vertices(G)
+		set_prop!(G, v, :visited, false)
+	end
+	list = Dict()
+	queue = reverse(vertices(G))
+	for v in queue
+		list = list ∪ CombinationsWithV(v,k,G)
+		rem_vertex!(G,v)
+	end
+	return list
 end
 
 """
-calculate the connected graphlet kernel for DPG `G` using graphlet sizes from `n`
+calculate the connected graphlet kernel for two graphs G₁ and G₂ using graphlet sizes from `n`
 """
-function connected_graphlet(
-    G::ProductGraph{Direct};
-    n::Union{Vector{Int}, UnitRange}=2:4
-)::Int
-    if length(n) == 1
-        return n * length(con_sub_g(n, G))
-    else
-        return sum([k * length(con_sub_g(k, G)) for k in n])
-    end
+function connected_graphlet(G₁::MetaGraph,G₂::MetaGraph; n=2:4)::Int
+	count = 0
+	if length(n) == 1
+		cg1 = ConSubG(n, G₁)
+		cg2 = ConSubG(n, G₂)
+		count = count + sum([
+			is_isomorphic(
+				induced_subgraph(G₁, cg1[i])[1],
+				induced_subgraph(G₂, cg2[j])[1]
+				)
+			 for i in eachindex(cg1) for j in eachindex(cg2)
+				 ])*n
+	else
+		for k in n
+		    cg1 = ConSubG(k, G₁)
+		    cg2 = ConSubG(k, G₂)
+		    count = count + sum([
+		        is_isomorphic(
+		            induced_subgraph(G₁, cg1[i])[1],
+		            induced_subgraph(G₂, cg2[j])[1]
+		            )
+		        for i in eachindex(cg1) for j in eachindex(cg2)
+					])*k
+		end
+	end
+	return count
 end
 
-"""
-calculate the connected graphlet kernel for the DPG of `A` and `B`
-"""
-function connected_graphlet(
-    A::Union{GraphMol, MetaGraph},
-    B::Union{GraphMol, MetaGraph};
-    kwargs...
-)::Int
-    return connected_graphlet(ProductGraph{Direct}(A, B); kwargs...)
-end
-
-export connected_graphlet
