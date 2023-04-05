@@ -231,3 +231,4 @@ function connected_graphlet(G₁::MetaGraph,G₂::MetaGraph; n=2:4)::Int
 	return count
 end
 
+export connected_graphlet
