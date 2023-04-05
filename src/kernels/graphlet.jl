@@ -112,9 +112,9 @@ const ∅ = Vector{Int}[]
 union product
 """
 function ⊗ₜ(S₁,S₂,tree)
-	UnionProduct = Dict()
+	unionproduct = Vector{Int}[]
 	if S₁ == ∅
-		return UnionProduct
+		return unionproduct
 	end
 	if S₂ == ∅
 		return S₁
@@ -125,48 +125,48 @@ function ⊗ₜ(S₁,S₂,tree)
 				new_ct = any([tree[v].new for v in s₂])
 				for i ∈ s₁
 					vᵢ=tree[i].vertex
-					Childrenᵢ = [tree[i].children[v].vertex for v in 1:length(tree[i].children)]
+					childrenᵢ = [tree[i].children[v].vertex for v in 1:length(tree[i].children)]
 					for j ∈ s₂
 						vⱼ=tree[j].vertex
-						if vᵢ == vⱼ || (!new_ct && in(Childrenᵢ.==vⱼ)(1)==true)
+						if vᵢ == vⱼ || (!new_ct && in(childrenᵢ.==vⱼ)(1)==true)
 							no_union = true
 						end
 					end
 				end
 				if !no_union
-					UnionProduct = UnionProduct ∪ [s₁ ∪ s₂]
+					unionproduct = unionproduct ∪ [s₁ ∪ s₂]
 				end
 			end
 		end
-	return UnionProduct
+	return unionproduct
 	end
 end
 
 """
 generate the size-`k` node combinations from `tree` starting at `st_root`
 """
-@memoize function CombinationsFromTree(tree,k::Int,stRoot::Int=1)::Vector{Vector{Int}}
+@memoize function combinations_from_tree(tree, k::Int, stRoot::Int=1)::Vector{Vector{Int}}
 	t=stRoot
-	lnodesets = []
-	k==1 && return [[t]]
-	Childrenₜ = [tree[t].children[v].node for v in 1:length(tree[t].children)]
-	for i = 1:minimum([length(Childrenₜ),k-1])
-		for NodeComb in kCombinations(i,Childrenₜ)
-			for string in kCompositions(i,k-1)
-				S = Dict()
+	lnodesets = Vector{Int}[]
+	k == 1 && return [[t]]
+	childrenₜ = [tree[t].children[v].node for v in 1:length(tree[t].children)]
+	for i = 1:minimum([length(childrenₜ), k-1])
+		for nodecombo in k_combinations(i, childrenₜ)
+			for string in k_compositions(i, k - 1)
+				S = Dict{Int}()
 				fail = false
 				for pos in 1:i
-					stRoot = NodeComb[pos]
+					stRoot = nodecombo[pos]
 					size = string[pos]
-					S[pos] = CombinationsFromTree(tree,size,stRoot)
+					S[pos] = combinations_from_tree(tree,size,stRoot)
 					if S[pos] == []
 						fail  = true
 						break
 					end
 				end
 				fail && continue
-				for comProduct in reduce((a,b)->⊗ₜ(a,b,tree), [S[i] for i in 1:length(S)])
-					lnodesets = lnodesets ∪ [comProduct ∪ [t]]
+				for comproduct in reduce((a,b)->⊗ₜ(a,b,tree), [S[i] for i in 1:length(S)])
+					lnodesets = lnodesets ∪ [comproduct ∪ [t]]
 				end
 			end
 		end
