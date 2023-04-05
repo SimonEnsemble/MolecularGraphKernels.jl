@@ -191,7 +191,7 @@ function con_sub_g(k::Int,graph::MetaGraph)::Vector{Vector{Int}}
 	for v in vertices(G)
 		set_prop!(G, v, :visited, false)
 	end
-	list = Vector{Int}
+	list = Vector{Int}[]
 	queue = reverse(vertices(G))
 	for v in queue
 		list = list ∪ combinations_with_v(v,k,G)
