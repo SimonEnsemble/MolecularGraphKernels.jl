@@ -57,7 +57,7 @@ import MolecularGraphKernels:
     end
 
     @testset "All-Connected Graphlet Kernel" begin
-        g₁, g₂ = smilestomol.(["NC=O", "CN(C=O)C=O"])
+        g₁, g₂ = MetaGraph.(smilestomol.(["NC=O", "CN(C=O)C=O"]))
         @test connected_graphlet(g₁, g₂; n=2:4) == 16
     end
 end
