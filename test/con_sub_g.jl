@@ -30,6 +30,58 @@ function isomorphic_trees(t1::Tree, t2::Tree)::Bool
     return true
 end
 
+function bf_con_sub_g(k::Int,G)::Vector{Vector{Int}}
+	pos = collect(vertices(G))
+	s = length(pos)
+	Adj = adjacency_matrix(G)
+	for i ∈ vertices(G)
+		Adj[i,i] = 1
+	end
+	if k>s
+		return "k too big"
+	end
+	list = Dict()
+	for i_1 = pos[1]:pos[s-k+1]
+		for i_2 = pos[i_1+1]:pos[s-k+2]
+			for i_3 = pos[i_2+1]:pos[s-k+3]
+				if k == 3
+					test_graphlet = [i_1,i_2,i_3]
+					if any([all([(Adj[test_graphlet,test_graphlet]^k)[i,:].>0 for i ∈ 1:k][i]) for i ∈1:k])
+					end
+					continue
+				end
+				for i_4 = pos[i_3+1]:pos[s-k+4]
+					if k == 4
+						test_graphlet = [i_1,i_2,i_3,i_4]
+						if any([all([(Adj[test_graphlet,test_graphlet]^k)[i,:].>0 for i ∈ 1:k][i]) for i ∈1:k])
+							list = list ∪ [test_graphlet]
+						end
+						continue
+					end
+					for i_5 = pos[i_4+1]:pos[s-k+5]
+						if k == 5
+							test_graphlet = [i_1,i_2,i_3,i_4,i_5]
+							if any([all([(Adj[test_graphlet,test_graphlet]^k)[i,:].>0 for i ∈ 1:k][i]) for i ∈1:k])
+								list = list ∪ [test_graphlet]
+							end
+							continue
+						end
+						for i_6 = pos[i_5+1]:pos[s-k+6]
+							if k == 6 
+								test_graphlet = [i_1,i_2,i_3,i_4,i_5,i_6]
+								if any([all([(Adj[test_graphlet,test_graphlet]^k)[i,:].>0 for i ∈ 1:k][i]) for i ∈1:k])
+									list = list ∪ [test_graphlet]
+								end
+							end
+						end
+					end
+				end
+			end
+		end
+	end
+	return list
+end
+
 ∅ = Vector{Int}[]
 
 @testset "con_sub_g" begin
@@ -107,6 +159,10 @@ end
     combos = sort.(combinations_with_v(1, 4, G))
     test_combos = sort.([[4, 2, 1, 5], [2, 3, 1, 5], [3, 4, 1, 5], [3, 2, 1, 4]])
     @test all(i in combos for i in test_combos) && all(i in test_combos for i in combos)
+
+    G_test_1 = MetaGraph.(smilestomol.("COP(=O)(OC)OC(Br)C(Cl)(Cl)Br"))
+
+    @test all(i in bf_con_sub_g(5,G_test_1) for i in sort(sort.(con_sub_g(5,G_test_1)))) && all(i in sort(sort.(con_sub_g(5,G_test_1))) for i in bf_con_sub_g(5,G_test_1))
 end
 
 end
