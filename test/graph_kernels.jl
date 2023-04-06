@@ -57,25 +57,8 @@ import MolecularGraphKernels:
     end
 
     @testset "All-Connected Graphlet Kernel" begin
-        G = begin
-            local graph = MetaGraph(5)
-            for v in vertices(graph)
-                set_prop!(graph, v, :visited, false)
-            end
-            add_edge!(graph, 1, 2)
-            add_edge!(graph, 1, 4)
-            add_edge!(graph, 1, 5)
-            add_edge!(graph, 2, 3)
-            add_edge!(graph, 2, 4)
-            add_edge!(graph, 3, 4)
-
-            for e in edges(graph)
-                set_prop!(graph, e, :label, 1)
-            end
-            graph
-        end
-
-        @test connected_graphlet(ProductGraph{Direct}(G); n=2:4) == 46
+        g₁, g₂ = smilestomol.(["NC=O", "CN(C=O)C=O"])
+        @test connected_graphlet(g₁, g₂; n=2:4) == 16
     end
 end
 
