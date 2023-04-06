@@ -1,8 +1,7 @@
 module Test_misc
 
 using Graphs, IOCapture, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
-include("is_isomorphic.jl")
-using .IsIsomorphic
+import MolecularGraphKernels: is_isomorphic
 
 """
 extracts the isomorphic subgraphs of the modular product graph via clique detection
