@@ -186,7 +186,7 @@ end
 """
 enumerate the set of sets of vertices comprising the size-`k` graphlets of `graph`
 """
-function con_sub_g(k::Int,graph::MetaGraph)::Vector{Vector{Int}}
+@memoize function con_sub_g(k::Int,graph::MetaGraph)::Vector{Vector{Int}}
 	G = deepcopy(graph)
 	for v in vertices(G)
 		set_prop!(G, v, :visited, false)
