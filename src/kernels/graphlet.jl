@@ -206,8 +206,8 @@ calculate the connected graphlet kernel for two graphs G₁ and G₂ using graph
 function connected_graphlet(G₁::MetaGraph,G₂::MetaGraph; n=2:4)::Int
 	count = 0
 	if length(n) == 1
-		cg1 = ConSubG(n, G₁)
-		cg2 = ConSubG(n, G₂)
+		cg1 = con_sub_g(n, G₁)
+		cg2 = con_sub_g(n, G₂)
 		count = count + sum([
 			is_isomorphic(
 				induced_subgraph(G₁, cg1[i])[1],
@@ -217,8 +217,8 @@ function connected_graphlet(G₁::MetaGraph,G₂::MetaGraph; n=2:4)::Int
 				 ])*n
 	else
 		for k in n
-		    cg1 = ConSubG(k, G₁)
-		    cg2 = ConSubG(k, G₂)
+		    cg1 = con_sub_g(k, G₁)
+		    cg2 = con_sub_g(k, G₂)
 		    count = count + sum([
 		        is_isomorphic(
 		            induced_subgraph(G₁, cg1[i])[1],
