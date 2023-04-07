@@ -157,7 +157,7 @@ const ∅ = Vector{Int}[]
 """
 union product
 """
-function ⊗ₜ(S₁,S₂,tree)
+function ⊗ₜ(S₁, S₂, tree)
     unionproduct = Vector{Int}[]
     if S₁ == ∅
         return unionproduct
@@ -165,16 +165,17 @@ function ⊗ₜ(S₁,S₂,tree)
     if S₂ == ∅
         return S₁
     else
-        for s₁ ∈ S₁
-            for s₂ ∈ S₂
+        for s₁ in S₁
+            for s₂ in S₂
                 no_union = false
                 new_ct = any([tree[v].new for v in s₂])
-                for i ∈ s₁
-                    vᵢ=tree[i].vertex
-                    childrenᵢ = [tree[i].children[v].vertex for v in 1:length(tree[i].children)]
-                    for j ∈ s₂
-                        vⱼ=tree[j].vertex
-                        if vᵢ == vⱼ || (!new_ct && in(childrenᵢ.==vⱼ)(1)==true)
+                for i in s₁
+                    vᵢ = tree[i].vertex
+                    childrenᵢ =
+                        [tree[i].children[v].vertex for v in 1:length(tree[i].children)]
+                    for j in s₂
+                        vⱼ = tree[j].vertex
+                        if vᵢ == vⱼ || (!new_ct && in(childrenᵢ .== vⱼ)(1) == true)
                             no_union = true
                         end
                     end
@@ -184,7 +185,7 @@ function ⊗ₜ(S₁,S₂,tree)
                 end
             end
         end
-    return unionproduct
+        return unionproduct
     end
 end
 
@@ -192,11 +193,11 @@ end
 generate the size-`k` node combinations from `tree` starting at `st_root`
 """
 @memoize function combinations_from_tree(tree, k::Int, stRoot::Int=1)::Vector{Vector{Int}}
-    t=stRoot
+    t = stRoot
     lnodesets = Vector{Int}[]
     k == 1 && return [[t]]
     childrenₜ = [tree[t].children[v].node for v in 1:length(tree[t].children)]
-    for i = 1:minimum([length(childrenₜ), k-1])
+    for i in 1:minimum([length(childrenₜ), k - 1])
         for nodecombo in k_combinations(i, childrenₜ)
             for string in k_compositions(i, k - 1)
                 S = Dict{Int, Any}()
@@ -204,14 +205,18 @@ generate the size-`k` node combinations from `tree` starting at `st_root`
                 for pos in 1:i
                     stRoot = nodecombo[pos]
                     size = string[pos]
-                    S[pos] = combinations_from_tree(tree,size,stRoot)
+                    S[pos] = combinations_from_tree(tree, size, stRoot)
                     if S[pos] == []
-                        fail  = true
+                        fail = true
                         break
                     end
                 end
                 fail && continue
-                for comproduct in reduce((a,b)->⊗ₜ(a,b,tree), [S[i] for i in 1:length(S)])
+                for comproduct in
+                    reduce((a, b) -> ⊗ₜ(a, b, tree), [S[i] for i in 1:length(S)])
+                    #? I will give $10 to whoever explains why S, [S...], 
+                    #? and [S[i] for i in eachindex(S)] don't work!!
+                    #? 100 % serious. - Adrian
                     lnodesets = lnodesets ∪ [comproduct ∪ [t]]
                 end
             end
@@ -232,7 +237,7 @@ end
 """
 enumerate the set of sets of vertices comprising the size-`k` graphlets of `graph`
 """
-@memoize function con_sub_g(k::Int,graph::MetaGraph)::Vector{Vector{Int}}
+@memoize function con_sub_g(k::Int, graph::MetaGraph)::Vector{Vector{Int}}
     G = deepcopy(graph)
     for v in vertices(G)
         set_prop!(G, v, :visited, false)
@@ -240,8 +245,8 @@ enumerate the set of sets of vertices comprising the size-`k` graphlets of `grap
     list = Vector{Int}[]
     queue = reverse(vertices(G))
     for v in queue
-        list = list ∪ combinations_with_v(v,k,G)
-        rem_vertex!(G,v)
+        list = list ∪ combinations_with_v(v, k, G)
+        rem_vertex!(G, v)
     end
     return list
 end
@@ -252,13 +257,11 @@ calculate the connected graphlet kernel for two graphs G₁ and G₂ using graph
 function connected_graphlet(G₁::MetaGraph, G₂::MetaGraph; n=2:4)::Int
     c = 0
     for k in (length(n) == 1 ? [n] : n)
-        c += k * count(
-            is_isomorphic(
-                induced_subgraph(G₁, cgi)[1],
-                induced_subgraph(G₂, cgj)[1]
+        c +=
+            k * count(
+                is_isomorphic(induced_subgraph(G₁, cgi)[1], induced_subgraph(G₂, cgj)[1])
+                for cgi in con_sub_g(k, G₁) for cgj in con_sub_g(k, G₂)
             )
-            for cgi in con_sub_g(k, G₁) for cgj in con_sub_g(k, G₂)
-        )
     end
     return c
 end
