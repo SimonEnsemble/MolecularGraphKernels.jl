@@ -1,6 +1,6 @@
 module Test_graph_kernels
 
-using MolecularGraph, MolecularGraphKernels, Test, Graphs, MetaGraphs
+using MolecularGraph, MolecularGraphKernels, Test
 
 @testset verbose = true "Graph Kernels" begin
     @testset "Random Walk" begin
