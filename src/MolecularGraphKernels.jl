@@ -2,11 +2,13 @@ module MolecularGraphKernels
 
 using Cairo,
     Colors,
+    Combinatorics,
     Compose,
     Distributed,
     GraphPlot,
     Graphs,
     JLD2,
+    Memoization,
     MetaGraphs,
     MolecularGraph,
     PeriodicTable,

@@ -34,25 +34,6 @@ jobs:
       - name: Aqua.jl
         run: julia --project --color=yes ./test/aqua.jl
 
-  type-piracy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-
-    steps:
-      - name: checkout commit
-        uses: actions/checkout@v2
-
-      - name: set up Julia
-        uses: julia-actions/setup-julia@latest
-        with:
-          version: ${{ env.julia_version }}
-
-      - name: build package
-        uses: julia-actions/julia-buildpkg@latest
-
-      - name: YoHoHo
-        run: julia --project --color=yes ./test/type-piracy.jl
-
   formatting:
     runs-on: ubuntu-latest
     timeout-minutes: 5

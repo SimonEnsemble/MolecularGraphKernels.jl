@@ -46,6 +46,11 @@ using MolecularGraph, MolecularGraphKernels, Test
         @test ccsi(mpg) == 13
         @test ccsi(mpg; λ=sum) == 22
     end
+
+    @testset "All-Connected Graphlet Kernel" begin
+        g₁, g₂ = MetaGraph.(smilestomol.(["NC=O", "CN(C=O)C=O"]))
+        @test connected_graphlet(g₁, g₂; n=2:4) == 16
+    end
 end
 
 end
