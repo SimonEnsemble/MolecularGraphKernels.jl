@@ -1,15 +1,6 @@
 module Test_graph_kernels
 
 using MolecularGraph, MolecularGraphKernels, Test, Graphs, MetaGraphs
-import MolecularGraphKernels:
-    Node,
-    Tree,
-    ⊗ₜ,
-    k_combinations,
-    k_compositions,
-    con_sub_g,
-    combinations_from_tree,
-    combinations_with_v
 
 @testset verbose = true "Graph Kernels" begin
     @testset "Random Walk" begin
