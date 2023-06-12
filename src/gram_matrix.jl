@@ -148,4 +148,26 @@ function gm_norm(mat::Matrix{<:Real})::Matrix{Float64}
     return m
 end
 
-export gram_matrix, gm_norm
+"""
+calculate length-n vector for kernel between one molecule and a vector of others
+"""
+function kernel_vector(
+    kernel::Function,
+    new_molecule::AbstractMetaGraph,
+    old_molecules::Vector{<:AbstractMetaGraph},
+    normalize_on::Union{Nothing, Vector, Matrix}=nothing;
+    kwargs...
+)::Vector{Float64}
+    kvec = kernel.([new_molecule], old_molecules; kwargs...)
+    if !isnothing(normalize_on)
+        if isa(normalize_on, Vector)
+            kvec ./= normalize_on
+        else
+            kvec ./= diag(normalize_on)
+        end
+    else
+        return kvec
+    end
+end
+
+export gram_matrix, gm_norm, kernel_vector
