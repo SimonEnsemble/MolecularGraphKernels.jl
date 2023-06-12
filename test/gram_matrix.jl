@@ -47,7 +47,8 @@ using LinearAlgebra, MolecularGraph, MolecularGraphKernels, Test
     end
 
     @testset "Kernel vector" begin
-        @test kernel_vector(random_walk, graphs[1], graphs; l=4) == gram_matrix(random_walk, graphs; l=4)[:, 1]
+        @test kernel_vector(random_walk, graphs[1], graphs; l=4) ==
+              gram_matrix(random_walk, graphs; l=4)[:, 1]
         gm = gram_matrix(random_walk, graphs; l=4)
         ngm = gm_norm(gm)
         @test kernel_vector(random_walk, graphs[1], graphs, gm; l=4) == ngm[:, 1]
