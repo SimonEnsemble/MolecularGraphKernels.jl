@@ -143,7 +143,7 @@ end
 
 viz_graph(mol::GraphMol, opt::VizGraphKwargs) = viz_graph(MetaGraph(mol), opt)
 
-function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
+function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs; viz_node_colors)
     layout = select_graph_layout(opt.layout_style, opt.C)
     x_coords, y_coords = layout(graph)
 
