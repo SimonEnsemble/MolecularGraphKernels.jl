@@ -5,6 +5,10 @@ Base.@kwdef struct VizGraphKwargs
     layout_style::Symbol = :spring
     node_alpha_mask::Vector{S} where {S <: Real}
     edge_alpha_mask::Vector{T} where {T <: Real}
+    viz_edge_labels::Function = viz_edge_labels
+    viz_edge_colors::Function = viz_edge_colors
+    viz_node_colors::Function = viz_node_colors
+    viz_node_labels::Function = viz_node_labels
 end
 
 function VizGraphKwargs(mol::GraphMol; kwargs...)
@@ -117,7 +121,7 @@ end
 """
 apply the alpha mask to edge/node colors
 """
-function alpha_mask!(color::Vector{RGBA}, mask::Vector{T}) where {T <: Real}
+function alpha_mask!(color::Vector{C}, mask::Vector{T}) where {T <: Real, C <: RGBA}
     for (i, α) in enumerate(mask)
         color[i] = RGBA(color[i].r, color[i].g, color[i].b, α)
     end
@@ -143,20 +147,20 @@ end
 
 viz_graph(mol::GraphMol, opt::VizGraphKwargs) = viz_graph(MetaGraph(mol), opt)
 
-function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs; viz_node_colors=viz_node_colors)
+function viz_graph(graph::AbstractMetaGraph, opt::VizGraphKwargs)
     layout = select_graph_layout(opt.layout_style, opt.C)
     x_coords, y_coords = layout(graph)
 
-    edgelabel = viz_edge_labels(graph)
+    edgelabel = opt.viz_edge_labels(graph)
     alpha_mask!(edgelabel, opt.edge_alpha_mask)
 
-    edgestrokec = viz_edge_colors(graph, edgelabel)
+    edgestrokec = opt.viz_edge_colors(graph, edgelabel)
     alpha_mask!(edgestrokec, opt.edge_alpha_mask)
 
-    nodefillc = viz_node_colors(graph)
+    nodefillc = opt.viz_node_colors(graph)
     alpha_mask!(nodefillc, opt.node_alpha_mask)
 
-    nodelabel = viz_node_labels(graph)
+    nodelabel = opt.viz_node_labels(graph)
     alpha_mask!(nodelabel, opt.node_alpha_mask)
 
     plot = gplot(
