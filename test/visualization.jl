@@ -1,6 +1,6 @@
 module Test_visualization
 
-using Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
+using Colors, Graphs, MetaGraphs, MolecularGraph, MolecularGraphKernels, Test
 import MolecularGraphKernels: VizGraphKwargs
 
 function test_vis(graph, graph_name, set_name; kwargs...)
@@ -66,6 +66,13 @@ end
     g₂ = MetaGraph(smilestomol("COP(N)(=O)SC"))
     dpg = ProductGraph{Direct}(g₁, g₂)
     test_vis(dpg, "bee-tox", "example"; C=5)
+end
+
+@testset verbose = true "Custom style functions" begin
+    smi = "CC1C(O)C(O)C(O)C(O1)OC(C2=O)C(c(c3)ccc(O)c3O)Oc(c24)cc(O)cc4O"
+    g = MetaGraph(smilestomol(smi))
+    viz_node_colors(g) = [RGBA(1 - w, 0, w) for w in rand(nv(g))]
+    test_vis(g, "custom-style", "random color"; viz_node_colors)
 end
 
 end
