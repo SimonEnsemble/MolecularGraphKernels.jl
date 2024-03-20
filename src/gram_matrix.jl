@@ -14,7 +14,7 @@ function gram_matrix(
     result_channel = RemoteChannel(() -> Channel{Tuple}(length(workers())))
 
     # push jobs to channel
-    progress = ProgressUnknown("Pushing jobs to queue "; spinner=true)
+    progress = ProgressUnknown(; desc="Pushing jobs to queue ", spinner=true)
     for job in jobs
         @async errormonitor(put!(job_channel, job))
         next!(progress)
